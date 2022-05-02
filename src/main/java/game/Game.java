@@ -14,6 +14,8 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.swing.SwingWorker;
+
 import application.Algorithm;
 import application.Algorithm.AlgorithmSettings;
 import application.Algorithm.LocationPair;
@@ -114,15 +116,24 @@ public class Game implements PropertyChangeListener {
 		Player currentPlayer = this.getCurrentPlayer();
 		currentPlayer.addNewMissionCards(missionCards);
 		if (fireProperty) {
-			new Thread(() -> this.calculateMissionCards(missionCards, currentPlayer)).start();
-			new Thread(() -> new MissionCardHelperFrame(currentPlayer)).start();
+			SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+
+				@Override
+				protected Void doInBackground() throws Exception {
+					Game.this.calculateMissionCards(missionCards, currentPlayer);
+					return null;
+				}
+			};
+			worker.execute();
+			new MissionCardHelperFrame(currentPlayer);
 		}
 		this.nextPlayer();
 	}
 
 	private void calculateMissionCards(List<MissionCard> missionCards, Player currentPlayer) {
 		List<List<LocationPair>> pairs = Game.subsets(missionCards.stream().map(m -> new LocationPair(m.getFromLocation(), m.getToLocation())).toList());
-		pairs.stream().sorted((o1, o2) -> Integer.compare(o1.size(), o2.size())).forEach(l -> Algorithm.findShortestPath(l, new AlgorithmSettings(currentPlayer), false));
+		AlgorithmSettings settings = new AlgorithmSettings(currentPlayer);
+		pairs.stream().sorted((o1, o2) -> Integer.compare(o1.size(), o2.size())).forEach(l -> Algorithm.findShortestPath(l, settings));
 	}
 
 	private static List<List<LocationPair>> subsets(List<LocationPair> pairs) {
@@ -219,9 +230,9 @@ public class Game implements PropertyChangeListener {
 		Player oldValue = this.getCurrentPlayer();
 		this.currentPlayerCounter = (this.currentPlayerCounter + 1) % this.players.size();
 		this.currentPlayerColorCardDraws = 0;
-		new Thread(() -> this.fireAction(this, Property.PLAYERCHANGE, oldValue, this.getCurrentPlayer())).start();
+		this.fireAction(this, Property.PLAYERCHANGE, oldValue, this.getCurrentPlayer());
 		if (this.getCurrentPlayer() instanceof Computer com) {
-			new Thread(() -> com.nextMove()).start();
+			com.nextMove();
 		}
 	}
 
@@ -291,7 +302,7 @@ public class Game implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (Property.DRAWMISSIONCARDS.name().equals(evt.getPropertyName())) {
-			new Thread(() -> this.drawMissionCards((Map<Distance, Integer>) evt.getNewValue(), true)).start();
+			this.drawMissionCards((Map<Distance, Integer>) evt.getNewValue(), true);
 		}
 	}
 

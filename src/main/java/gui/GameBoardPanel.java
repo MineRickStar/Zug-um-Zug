@@ -25,6 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
 import application.Application;
+import application.StopWatch;
 import game.Game;
 import game.Path;
 import game.Player;
@@ -53,7 +54,10 @@ public class GameBoardPanel extends JPanel {
 	private Point hoveredPoint;
 	private SingleConnection hoveredConnection;
 
+	private StopWatch w;
+
 	public GameBoardPanel() {
+		this.w = new StopWatch();
 		MouseHelper mouseHelper = new MouseHelper();
 		this.addMouseWheelListener(mouseHelper);
 		this.addMouseListener(mouseHelper);
@@ -71,13 +75,20 @@ public class GameBoardPanel extends JPanel {
 
 	@Override
 	public void paint(Graphics g) {
+		this.w.newWatch();
 		this.resetScreen(g);
+		this.w.round("Reset");
 		super.paint(g);
+		this.w.round("Super Paint");
 
 		g.drawImage(this.germany, this.origin.x, this.origin.y, this.width, this.heigth, this);
+		this.w.round("DrawImage");
 
 		this.drawConnections(g);
+		this.w.round("Connections");
 		this.drawCities(g);
+		this.w.round("Cities");
+		System.out.println(this.w.toString());
 	}
 
 	private void resetScreen(Graphics g) {

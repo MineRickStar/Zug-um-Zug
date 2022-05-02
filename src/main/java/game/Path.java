@@ -1,6 +1,7 @@
 package game;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -9,29 +10,53 @@ import java.util.stream.Stream;
 
 import game.board.Location;
 import game.board.SingleConnection;
+import game.cards.TransportMode;
 
 public class Path implements Iterable<SingleConnection>, Cloneable {
 
 	private List<SingleConnection> connectionPath;
 	private int length;
+	private EnumMap<TransportMode, Integer> modes;
 
 	public Path() {
 		this.connectionPath = new ArrayList<>();
 		this.length = 0;
+		this.modes = this.calculateModes();
 	}
 
-	public Path(List<SingleConnection> connections, int length) {
+	public Path(List<SingleConnection> connections) {
 		this.connectionPath = connections;
+		this.length = connections.stream().map(s -> s.parentConnection.length).reduce((byte) 0, (t, u) -> (byte) (t + u));
+		this.modes = this.calculateModes();
+	}
+
+	private Path(List<SingleConnection> connections, int length, EnumMap<TransportMode, Integer> modes) {
+		this.connectionPath = new ArrayList<>(connections);
 		this.length = length;
+		this.modes = modes;
+	}
+
+	private EnumMap<TransportMode, Integer> calculateModes() {
+		EnumMap<TransportMode, Integer> map = new EnumMap<>(TransportMode.class);
+		for (TransportMode mode : TransportMode.values()) {
+			map.put(mode, 0);
+		}
+		this.connectionPath.stream().forEach(s -> map.put(s.transportMode, map.get(s.transportMode) + s.parentConnection.length));
+		return map;
 	}
 
 	public void addConnection(SingleConnection connection) {
 		this.connectionPath.add(connection);
 		this.length += connection.parentConnection.length;
+		this.modes.put(connection.transportMode, this.modes.get(connection.transportMode) + connection.parentConnection.length);
 	}
 
 	public SingleConnection get(int index) {
 		return this.connectionPath.get(index);
+	}
+
+	public EnumMap<TransportMode, Integer> getModes() {
+		return this.modes;
 	}
 
 	public int getLength() {
@@ -73,11 +98,6 @@ public class Path implements Iterable<SingleConnection>, Cloneable {
 	}
 
 	@Override
-	public Path clone() {
-		return new Path(new ArrayList<>(this.connectionPath), this.length);
-	}
-
-	@Override
 	public int hashCode() {
 		return Objects.hash(this.connectionPath, this.length);
 	}
@@ -96,11 +116,16 @@ public class Path implements Iterable<SingleConnection>, Cloneable {
 
 	@Override
 	public String toString() {
-		return "Path [length=" + this.length + ", connections=" + this.getConnections() + "Path="
+		return "Path [length=" + this.length + ", connections=" + this.getConnections() + ", Path="
 				+ this.connectionPath.stream()
 					.map(s -> s.parentConnection.fromLocation.name.substring(0, 2) + " -> " + s.parentConnection.toLocation.name.substring(0, 2))
 					.collect(Collectors.joining(", "))
-				+ ", ]";
+				+ "]";
+	}
+
+	@Override
+	public Path clone() {
+		return new Path(this.connectionPath, this.length, this.modes);
 	}
 
 }

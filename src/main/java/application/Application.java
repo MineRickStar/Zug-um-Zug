@@ -2,6 +2,8 @@ package application;
 
 import java.awt.Color;
 
+import javax.swing.SwingUtilities;
+
 import game.Game;
 import game.Player;
 import game.cards.MyColor;
@@ -14,11 +16,9 @@ public class Application {
 	public static Player player;
 
 	public static void main(String[] args) {
-		Application.player = Game.getInstance()
-				.addPlayer("Patrick", MyColor.GREEN);
-		Game.getInstance()
-				.addComputer("Computer", MyColor.RED);
-		Application.frame = new MyFrame();
+		Application.player = Game.getInstance().addPlayer("Patrick", MyColor.GREEN);
+		Game.getInstance().addComputer("Computer", MyColor.RED);
+		SwingUtilities.invokeLater(() -> Application.frame = new MyFrame());
 	}
 
 	public static Color getComplementaryColor(Color color) {

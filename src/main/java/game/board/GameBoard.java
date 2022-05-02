@@ -2,6 +2,7 @@ package game.board;
 
 import java.awt.Point;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,6 +10,11 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+import javax.swing.SwingWorker.StateValue;
 
 import application.Algorithm;
 import application.Algorithm.AlgorithmSettings;
@@ -126,10 +132,34 @@ public class GameBoard {
 			Application.frame.repaint();
 			return;
 		}
-		new Thread(() -> {
-			this.highlightedConnections = Algorithm.findShortestPath(locationPairs, new AlgorithmSettings(player), false);
-			Application.frame.repaint();
-		}).start();
+		SwingWorker<List<Path>, Void> worker = new SwingWorker<List<Path>, Void>() {
+
+			@Override
+			public List<Path> doInBackground() {
+				return Algorithm.findShortestPath(locationPairs, new AlgorithmSettings(player));
+			}
+
+			@Override
+			protected void done() {
+				try {
+					GameBoard.this.highlightedConnections = this.get();
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		worker.addPropertyChangeListener(evt -> {
+			if ("progress".equals(evt.getPropertyName())) {
+				if (StateValue.DONE.name().equals(evt.getNewValue())) {
+					try {
+						SwingUtilities.invokeAndWait(() -> Application.frame.repaint());
+					} catch (InvocationTargetException | InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		worker.execute();
 
 	}
 

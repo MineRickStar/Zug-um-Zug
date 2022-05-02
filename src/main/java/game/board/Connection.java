@@ -15,16 +15,14 @@ public class Connection {
 	public final byte multiplicity;
 	public final SingleConnection[] singleConnections;
 
-	public Connection(Location fromLocation, Location toLocation, byte length, byte multiplicity, MyColor[] colors,
-			TransportMode[] transportMode) {
+	public Connection(Location fromLocation, Location toLocation, byte length, byte multiplicity, MyColor[] colors, TransportMode[] transportMode) {
 		this.fromLocation = fromLocation;
 		this.toLocation = toLocation;
 		this.length = length;
 		this.multiplicity = multiplicity;
 		this.singleConnections = new SingleConnection[multiplicity];
 		for (int i = 0; i < multiplicity; i++) {
-			this.singleConnections[i] = new SingleConnection(this, colors[Math.min(colors.length - 1, i)],
-					transportMode[i], i);
+			this.singleConnections[i] = new SingleConnection(this, colors[Math.min(colors.length - 1, i)], transportMode[i]);
 		}
 	}
 
@@ -69,14 +67,13 @@ public class Connection {
 		for (int i = 0; i < this.singleConnections.length; i++) {
 			b &= this.singleConnections[i].color == other.singleConnections[i].color;
 		}
-		return b && Objects.equals(this.fromLocation, other.fromLocation) && (this.length == other.length)
-				&& (this.multiplicity == other.multiplicity) && Objects.equals(this.toLocation, other.toLocation);
+		return b && Objects.equals(this.fromLocation, other.fromLocation) && (this.length == other.length) && (this.multiplicity == other.multiplicity)
+				&& Objects.equals(this.toLocation, other.toLocation);
 	}
 
 	@Override
 	public String toString() {
-		return System.lineSeparator() + "Connection [From=" + this.fromLocation + ", To=" + this.toLocation
-				+ ", length=" + this.length + ", multipliticity=" + this.multiplicity + ", colors="
+		return System.lineSeparator() + "Connection [From=" + this.fromLocation + ", To=" + this.toLocation + ", length=" + this.length + ", multipliticity=" + this.multiplicity + ", colors="
 				+ Arrays.toString(this.singleConnections) + "]";
 	}
 

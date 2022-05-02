@@ -29,7 +29,7 @@ class AlgorithmTest {
 		AlgorithmSettings settings = new AlgorithmSettings();
 		Application.frame = new MyFrame();
 
-		List<Path> paths = Algorithm.findShortestPath(new ArrayList<>(List.of(p, p1)), settings, true);
+		List<Path> paths = Algorithm.findShortestPath(new ArrayList<>(List.of(p, p1)), settings);
 		Assert.assertFalse("No Path found", paths.size() == 0);
 		Path first = paths.get(0);
 		SingleConnection con = first.get(0);

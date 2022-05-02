@@ -1,6 +1,6 @@
 package game.board;
 
-import java.util.Objects;
+import java.util.UUID;
 
 import game.Player;
 import game.cards.ColorCard;
@@ -9,18 +9,19 @@ import game.cards.TransportMode;
 
 public class SingleConnection {
 
+	private final UUID ID;
+
 	public final Connection parentConnection;
 	public final MyColor color;
 	public final TransportMode transportMode;
-	private final int id;
 
 	private Player owner;
 
-	public SingleConnection(Connection parentConnection, MyColor color, TransportMode transportMode, int id) {
+	public SingleConnection(Connection parentConnection, MyColor color, TransportMode transportMode) {
+		this.ID = UUID.randomUUID();
 		this.parentConnection = parentConnection;
 		this.color = color;
 		this.transportMode = transportMode;
-		this.id = id;
 	}
 
 	public Player getOwner() {
@@ -37,7 +38,7 @@ public class SingleConnection {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.color, this.transportMode, this.id, this.owner, this.parentConnection);
+		return this.ID.hashCode();
 	}
 
 	@Override
@@ -45,8 +46,7 @@ public class SingleConnection {
 		if (this == obj) { return true; }
 		if ((obj == null) || (this.getClass() != obj.getClass())) { return false; }
 		SingleConnection other = (SingleConnection) obj;
-		return (this.color == other.color) && (this.id == other.id) && (this.transportMode == other.transportMode)
-				&& Objects.equals(this.parentConnection.fromLocation, other.parentConnection.fromLocation) && Objects.equals(this.parentConnection.toLocation, other.parentConnection.toLocation);
+		return this.ID.equals(other.ID);
 	}
 
 	@Override

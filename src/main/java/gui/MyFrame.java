@@ -52,8 +52,7 @@ public class MyFrame extends JFrame {
 		this.panel.setContinuousLayout(false);
 		this.panel.setDividerSize(0);
 
-		this.getContentPane()
-				.add(this.panel);
+		this.getContentPane().add(this.panel);
 		this.addMenuBar();
 		this.setVisible(true);
 		this.toFront();
@@ -70,8 +69,7 @@ public class MyFrame extends JFrame {
 
 		JMenuItem menuItem = new JMenuItem("Against Computer");
 
-		menuItem.addActionListener(e -> new Thread(() -> Game.getInstance()
-				.startComputerGame()).start());
+		menuItem.addActionListener(e -> Game.getInstance().startComputerGame());
 
 		menu.add(menuItem);
 
