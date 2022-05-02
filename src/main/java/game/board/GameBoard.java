@@ -1,0 +1,289 @@
+package game.board;
+
+import java.awt.Point;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import application.Algorithm;
+import application.Algorithm.AlgorithmSettings;
+import application.Algorithm.LocationPair;
+import application.Application;
+import csvCoder.Decode;
+import game.Game;
+import game.Path;
+import game.Player;
+import game.Rules;
+import game.cards.ColorCard;
+import game.cards.MissionCard;
+import game.cards.MissionCard.Distance;
+import game.cards.MissionCard.MissionCardConstraints;
+import game.cards.MyColor;
+import game.cards.TransportMode;
+
+public class GameBoard {
+
+	private Map<Distance, List<MissionCard>> missionCards;
+
+	private List<ColorCard> allCards;
+	private List<ColorCard> openCards;
+	private List<ColorCard> usedCards;
+
+	private List<Location> locations;
+	private List<Connection> connections;
+
+	private List<Path> highlightedConnections;
+
+	public GameBoard() {
+		this.locations = new ArrayList<>();
+		this.connections = new ArrayList<>();
+		this.loadLocations();
+		this.loadConnections();
+		this.missionCards = new EnumMap<>(Distance.class);
+		for (Distance distance : Distance.values()) {
+			this.missionCards.put(distance, new ArrayList<>());
+		}
+		this.readMissionCards();
+
+		this.allCards = new ArrayList<>();
+		this.openCards = new ArrayList<>();
+		this.usedCards = new ArrayList<>();
+		this.fillCards();
+	}
+
+	public void startGame() {
+		Collections.shuffle(this.missionCards.get(Distance.SHORT), Game.getInstance().getRandomGenerator());
+		Collections.shuffle(this.missionCards.get(Distance.LONG), Game.getInstance().getRandomGenerator());
+		this.shuffleCards();
+		for (int i = 0, max = Rules.getInstance().getColorCardsLayingDown(); i < max; i++) {
+			this.openCards.add(this.drawColorCard());
+		}
+	}
+
+	private void fillCards() {
+		for (MyColor color : MyColor.getNormalMyColors()) {
+			this.fillColor(Rules.getInstance().getTrainColorCardCount(), color, TransportMode.TRAIN);
+			this.fillColor(Rules.getInstance().getShipColorCardCount(), color, TransportMode.SHIP);
+			this.fillColor(Rules.getInstance().getAirplaneColorCardCount(), color, TransportMode.AIRPLANE);
+		}
+		this.fillColor(Rules.getInstance().getTrainRainbowCardColorCount(), MyColor.RAINBOW, TransportMode.TRAIN);
+		this.fillColor(Rules.getInstance().getShipRainbowColorCardCount(), MyColor.RAINBOW, TransportMode.SHIP);
+		this.fillColor(Rules.getInstance().getAirplaneRainbowColorCardCount(), MyColor.RAINBOW, TransportMode.AIRPLANE);
+	}
+
+	private void fillColor(int max, MyColor color, TransportMode transportMode) {
+		for (int i = 0; i < max; i++) {
+			this.allCards.add(new ColorCard(color, transportMode));
+		}
+	}
+
+	public ColorCard drawColorCard() {
+		if (this.allCards.size() == 0) {
+			if (this.usedCards.isEmpty()) { return null; }
+			this.allCards.addAll(this.usedCards);
+			this.usedCards.clear();
+			this.shuffleCards();
+		}
+		return this.allCards.remove(0);
+	}
+
+	public ColorCard drawCardFromOpenCards(int index) {
+		ColorCard colorCard = this.openCards.remove(index);
+		this.openCards.add(this.drawColorCard());
+		if (Rules.getInstance().isShuffleWithThreeLocomotives()
+				&& (this.openCards.stream().filter(c -> c != null).filter(c -> c.color() == MyColor.RAINBOW).count() == Rules.getInstance().getMaxOpenLocomotives())) {
+			this.usedCards.addAll(this.openCards);
+			this.openCards.clear();
+			for (int i = 0; i < Rules.getInstance().getColorCardsLayingDown(); i++) {
+				this.openCards.add(this.drawColorCard());
+			}
+		}
+		return colorCard;
+	}
+
+	public List<ColorCard> getOpenCards() {
+		return this.openCards;
+	}
+
+	public int getRemainingCards() {
+		return this.allCards.size();
+	}
+
+	public void addUsedCards(ColorCard color, int count) {
+		for (int i = 0; i <= count; i++) {
+			this.usedCards.add(color);
+		}
+	}
+
+	public void highlightConnection(List<LocationPair> locationPairs, Player player) {
+		if (locationPairs == null) {
+			this.highlightedConnections = null;
+			Application.frame.repaint();
+			return;
+		}
+		new Thread(() -> {
+			this.highlightedConnections = Algorithm.findShortestPath(locationPairs, new AlgorithmSettings(player), false);
+			Application.frame.repaint();
+		}).start();
+
+	}
+
+	public void setHighlightConnections(List<Path> paths) {
+		this.highlightedConnections = paths;
+	}
+
+	public List<Path> getHighlightedConnections() {
+		return this.highlightedConnections;
+	}
+
+	public MissionCard drawMissionCard(Distance distance) {
+		return this.missionCards.get(distance).remove(0);
+	}
+
+	public int getMissionCardCount(Distance distance) {
+		return this.missionCards.get(distance).size();
+	}
+
+	public void addNotUsedMissionCard(MissionCard missionCard) {
+		this.missionCards.get(missionCard.distance).add(missionCard);
+	}
+
+	public Map<Distance, List<MissionCard>> getMissionCards() {
+		return this.missionCards;
+	}
+
+	public int getMissionCardCount() {
+		return this.missionCards.size();
+	}
+
+	public List<Location> getLocations() {
+		return this.locations;
+	}
+
+	public List<Connection> getConnections() {
+		return this.connections;
+	}
+
+	public Connection getConnectionFromLocations(Location fromLocation, Location toLocation) {
+		return this.connections.parallelStream().filter(c -> {
+			if (c.fromLocation.equals(fromLocation) || c.fromLocation.equals(toLocation)) { return c.toLocation.equals(fromLocation) || c.toLocation.equals(toLocation); }
+			return false;
+		}).findAny().orElse(null);
+	}
+
+	private void loadLocations() {
+		try {
+			Decode decode = Decode.decode("Locations.txt");
+			while (decode.hasNext()) {
+				String[] line = decode.next();
+				String name = line[0];
+				int x = Integer.parseInt(line[1]);
+				int y = Integer.parseInt(line[2]);
+				Point p = new Point(x, y);
+				this.locations.add(new Location(name, p));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public Location getLocation(String locationName) {
+		Optional<Location> optional = this.locations.stream().filter(e -> locationName.equals(e.name)).findAny();
+		if (optional.isEmpty()) { return null; }
+		return optional.get();
+	}
+
+	private void loadConnections() {
+		try {
+			Decode decode = Decode.decode("Connections.txt");
+			while (decode.hasNext()) {
+				String[] line = decode.next();
+
+				Location fromLocation = this.getLocation(line[0]);
+				if (fromLocation == null) {
+					System.err.println("From Location not found " + line[0]);
+					continue;
+				}
+				Location toLocation = this.getLocation(line[1]);
+				if (toLocation == null) {
+					System.err.println("To Location not found " + line[1]);
+					continue;
+				}
+				byte length = 0;
+				byte multiplicity = 0;
+				try {
+					length = Byte.parseByte(line[2]);
+					multiplicity = Byte.parseByte(line[3]);
+				} catch (NumberFormatException nfe) {
+					System.err.println(Arrays.toString(line));
+					continue;
+				}
+				MyColor[] colors = new MyColor[multiplicity];
+				TransportMode[] transportMode = new TransportMode[multiplicity];
+				for (int i = 0; i < multiplicity; i++) {
+					colors[i] = MyColor.getMyColor(line[i + 4]);
+					transportMode[i] = TransportMode.getTransportMode(line[i + 4 + multiplicity]);
+				}
+				Connection connection = new Connection(fromLocation, toLocation, length, multiplicity, colors, transportMode);
+				fromLocation.addConnection(connection);
+				toLocation.addConnection(connection);
+				this.addConnection(connection);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void addConnection(Connection connection) {
+		if (!this.connections.contains(connection)) {
+			this.connections.add(connection);
+		} else {
+			System.err.println("Connection already saved: " + connection);
+		}
+	}
+
+	private void readMissionCards() {
+		try {
+			Decode decode = Decode.decode("Missioncards.txt");
+			while (decode.hasNext()) {
+				String[] line = decode.next();
+				Distance distance = Distance.findByAbbreviation(line[0]);
+				byte points = 0;
+				try {
+					points = Byte.parseByte(line[1]);
+				} catch (NumberFormatException nfe) {
+					System.err.println(Arrays.toString(line));
+					continue;
+				}
+				List<Location> locations = new ArrayList<>();
+				for (int i = 2; i < line.length; i++) {
+					locations.add(this.getLocation(line[i]));
+				}
+				MissionCardConstraints constraints = new MissionCardConstraints();
+				MissionCard missionCard = new MissionCard(distance, points, locations, constraints);
+				this.addMissionCard(missionCard);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void addMissionCard(MissionCard missionCard) {
+		List<MissionCard> cards = this.missionCards.get(missionCard.distance);
+		if (!cards.contains(missionCard)) {
+			cards.add(missionCard);
+		} else {
+			System.err.println("MissionCard already saved: " + missionCard);
+		}
+	}
+
+	public void shuffleCards() {
+		Collections.shuffle(this.allCards, Game.getInstance().getRandomGenerator());
+	}
+
+}
