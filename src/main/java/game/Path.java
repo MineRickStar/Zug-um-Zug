@@ -33,7 +33,7 @@ public class Path implements Iterable<SingleConnection>, Cloneable {
 	private Path(List<SingleConnection> connections, int length, EnumMap<TransportMode, Integer> modes) {
 		this.connectionPath = new ArrayList<>(connections);
 		this.length = length;
-		this.modes = modes;
+		this.modes = new EnumMap<>(modes);
 	}
 
 	private EnumMap<TransportMode, Integer> calculateModes() {

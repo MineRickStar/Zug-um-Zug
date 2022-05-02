@@ -79,7 +79,6 @@ public class Algorithm {
 		if (!this.isPathPossible(currentPath, this.settings)) { return; }
 		if (start.equals(end)) {
 			this.connectionList.add(currentPath);
-//			this.printWay(currentPath);
 			return;
 		}
 		List<Connection> connections = start.getConnectionsFromHere();
