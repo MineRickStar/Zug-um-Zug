@@ -2,7 +2,6 @@ package game.board;
 
 import java.awt.Point;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,7 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.SwingWorker.StateValue;
 
@@ -149,13 +147,9 @@ public class GameBoard {
 			}
 		};
 		worker.addPropertyChangeListener(evt -> {
-			if ("progress".equals(evt.getPropertyName())) {
-				if (StateValue.DONE.name().equals(evt.getNewValue())) {
-					try {
-						SwingUtilities.invokeAndWait(() -> Application.frame.repaint());
-					} catch (InvocationTargetException | InterruptedException e) {
-						e.printStackTrace();
-					}
+			if ("state".equals(evt.getPropertyName())) {
+				if ((StateValue) evt.getNewValue() == StateValue.DONE) {
+					Application.frame.repaint();
 				}
 			}
 		});

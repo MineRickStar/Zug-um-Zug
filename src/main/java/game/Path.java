@@ -59,12 +59,24 @@ public class Path implements Iterable<SingleConnection>, Cloneable {
 		return this.modes;
 	}
 
+	public int getLength(List<SingleConnection> list) {
+		return this.connectionPath.parallelStream().filter(s -> !list.contains(s)).mapToInt(s -> s.parentConnection.length).sum();
+	}
+
 	public int getLength() {
 		return this.length;
 	}
 
+	public int getConnections(List<SingleConnection> list) {
+		return this.connectionPath.parallelStream().filter(s -> !list.contains(s)).toList().size();
+	}
+
 	public int getConnections() {
 		return this.connectionPath.size();
+	}
+
+	public List<SingleConnection> getConnectionPath() {
+		return this.connectionPath;
 	}
 
 	public boolean containsLocation(Location location) {

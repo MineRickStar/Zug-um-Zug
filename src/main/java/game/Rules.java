@@ -204,6 +204,10 @@ public class Rules {
 		this.airplaneCount = airplaneCount;
 	}
 
+	public int getCarrigeCount() {
+		return this.trainCount + this.shipCount + this.airplaneCount;
+	}
+
 	public EnumMap<TransportMode, Integer> getTransportMap() {
 		EnumMap<TransportMode, Integer> map = new EnumMap<>(TransportMode.class);
 		map.put(TransportMode.TRAIN, this.getTrainCount());

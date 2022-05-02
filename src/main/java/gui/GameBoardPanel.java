@@ -88,7 +88,7 @@ public class GameBoardPanel extends JPanel {
 		this.w.round("Connections");
 		this.drawCities(g);
 		this.w.round("Cities");
-		System.out.println(this.w.toString());
+//		System.out.println(this.w.toString());
 	}
 
 	private void resetScreen(Graphics g) {

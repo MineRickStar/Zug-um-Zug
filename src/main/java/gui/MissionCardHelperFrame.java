@@ -45,8 +45,7 @@ public class MissionCardHelperFrame extends JFrame implements ItemListener {
 
 			@Override
 			public void windowClosed(WindowEvent e) {
-				Game.getInstance()
-						.highlightConnection(null, player);
+				Game.getInstance().highlightConnection(null, player);
 			}
 		});
 		this.setLayout(new GridBagLayout());
@@ -63,21 +62,12 @@ public class MissionCardHelperFrame extends JFrame implements ItemListener {
 
 		JButton okButton = new JButton("OK");
 		okButton.addActionListener(e -> {
-			int count = player.getMissionCards()
-					.size() == 0 ? Rules.getInstance()
-							.getFirstMissionCardsKeeping()
-							: Rules.getInstance()
-									.getDefaultMissionCardsKeeping();
-			if (this.missionPanels.stream()
-					.filter(p -> p.showMissionButton.isSelected())
-					.count() < count) {
+			int count = player.getMissionCards().size() == 0 ? Rules.getInstance().getFirstMissionCardsKeeping() : Rules.getInstance().getDefaultMissionCardsKeeping();
+			if (this.missionPanels.stream().filter(p -> p.showMissionButton.isSelected()).count() < count) {
 				JOptionPane.showMessageDialog(this, String.format("Please select at least %d Missions", count));
 				return;
 			}
-			List<MissionCard> missionCards = this.missionPanels.stream()
-					.filter(p -> p.showMissionButton.isSelected())
-					.map(p -> p.missionCardPanel.missionCard)
-					.toList();
+			List<MissionCard> missionCards = this.missionPanels.stream().filter(p -> p.showMissionButton.isSelected()).map(p -> p.missionCardPanel.missionCard).toList();
 			missionCards.forEach(player::addMissionCard);
 			Application.frame.revalidate();
 			Application.frame.repaint();
@@ -127,12 +117,10 @@ public class MissionCardHelperFrame extends JFrame implements ItemListener {
 	@Override
 	public void itemStateChanged(ItemEvent e) {
 		List<LocationPair> pairs = this.missionPanels.stream()
-				.filter(p -> p.showMissionButton.isSelected())
-				.map(p -> new LocationPair(p.missionCardPanel.missionCard.getFromLocation(),
-						p.missionCardPanel.missionCard.getToLocation()))
-				.toList();
-		Game.getInstance()
-				.highlightConnection(new ArrayList<>(pairs), this.player);
+			.filter(p -> p.showMissionButton.isSelected())
+			.map(p -> new LocationPair(p.missionCardPanel.missionCard.getFromLocation(), p.missionCardPanel.missionCard.getToLocation()))
+			.toList();
+		Game.getInstance().highlightConnection(new ArrayList<>(pairs), this.player);
 	}
 
 }

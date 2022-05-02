@@ -232,7 +232,7 @@ public class Game implements PropertyChangeListener {
 		this.currentPlayerColorCardDraws = 0;
 		this.fireAction(this, Property.PLAYERCHANGE, oldValue, this.getCurrentPlayer());
 		if (this.getCurrentPlayer() instanceof Computer com) {
-			com.nextMove();
+			new Thread(() -> com.nextMove()).start();
 		}
 	}
 

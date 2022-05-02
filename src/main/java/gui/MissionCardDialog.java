@@ -4,10 +4,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,26 +22,17 @@ import game.Game;
 import game.Rules;
 import game.cards.MissionCard.Distance;
 
-public class MissionCardDialog extends JDialog implements PropertyChangeListener {
+public class MissionCardDialog extends JDialog {
 
 	private static final long serialVersionUID = 3371834066035120352L;
 
 	private final boolean start;
-
-	private EnumMap<Distance, Integer> missionCards;
 
 	// TODO rework because missionCards are not drawn when selected
 	public MissionCardDialog(boolean start) {
 		super(Application.frame, "Draw Mission Cards", true);
 		this.start = start;
 		this.setResizable(false);
-		this.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-				MissionCardDialog.this.missionCards = new EnumMap<>(Distance.class);
-			}
-		});
-
 		JPanel panel = new JPanel(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
 
@@ -75,20 +62,13 @@ public class MissionCardDialog extends JDialog implements PropertyChangeListener
 
 		JButton okButton = new JButton("OK");
 		okButton.addActionListener(e -> {
-			this.missionCards = new EnumMap<>(Distance.class);
-			distanceSlider.entrySet()
-					.forEach(entry -> this.missionCards.put(entry.getKey(), entry.getValue()
-							.getValue()));
-			if (this.missionCards.values()
-					.stream()
-					.collect(Collectors.summingInt(Integer::intValue)) == Rules.getInstance()
-							.getMissionCardsDrawing()) {
-				Game.getInstance()
-						.fireAction(this, Property.DRAWMISSIONCARDS, null, this.missionCards);
+			EnumMap<Distance, Integer> missionCards = new EnumMap<>(Distance.class);
+			distanceSlider.entrySet().forEach(entry -> missionCards.put(entry.getKey(), entry.getValue().getValue()));
+			if (missionCards.values().stream().collect(Collectors.summingInt(Integer::intValue)) == Rules.getInstance().getMissionCardsDrawing()) {
+				Game.getInstance().fireAction(this, Property.DRAWMISSIONCARDS, null, missionCards);
 				this.dispose();
 			} else {
-				JOptionPane.showMessageDialog(this, "The sum of all Mission Cards must be " + Rules.getInstance()
-						.getMissionCardsDrawing());
+				JOptionPane.showMessageDialog(this, "The sum of all Mission Cards must be " + Rules.getInstance().getMissionCardsDrawing());
 			}
 		});
 
@@ -114,15 +94,10 @@ public class MissionCardDialog extends JDialog implements PropertyChangeListener
 	}
 
 	private JSlider getMissionCardSlider(Distance distance) {
-		int distanceCards = Game.getInstance()
-				.getMissionCardCount(distance);
-		JSlider slider = new JSlider(SwingConstants.HORIZONTAL, 0, Math.min(distanceCards, Rules.getInstance()
-				.getMissionCardsDrawing()), Math.min(
-						Math.min(distanceCards, Rules.getInstance()
-								.getMissionCardsDrawing()),
-						2));
-		if (Game.getInstance()
-				.getMissionCardCount(distance) == 0) {
+		int distanceCards = Game.getInstance().getMissionCardCount(distance);
+		JSlider slider = new JSlider(SwingConstants.HORIZONTAL, 0, Math.min(distanceCards, Rules.getInstance().getMissionCardsDrawing()),
+				Math.min(Math.min(distanceCards, Rules.getInstance().getMissionCardsDrawing()), 2));
+		if (Game.getInstance().getMissionCardCount(distance) == 0) {
 			slider.setEnabled(false);
 		}
 		slider.setMinorTickSpacing(1);
@@ -133,12 +108,5 @@ public class MissionCardDialog extends JDialog implements PropertyChangeListener
 		slider.setPaintTrack(true);
 		return slider;
 	}
-
-	public EnumMap<Distance, Integer> getMissionCards() {
-		return this.missionCards;
-	}
-
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {}
 
 }

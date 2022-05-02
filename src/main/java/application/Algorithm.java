@@ -1,7 +1,6 @@
 package application;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -14,7 +13,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import game.Game;
 import game.Path;
@@ -50,18 +51,17 @@ public class Algorithm {
 		if (bestPaths != null) { return bestPaths; }
 		bestPaths = new ArrayList<>();
 		this.settings = settings;
-
-		Map<LocationPair, List<Path>> paths = new HashMap<>();
+		// TODO Leipzig Ulm is kaputt? Wieso
+		Map<LocationPair, SortedMap<Integer, List<Path>>> rankings = new HashMap<>();
 		for (LocationPair pair : locationPairs) {
 			this.createPathsList(pair);
-			paths.put(pair, this.connectionList);
-			System.out.println("next");
+			rankings.put(pair, this.getRankings(this.connectionList));
 		}
-
-		// TODO besserer algorithmus
-		Iterator<LocationPair> iterator = locationPairs.iterator();
-		while (iterator.hasNext()) {
-			bestPaths.add(paths.get(iterator.next()).get(0));
+		SortedMap<Integer, List<Path>> locationPairRanking = new TreeMap<>();
+		for (LocationPair pair : locationPairs) {
+			bestPaths = locationPairRanking.getOrDefault(1, new ArrayList<>());
+			SortedMap<Integer, List<Path>> path = rankings.get(pair);
+			bestPaths.add(path.get(path.firstKey()).get(0));
 		}
 		this.cache.addConnection(locationPairs, settings, bestPaths);
 		return bestPaths;
@@ -74,7 +74,7 @@ public class Algorithm {
 	}
 
 	private void calculatePaths(Location start, Location end, Path currentPath) {
-		this.printWay(currentPath);
+//		this.printWay(currentPath);
 		this.highlight(currentPath);
 		if (!this.isPathPossible(currentPath, this.settings)) { return; }
 		if (start.equals(end)) {
@@ -104,45 +104,73 @@ public class Algorithm {
 		}
 	}
 
-	// TODO connection length gleich mit speichern
-	private Map<LocationPair, SortedMap<Integer, List<Path>>> sortByConnectionLength(Map<LocationPair, SortedMap<Integer, List<Path>>> shortestPathRankings) {
-		Map<LocationPair, SortedMap<Integer, List<SingleConnection[]>>> connectionMap = new HashMap<>();
-		for (Entry<LocationPair, SortedMap<Integer, List<Path>>> entry : shortestPathRankings.entrySet()) {
-			SortedMap<Integer, List<Path>> connectionRankingMap = new TreeMap<>();
-			entry.getValue().values().parallelStream().flatMap(Collection::stream).forEach(s -> {
-				int length = s.getLength();
-				connectionRankingMap.get(length);
-			});
+	private SortedMap<Integer, List<Path>> getRankings(List<Path> paths) {
+		List<Integer> mins = this.getMinimum(paths);
+		List<Integer> max = this.getMaximum(paths);
+		SortedMap<Integer, List<Path>> rankings = new TreeMap<>();
+		IntStream.rangeClosed(1, this.getDifference(max, mins)).forEach(i -> rankings.put(i, new ArrayList<>()));
+		for (Path path : paths) {
+			rankings.get(this.getDifference(this.getList(path), mins)).add(path);
 		}
+		return rankings;
+	}
 
-		return null;
+	private List<Integer> getList(Path path) {
+		int length = path.getLength(this.settings.availableConnections);
+		int connections = path.getConnections(this.settings.availableConnections);
+		return List.of(length, connections);
+	}
+
+	private List<Integer> getMinimum(List<Path> paths) {
+		int length = paths.parallelStream().mapToInt(value -> value.getLength(this.settings.availableConnections)).reduce(Integer::min).orElse(-1);
+		int connections = paths.parallelStream().mapToInt(value -> value.getConnections(this.settings.availableConnections)).reduce(Integer::min).orElse(-1);
+		return List.of(length, connections);
+	}
+
+	private List<Integer> getMaximum(List<Path> paths) {
+		int length = paths.parallelStream().mapToInt(value -> value.getLength(this.settings.availableConnections)).reduce(Integer::max).orElse(-1);
+		int connections = paths.parallelStream().mapToInt(value -> value.getConnections(this.settings.availableConnections)).reduce(Integer::max).orElse(-1);
+		return List.of(length, connections);
+	}
+
+	private int getDifference(List<Integer> list1, List<Integer> list2) {
+		int diff = 1;
+		for (int i = 0; i < list1.size(); i++) {
+			diff += list1.get(i) - list2.get(i);
+		}
+		return diff;
+	}
+
+	private Map<LocationPair, SortedMap<Integer, List<Path>>> sortByConnectionLength(Map<LocationPair, List<Path>> paths) {
+		return this.sortByWhat(paths, Path::getLength, Rules.getInstance().getCarrigeCount());
+	}
+
+	private Map<LocationPair, SortedMap<Integer, List<Path>>> sortByConnectionCount(Map<LocationPair, List<Path>> paths) {
+		return this.sortByWhat(paths, Path::getConnections, this.settings.pathSegments + 1);
+	}
+
+	private Map<LocationPair, SortedMap<Integer, List<Path>>> sortByWhat(Map<LocationPair, List<Path>> paths, ToIntFunction<Path> sortFunction, int maxCount) {
+		Map<LocationPair, SortedMap<Integer, List<Path>>> connectionMap = new HashMap<>();
+		for (Entry<LocationPair, List<Path>> entry : paths.entrySet()) {
+			SortedMap<Integer, List<Path>> connectionRankingMap = new TreeMap<>();
+			IntStream.range(0, maxCount).forEach(i -> connectionRankingMap.put(i, new ArrayList<>()));
+			for (Path path : entry.getValue()) {
+				connectionRankingMap.get(sortFunction.applyAsInt(path)).add(path);
+			}
+			connectionRankingMap.values().removeIf(List::isEmpty);
+			connectionMap.put(entry.getKey(), connectionRankingMap);
+		}
+		return connectionMap;
 	}
 
 	private boolean isPathPossible(Path path, AlgorithmSettings settings) {
 		if (path.getConnections() > settings.pathSegments) { return false; }
 		if (path.getLength() == 0) { return true; }
-//		long time = System.nanoTime();
-//		EnumMap<TransportMode, Integer> map = new EnumMap<>(TransportMode.class);
-//		for (TransportMode mode : TransportMode.values()) {
-//			map.put(mode, 0);
-//		}
-//		path.stream().forEach(s -> map.put(s.transportMode, map.get(s.transportMode) + s.parentConnection.length));
-//		map = path.stream()
-//			.collect(Collector.of(() -> new EnumMap<TransportMode, Integer>(TransportMode.class), (t, u) -> t.put(u.transportMode, t.getOrDefault(u.transportMode, 0) + u.parentConnection.length),
-//					(t, u) -> {
-//						Iterator<Entry<TransportMode, Integer>> it = u.entrySet().iterator();
-//						while (it.hasNext()) {
-//							Entry<TransportMode, Integer> entry = it.next();
-//							t.put(entry.getKey(), t.getOrDefault(entry.getKey(), 0) + entry.getValue());
-//						}
-//						return t;
-//					}));
 		Iterator<Entry<TransportMode, Integer>> iterator = path.getModes().entrySet().iterator();
 		while (iterator.hasNext()) {
 			Entry<TransportMode, Integer> entry = iterator.next();
 			if (entry.getValue() > settings.carrigesLeft.get(entry.getKey())) { return false; }
 		}
-//		System.out.println(System.nanoTime() - time);
 		return true;
 	}
 
@@ -154,8 +182,6 @@ public class Algorithm {
 	}
 
 	private void printWay(Path path) {
-//		System.out.println(path.stream().map(s -> s.parentConnection.length).reduce((byte) 0, (t, u) -> (byte) (t + u)) + " "
-//				+ path.stream().map(s -> s.parentConnection.fromLocation.name.substring(0, 2) + " -> " + s.parentConnection.toLocation.name.substring(0, 2)).collect(Collectors.joining(", ")));
 		System.out.println(path);
 	}
 
