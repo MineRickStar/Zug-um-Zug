@@ -16,23 +16,20 @@ public class Path implements Iterable<SingleConnection>, Cloneable {
 
 	private List<SingleConnection> connectionPath;
 	private int length;
+	private int connections;
 	private EnumMap<TransportMode, Integer> modes;
 
 	public Path() {
 		this.connectionPath = new ArrayList<>();
 		this.length = 0;
+		this.connections = 0;
 		this.modes = this.calculateModes();
 	}
 
-	public Path(List<SingleConnection> connections) {
-		this.connectionPath = connections;
-		this.length = connections.stream().map(s -> s.parentConnection.length).reduce((byte) 0, (t, u) -> (byte) (t + u));
-		this.modes = this.calculateModes();
-	}
-
-	private Path(List<SingleConnection> connections, int length, EnumMap<TransportMode, Integer> modes) {
-		this.connectionPath = new ArrayList<>(connections);
+	private Path(List<SingleConnection> connectionPath, int length, int connections, EnumMap<TransportMode, Integer> modes) {
+		this.connectionPath = new ArrayList<>(connectionPath);
 		this.length = length;
+		this.connections = connections;
 		this.modes = new EnumMap<>(modes);
 	}
 
@@ -45,10 +42,13 @@ public class Path implements Iterable<SingleConnection>, Cloneable {
 		return map;
 	}
 
-	public void addConnection(SingleConnection connection) {
+	public void addConnection(SingleConnection connection, List<SingleConnection> connections) {
 		this.connectionPath.add(connection);
-		this.length += connection.parentConnection.length;
-		this.modes.put(connection.transportMode, this.modes.get(connection.transportMode) + connection.parentConnection.length);
+		if (!connections.contains(connection)) {
+			this.length += connection.parentConnection.length;
+			this.connections++;
+			this.modes.put(connection.transportMode, this.modes.get(connection.transportMode) + connection.parentConnection.length);
+		}
 	}
 
 	public SingleConnection get(int index) {
@@ -59,20 +59,12 @@ public class Path implements Iterable<SingleConnection>, Cloneable {
 		return this.modes;
 	}
 
-	public int getLength(List<SingleConnection> list) {
-		return this.connectionPath.parallelStream().filter(s -> !list.contains(s)).mapToInt(s -> s.parentConnection.length).sum();
-	}
-
 	public int getLength() {
 		return this.length;
 	}
 
-	public int getConnections(List<SingleConnection> list) {
-		return this.connectionPath.parallelStream().filter(s -> !list.contains(s)).toList().size();
-	}
-
 	public int getConnections() {
-		return this.connectionPath.size();
+		return this.connections;
 	}
 
 	public List<SingleConnection> getConnectionPath() {
@@ -137,7 +129,7 @@ public class Path implements Iterable<SingleConnection>, Cloneable {
 
 	@Override
 	public Path clone() {
-		return new Path(this.connectionPath, this.length, this.modes);
+		return new Path(this.connectionPath, this.length, this.connections, this.modes);
 	}
 
 }

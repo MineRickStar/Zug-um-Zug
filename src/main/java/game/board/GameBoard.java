@@ -125,7 +125,7 @@ public class GameBoard {
 	}
 
 	public void highlightConnection(List<LocationPair> locationPairs, Player player) {
-		if (locationPairs == null) {
+		if (locationPairs == null || locationPairs.isEmpty()) {
 			this.highlightedConnections = null;
 			Application.frame.repaint();
 			return;

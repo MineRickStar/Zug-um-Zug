@@ -16,6 +16,7 @@ import java.util.TreeMap;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import game.Game;
 import game.Path;
@@ -51,31 +52,34 @@ public class Algorithm {
 		if (bestPaths != null) { return bestPaths; }
 		bestPaths = new ArrayList<>();
 		this.settings = settings;
-		// TODO Leipzig Ulm is kaputt? Wieso
 		Map<LocationPair, SortedMap<Integer, List<Path>>> rankings = new HashMap<>();
 		for (LocationPair pair : locationPairs) {
+			long t = System.currentTimeMillis();
 			this.createPathsList(pair);
-			rankings.put(pair, this.getRankings(this.connectionList));
+			System.out.println(System.currentTimeMillis() - t);
+			rankings.put(pair, this.getRankings(this.connectionList, Path::getLength, Path::getConnections));
 		}
 		SortedMap<Integer, List<Path>> locationPairRanking = new TreeMap<>();
 		for (LocationPair pair : locationPairs) {
 			bestPaths = locationPairRanking.getOrDefault(1, new ArrayList<>());
 			SortedMap<Integer, List<Path>> path = rankings.get(pair);
 			bestPaths.add(path.get(path.firstKey()).get(0));
+			locationPairRanking.put(1, bestPaths);
 		}
 		this.cache.addConnection(locationPairs, settings, bestPaths);
+		System.out.println(locationPairs);
 		return bestPaths;
 	}
 
 	private void createPathsList(LocationPair pair) {
 		this.connectionList = new ArrayList<>();
-		Path currentPath = new Path();
+		Path currentPath = new Path();// this.settings.player);
 		this.calculatePaths(pair.start, pair.end, currentPath);
 	}
 
 	private void calculatePaths(Location start, Location end, Path currentPath) {
 //		this.printWay(currentPath);
-		this.highlight(currentPath);
+//		this.highlight(currentPath);
 		if (!this.isPathPossible(currentPath, this.settings)) { return; }
 		if (start.equals(end)) {
 			this.connectionList.add(currentPath);
@@ -98,39 +102,55 @@ public class Algorithm {
 					break;
 				}
 				Path copy = currentPath.clone();
-				copy.addConnection(singleConnection);
+				copy.addConnection(singleConnection, this.settings.availableConnections);
 				this.calculatePaths(next, end, copy);
 			}
 		}
 	}
 
-	private SortedMap<Integer, List<Path>> getRankings(List<Path> paths) {
-		List<Integer> mins = this.getMinimum(paths);
-		List<Integer> max = this.getMaximum(paths);
+	@SafeVarargs
+	private SortedMap<Integer, List<Path>> getRankings(List<Path> paths, ToIntFunction<Path>... functions) {
+		List<Integer> mins = this.getExtreme(paths, true, functions);
+		List<Integer> max = this.getExtreme(paths, false, functions);
 		SortedMap<Integer, List<Path>> rankings = new TreeMap<>();
 		IntStream.rangeClosed(1, this.getDifference(max, mins)).forEach(i -> rankings.put(i, new ArrayList<>()));
 		for (Path path : paths) {
-			rankings.get(this.getDifference(this.getList(path), mins)).add(path);
+			rankings.get(this.getDifference(this.getList(path, functions), mins)).add(path);
 		}
+		this.compressMap(rankings);
 		return rankings;
 	}
 
-	private List<Integer> getList(Path path) {
-		int length = path.getLength(this.settings.availableConnections);
-		int connections = path.getConnections(this.settings.availableConnections);
-		return List.of(length, connections);
+	private void compressMap(SortedMap<Integer, List<Path>> map) {
+		ArrayList<Integer> rankings = new ArrayList<>();
+		Iterator<Entry<Integer, List<Path>>> iterator = map.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Entry<Integer, List<Path>> next = iterator.next();
+			if (next.getValue().isEmpty()) {
+				rankings.add(next.getKey());
+			} else {
+				if (!rankings.isEmpty()) {
+					map.get(rankings.remove(0)).addAll(next.getValue());
+					next.getValue().clear();
+					rankings.add(next.getKey());
+				}
+			}
+		}
+		map.values().removeIf(List::isEmpty);
 	}
 
-	private List<Integer> getMinimum(List<Path> paths) {
-		int length = paths.parallelStream().mapToInt(value -> value.getLength(this.settings.availableConnections)).reduce(Integer::min).orElse(-1);
-		int connections = paths.parallelStream().mapToInt(value -> value.getConnections(this.settings.availableConnections)).reduce(Integer::min).orElse(-1);
-		return List.of(length, connections);
+	@SafeVarargs
+	private List<Integer> getList(Path path, ToIntFunction<Path>... functions) {
+		return Stream.of(functions).map(f -> f.applyAsInt(path)).toList();
 	}
 
-	private List<Integer> getMaximum(List<Path> paths) {
-		int length = paths.parallelStream().mapToInt(value -> value.getLength(this.settings.availableConnections)).reduce(Integer::max).orElse(-1);
-		int connections = paths.parallelStream().mapToInt(value -> value.getConnections(this.settings.availableConnections)).reduce(Integer::max).orElse(-1);
-		return List.of(length, connections);
+	@SafeVarargs
+	private List<Integer> getExtreme(List<Path> paths, boolean min, ToIntFunction<Path>... functions) {
+		List<Integer> list = new ArrayList<>();
+		for (ToIntFunction<Path> function : functions) {
+			list.add(paths.parallelStream().mapToInt(function).reduce((left, right) -> min ? Integer.min(left, right) : Integer.max(left, right)).orElse(-1));
+		}
+		return list;
 	}
 
 	private int getDifference(List<Integer> list1, List<Integer> list2) {
@@ -209,10 +229,6 @@ public class Algorithm {
 			this.colorCards = player.getColorCards();
 		}
 
-		public AlgorithmSettings() {
-			this(10, 1, Rules.getInstance().getTransportMap(), new ArrayList<>(), new HashMap<>());
-		}
-
 		@Override
 		public int hashCode() {
 			return Objects.hash(this.availableConnections, this.carrigesLeft, this.colorCards, this.connectionAmount, this.pathSegments);
@@ -223,8 +239,8 @@ public class Algorithm {
 			if (this == obj) { return true; }
 			if ((obj == null) || (this.getClass() != obj.getClass())) { return false; }
 			AlgorithmSettings other = (AlgorithmSettings) obj;
-			return Objects.equals(this.availableConnections, other.availableConnections) && Objects.equals(this.carrigesLeft, other.carrigesLeft) && Objects.equals(this.colorCards, other.colorCards)
-					&& (this.connectionAmount == other.connectionAmount) && (this.pathSegments == other.pathSegments);
+			return Objects.equals(this.availableConnections, other.availableConnections) && /* Objects.equals(this.player, other.player) && */Objects.equals(this.carrigesLeft, other.carrigesLeft)
+					&& Objects.equals(this.colorCards, other.colorCards) && (this.connectionAmount == other.connectionAmount) && (this.pathSegments == other.pathSegments);
 		}
 
 		@Override

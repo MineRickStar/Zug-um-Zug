@@ -10,8 +10,10 @@ import application.Algorithm.AlgorithmSettings;
 import application.Algorithm.LocationPair;
 import game.Game;
 import game.Path;
+import game.Player;
 import game.board.Location;
 import game.board.SingleConnection;
+import game.cards.MyColor;
 import gui.MyFrame;
 
 class AlgorithmTest {
@@ -26,7 +28,7 @@ class AlgorithmTest {
 		LocationPair p = new LocationPair(l1, l2);
 		LocationPair p1 = new LocationPair(l3, l4);
 
-		AlgorithmSettings settings = new AlgorithmSettings();
+		AlgorithmSettings settings = new AlgorithmSettings(new Player("TestPlayer", MyColor.BLACK));
 		Application.frame = new MyFrame();
 
 		List<Path> paths = Algorithm.findShortestPath(new ArrayList<>(List.of(p, p1)), settings);
