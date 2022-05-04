@@ -1,6 +1,8 @@
 package algorithm;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -12,8 +14,14 @@ import game.Player;
 import game.cards.ColorCard;
 import game.cards.TransportMode;
 
-public class AlgorithmSettings {
+public class AlgorithmSettings implements Cloneable {
+	/**
+	 * Amount of Segments that the Path has at most.
+	 */
 	public int pathSegments;
+	/**
+	 * How many different best possibilities are accounted for.
+	 */
 	public int connectionAmount;
 	public EnumMap<TransportMode, Integer> carrigesLeft;
 	public List<SingleConnection> availableConnections;
@@ -37,6 +45,11 @@ public class AlgorithmSettings {
 	}
 
 	@Override
+	public AlgorithmSettings clone() {
+		return new AlgorithmSettings(this.pathSegments, this.connectionAmount, this.carrigesLeft.clone(), new ArrayList<>(this.availableConnections), new HashMap<>(this.colorCards));
+	}
+
+	@Override
 	public int hashCode() {
 		return Objects.hash(this.availableConnections, this.carrigesLeft, this.colorCards, this.connectionAmount, this.pathSegments);
 	}
@@ -44,10 +57,9 @@ public class AlgorithmSettings {
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) { return true; }
-		if ((obj == null) || (this.getClass() != obj.getClass())) { return false; }
-		AlgorithmSettings other = (AlgorithmSettings) obj;
-		return Objects.equals(this.availableConnections, other.availableConnections) && Objects.equals(this.carrigesLeft, other.carrigesLeft) && Objects.equals(this.colorCards, other.colorCards)
-				&& (this.connectionAmount == other.connectionAmount) && (this.pathSegments == other.pathSegments);
+		if (obj == null) { return false; }
+		if (obj instanceof AlgorithmSettings other) { return this.hashCode() == other.hashCode(); }
+		return false;
 	}
 
 	@Override

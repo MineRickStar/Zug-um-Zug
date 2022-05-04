@@ -111,7 +111,7 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 	private void createColorCardButtonPanel() {
 		this.colorCardButtonPanel = new JPanel(new GridBagLayout());
 		this.colorCardButtonPanel.setBackground(Color.LIGHT_GRAY);
-
+		// TODO anzahl der gezogenen Karten anzeigen
 		this.colorCardsBorder = BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), "Drawcards (" + Game.getInstance().getRemainingCards() + ")");
 		this.colorCardButtonPanel.setBorder(this.colorCardsBorder);
 

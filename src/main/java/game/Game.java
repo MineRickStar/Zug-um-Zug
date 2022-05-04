@@ -22,17 +22,17 @@ import algorithm.AlgorithmSettings;
 import application.Application;
 import application.Property;
 import connection.Connection;
-import connection.SingleConnectionPath;
 import connection.SingleConnection;
+import connection.SingleConnectionPath;
 import game.board.GameBoard;
 import game.board.Location;
-import game.board.Location.LocationPair;
+import game.board.Location.LocationList;
 import game.cards.ColorCard;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
+import game.cards.MyColor;
 import gui.dialog.MissionCardDialog;
 import gui.dialog.MissionCardHelperDialog;
-import game.cards.MyColor;
 
 public class Game implements PropertyChangeListener {
 
@@ -144,14 +144,15 @@ public class Game implements PropertyChangeListener {
 	}
 
 	private void calculateMissionCards(List<MissionCard> missionCards, Player currentPlayer) {
-		List<List<LocationPair>> pairs = Game.subsets(missionCards.stream().map(m -> new LocationPair(m.getFromLocation(), m.getToLocation())).toList());
+		List<List<LocationList>> pairs = Game.subsets(missionCards.stream().map(m -> new LocationList(m.getLocations())).toList());
 		AlgorithmSettings settings = new AlgorithmSettings(currentPlayer);
+		settings.pathSegments = 12;
 		pairs.stream().sorted((o1, o2) -> Integer.compare(o1.size(), o2.size())).forEach(l -> Algorithm.findShortestPath(l, settings));
 	}
 
-	private static List<List<LocationPair>> subsets(List<LocationPair> pairs) {
+	private static List<List<LocationList>> subsets(List<LocationList> pairs) {
 		return IntStream.rangeClosed(1, (int) (Math.pow(2, pairs.size()) - 1)).mapToObj(value -> {
-			List<LocationPair> list1 = new ArrayList<>();
+			List<LocationList> list1 = new ArrayList<>();
 			for (int i = 0, j = 1; j <= value; i++, j *= 2) {
 				if ((value & j) == j) {
 					list1.add(pairs.get(i));
@@ -198,7 +199,7 @@ public class Game implements PropertyChangeListener {
 		}
 	}
 
-	public void highlightConnection(List<LocationPair> locationPairs, Player player) {
+	public void highlightConnection(List<LocationList> locationPairs, Player player) {
 		this.gameBoard.highlightConnection(locationPairs, player);
 	}
 

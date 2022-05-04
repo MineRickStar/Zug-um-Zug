@@ -11,17 +11,27 @@ import game.Game;
 
 public class Location implements Comparable<Location> {
 
-	public record LocationPair(Location start, Location end) {}
+	public record LocationList(List<Location> locations) {
+
+		public Location start() {
+			return this.locations.get(0);
+		}
+
+		public Location end() {
+			return this.locations.get(this.locations.size() - 1);
+		}
+
+	}
 
 	public static final List<Location> nonPathLocations = new ArrayList<>();
 
 	static {
 		Game instance = Game.getInstance();
-		Location.nonPathLocations.add(instance.getLocation("Österreich"));
+		Location.nonPathLocations.add(instance.getLocation("ï¿½sterreich"));
 		Location.nonPathLocations.add(instance.getLocation("Schweiz"));
 		Location.nonPathLocations.add(instance.getLocation("Frankreich"));
 		Location.nonPathLocations.add(instance.getLocation("Niederlande"));
-		Location.nonPathLocations.add(instance.getLocation("Dänemark"));
+		Location.nonPathLocations.add(instance.getLocation("Dï¿½nemark"));
 	}
 
 	public final UUID ID;

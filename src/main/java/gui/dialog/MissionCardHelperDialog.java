@@ -23,7 +23,7 @@ import connection.SingleConnection;
 import game.Game;
 import game.Player;
 import game.Rules;
-import game.board.Location.LocationPair;
+import game.board.Location.LocationList;
 import game.cards.MissionCard;
 import gui.JMissionCardPanel;
 
@@ -130,10 +130,7 @@ public class MissionCardHelperDialog extends JDialog implements ItemListener {
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		List<LocationPair> pairs = this.missionPanels.stream()
-			.filter(MissionPanel::isShowMissionSelected)
-			.map(p -> new LocationPair(p.missionCardPanel.missionCard.getFromLocation(), p.missionCardPanel.missionCard.getToLocation()))
-			.toList();
+		List<LocationList> pairs = this.missionPanels.stream().filter(MissionPanel::isShowMissionSelected).map(p -> new LocationList(p.missionCardPanel.missionCard.getLocations())).toList();
 		Game.getInstance().highlightConnection(new ArrayList<>(pairs), this.player);
 	}
 

@@ -141,18 +141,18 @@ public class BuyingDialog extends JDialog {
 		JButton okButton = new JButton("OK");
 		okButton.addActionListener(e -> {
 			if (this.selectedBuyingOption == null) {
-				JOptionPane.showMessageDialog(this, "Please select an Option or Cancle");
+				JOptionPane.showMessageDialog(this, "Please select an Option or Cancel");
 				return;
 			}
 			this.dispose();
 		});
-		JButton cancleButton = new JButton("Cancle");
-		cancleButton.addActionListener(e -> {
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(e -> {
 			this.selectedBuyingOption = null;
 			this.dispose();
 		});
 		buttonPanel.add(okButton);
-		buttonPanel.add(cancleButton);
+		buttonPanel.add(cancelButton);
 		return buttonPanel;
 	}
 

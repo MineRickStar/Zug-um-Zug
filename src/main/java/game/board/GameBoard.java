@@ -24,7 +24,7 @@ import csvCoder.Decode;
 import game.Game;
 import game.Player;
 import game.Rules;
-import game.board.Location.LocationPair;
+import game.board.Location.LocationList;
 import game.cards.ColorCard;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
@@ -77,7 +77,7 @@ public class GameBoard {
 			this.fillColor(Rules.getInstance().getShipColorCardCount(), color, TransportMode.SHIP);
 			this.fillColor(Rules.getInstance().getAirplaneColorCardCount(), color, TransportMode.AIRPLANE);
 		}
-		this.fillColor(Rules.getInstance().getTrainRainbowCardColorCount(), MyColor.RAINBOW, TransportMode.TRAIN);
+		this.fillColor(Rules.getInstance().getTrainRainbowColorCardCount(), MyColor.RAINBOW, TransportMode.TRAIN);
 		this.fillColor(Rules.getInstance().getShipRainbowColorCardCount(), MyColor.RAINBOW, TransportMode.SHIP);
 		this.fillColor(Rules.getInstance().getAirplaneRainbowColorCardCount(), MyColor.RAINBOW, TransportMode.AIRPLANE);
 	}
@@ -126,7 +126,7 @@ public class GameBoard {
 		}
 	}
 
-	public void highlightConnection(List<LocationPair> locationPairs, Player player) {
+	public void highlightConnection(List<LocationList> locationPairs, Player player) {
 		if (locationPairs == null || locationPairs.isEmpty()) {
 			this.highlightedConnections = null;
 			Application.frame.repaint();

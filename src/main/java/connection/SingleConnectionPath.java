@@ -47,6 +47,10 @@ public class SingleConnectionPath {
 		return this.connections;
 	}
 
+	public int getPoints() {
+		return 0;
+	}
+
 	public boolean isPathPossible() {
 		if (this.modes.isEmpty()) {
 			this.calculate();

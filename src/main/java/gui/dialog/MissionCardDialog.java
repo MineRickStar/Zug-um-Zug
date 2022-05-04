@@ -71,17 +71,17 @@ public class MissionCardDialog extends JDialog {
 			}
 		});
 
-		JButton cancleButton = new JButton("Cancle");
-		cancleButton.addActionListener(e -> {
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(e -> {
 			if (this.start) {
-				JOptionPane.showMessageDialog(this, "Cancle not Possible at start of Game");
+				JOptionPane.showMessageDialog(this, "Cancel not Possible at start of Game");
 				return;
 			}
 			this.dispose();
 		});
 
 		buttonPanel.add(okButton);
-		buttonPanel.add(cancleButton);
+		buttonPanel.add(cancelButton);
 
 		panel.add(buttonPanel, gbc);
 

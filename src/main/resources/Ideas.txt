@@ -1,0 +1,28 @@
+
+
+GUI:
+
+Unterschied zwischen Boot, Zügen und Flugzeugen
+Kartendeck und Infopanel updaten nach Computer
+Nicht mehr als maxNoOfMissionCards auswählen
+Erldigte Karten in einen anderen Stapel legen mit info wie viele
+Weiße Linien besser zeichnen
+Button für anzeige der eigenen und freien Strecken (Doppelte Strecken als einfache anzeigen)
+ScrollPane bei Missionkarten
+Wenn schon eine Karte gezogen wurde missionkarten nicht mehr ziehen können
+Anzahl der carriges anzeigen (auch von anderen Spielern)
+
+
+Gameplay:
+
+Flüge und Schiffe nicht als Karten findbar in einfacher Version
+Karte ohne Flüge und Schiffe
+Karten schon früher mischen als wenn keine mehr da sind
+
+
+Algorithmus:
+
+Punkte für Strecken in betracht ziehen
+Handkarten in Berechnung einbeziehen
+Strecken die belegt sind in Berechnung mit einbeziehen
+

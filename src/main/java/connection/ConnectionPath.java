@@ -41,7 +41,7 @@ public class ConnectionPath implements Cloneable {
 
 	public boolean isPathPossible(AlgorithmSettings settings) {
 		if (this.connectionsCount <= settings.pathSegments || this.length == 0) { return true; }
-		return false;
+		return false; // Length 0 means the Path is already completed
 	}
 
 	public boolean containsConnection(Connection connection) {

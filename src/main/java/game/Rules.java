@@ -30,7 +30,7 @@ public class Rules {
 	private int MaxOpenLocomotives = 3;
 
 	private int trainColorCardCount = 12;
-	private int trainRainbowCardColorCount = 14;
+	private int trainRainbowColorCardCount = 14;
 
 	private int shipColorCardCount = 6;
 	private int shipRainbowColorCardCount = 6;
@@ -140,12 +140,12 @@ public class Rules {
 		this.trainColorCardCount = trainColorCardCount;
 	}
 
-	public int getTrainRainbowCardColorCount() {
-		return this.trainRainbowCardColorCount;
+	public int getTrainRainbowColorCardCount() {
+		return this.trainRainbowColorCardCount;
 	}
 
-	public void setTrainRainbowCardColorCount(int trainRainbowCardColorCount) {
-		this.trainRainbowCardColorCount = trainRainbowCardColorCount;
+	public void setTrainRainbowColorCardCount(int trainRainbowColorCardCount) {
+		this.trainRainbowColorCardCount = trainRainbowColorCardCount;
 	}
 
 	public int getShipColorCardCount() {

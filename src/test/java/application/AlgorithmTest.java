@@ -13,7 +13,7 @@ import connection.SingleConnectionPath;
 import game.Game;
 import game.Player;
 import game.board.Location;
-import game.board.Location.LocationPair;
+import game.board.Location.LocationList;
 import game.cards.MyColor;
 import gui.MyFrame;
 
@@ -23,11 +23,11 @@ class AlgorithmTest {
 	void test() {
 		Location l1 = Game.getInstance().getLocation("Frankfurt");
 		Location l2 = Game.getInstance().getLocation("Passau");
-		Location l3 = Game.getInstance().getLocation("Dänemark");
+		Location l3 = Game.getInstance().getLocation("Dï¿½nemark");
 		Location l4 = Game.getInstance().getLocation("Schweiz");
 
-		LocationPair p = new LocationPair(l1, l2);
-		LocationPair p1 = new LocationPair(l3, l4);
+		LocationList p = new LocationList(List.of(l1, l2));
+		LocationList p1 = new LocationList(List.of(l3, l4));
 
 		AlgorithmSettings settings = new AlgorithmSettings(new Player("TestPlayer", MyColor.BLACK));
 		Application.frame = new MyFrame();
