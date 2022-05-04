@@ -1,4 +1,4 @@
-package game.board;
+package connection;
 
 import java.util.UUID;
 

@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import application.Property;
-import game.board.SingleConnection;
+import connection.SingleConnection;
 import game.cards.ColorCard;
 import game.cards.MissionCard;
 import game.cards.MyColor;
@@ -43,15 +43,13 @@ public class Player {
 		this.ID = UUID.randomUUID();
 		this.name = name;
 		this.playerColor = color;
-		this.pieceCount = Rules.getInstance()
-				.getTransportMap();
+		this.pieceCount = Rules.getInstance().getTransportMap();
 		this.playerCards = new EnumMap<>(TransportMode.class);
 		this.missionCards = new ArrayList<>();
 		this.decideForMissionCards = false;
 		this.singleConnections = new ArrayList<>();
 		if (name.equals("Patrick")) {
-			SingleConnection c = Game.getInstance()
-					.getConnectionFromLocations("Kassel", "Frankfurt", MyColor.WHITE);
+			SingleConnection c = Game.getInstance().getConnectionFromLocations("Kassel", "Frankfurt", MyColor.WHITE);
 			c.setOwner(this);
 			this.singleConnections.add(c);
 		}
@@ -70,8 +68,7 @@ public class Player {
 	}
 
 	private void editColorCards(ColorCard colorCard, int count, boolean add) {
-		SortedMap<Integer, List<ColorCard>> map = this.playerCards.getOrDefault(colorCard.transportMode(),
-				new TreeMap<Integer, List<ColorCard>>(Collections.reverseOrder()));
+		SortedMap<Integer, List<ColorCard>> map = this.playerCards.getOrDefault(colorCard.transportMode(), new TreeMap<Integer, List<ColorCard>>(Collections.reverseOrder()));
 		int colorCardCount = this.getColorCardCount(colorCard);
 		List<ColorCard> list = map.getOrDefault(colorCardCount, new ArrayList<>());
 		list.remove(colorCard);
@@ -84,11 +81,9 @@ public class Player {
 		this.playerCards.put(colorCard.transportMode(), map);
 		for (int i = 0; i < count; i++) {
 			if (add) {
-				Game.getInstance()
-						.fireAction(this, Property.COLORCARDCHANGE, null, colorCard);
+				Game.getInstance().fireAction(this, Property.COLORCARDCHANGE, null, colorCard);
 			} else {
-				Game.getInstance()
-						.fireAction(this, Property.COLORCARDCHANGE, colorCard, null);
+				Game.getInstance().fireAction(this, Property.COLORCARDCHANGE, colorCard, null);
 			}
 		}
 	}
@@ -96,18 +91,16 @@ public class Player {
 	public int getColorCardCount(ColorCard colorCard) {
 		if (colorCard.color() == MyColor.GRAY) { return -1; }
 		return this.playerCards.getOrDefault(colorCard.transportMode(), new TreeMap<>())
-				.entrySet()
-				.stream()
-				.filter(e -> e.getValue()
-						.contains(colorCard))
-				.map(Entry::getKey)
-				.findAny()
-				.orElseGet(() -> Integer.valueOf(0));
+			.entrySet()
+			.stream()
+			.filter(e -> e.getValue().contains(colorCard))
+			.map(Entry::getKey)
+			.findAny()
+			.orElseGet(() -> Integer.valueOf(0));
 	}
 
 	public boolean hasPlayerEnoughColorCards(ColorCard colorCard, int count) {
-		SortedMap<Integer, List<ColorCard>> map = this.playerCards.getOrDefault(colorCard.transportMode(),
-				new TreeMap<Integer, List<ColorCard>>());
+		SortedMap<Integer, List<ColorCard>> map = this.playerCards.getOrDefault(colorCard.transportMode(), new TreeMap<Integer, List<ColorCard>>());
 		int rainbowCount = this.getColorCardCount(new ColorCard(MyColor.RAINBOW, colorCard.transportMode()));
 		if (rainbowCount >= count) { return true; }
 		if (colorCard.color() == MyColor.GRAY) { return (map.firstKey() + rainbowCount) >= count; }
@@ -119,8 +112,7 @@ public class Player {
 
 		if (colorCard.color() == MyColor.GRAY) {
 			for (MyColor color : MyColor.getNormalMyColors()) {
-				this.getBuyingOptions(new ColorCard(color, colorCard.transportMode()), count)
-						.forEach(c -> this.addIfNotContained(colorList, c));
+				this.getBuyingOptions(new ColorCard(color, colorCard.transportMode()), count).forEach(c -> this.addIfNotContained(colorList, c));
 			}
 		} else {
 			int colorCount = this.getColorCardCount(colorCard);
@@ -143,10 +135,7 @@ public class Player {
 				this.addIfNotContained(colorList, array);
 			}
 			if (count <= rainbowCount) {
-				this.addIfNotContained(colorList,
-						Stream.generate(() -> new ColorCard(MyColor.RAINBOW, colorCard.transportMode()))
-								.limit(count)
-								.toArray(ColorCard[]::new));
+				this.addIfNotContained(colorList, Stream.generate(() -> new ColorCard(MyColor.RAINBOW, colorCard.transportMode())).limit(count).toArray(ColorCard[]::new));
 			}
 		}
 		return colorList;
@@ -167,10 +156,9 @@ public class Player {
 		return this.newMissionCards;
 	}
 
-	public void addMissionCard(MissionCard missionCard) {
-		this.missionCards.add(missionCard);
-		Game.getInstance()
-				.fireAction(this, Property.MISSIONCARDADDED, null, missionCard);
+	public void addMissionCards(MissionCard[] missionCards) {
+		this.missionCards.addAll(List.of(missionCards));
+		new Thread(() -> Game.getInstance().fireAction(this, Property.MISSIONCARDADDED, null, missionCards)).start();
 	}
 
 	public List<MissionCard> getMissionCards() {
@@ -217,22 +205,15 @@ public class Player {
 
 	public String getPlayerInfo() {
 		StringBuilder sb = new StringBuilder(100);
-		sb.append("Name: " + this.name)
-				.append(System.lineSeparator());
+		sb.append("Name: " + this.name).append(System.lineSeparator());
 
 		StringJoiner transportModeJoiner = new StringJoiner(System.lineSeparator());
-		Iterator<Entry<TransportMode, SortedMap<Integer, List<ColorCard>>>> transportIterator = this.playerCards
-				.entrySet()
-				.iterator();
+		Iterator<Entry<TransportMode, SortedMap<Integer, List<ColorCard>>>> transportIterator = this.playerCards.entrySet().iterator();
 		while (transportIterator.hasNext()) {
 			Entry<TransportMode, SortedMap<Integer, List<ColorCard>>> entry = transportIterator.next();
 			StringJoiner cardJoiner = new StringJoiner(System.lineSeparator());
-			for (Entry<Integer, List<ColorCard>> colorCardEntry : entry.getValue()
-					.entrySet()) {
-				cardJoiner.add(colorCardEntry.getKey() + " " + colorCardEntry.getValue()
-						.stream()
-						.map(c -> c.color().colorName)
-						.collect(Collectors.joining(", ")));
+			for (Entry<Integer, List<ColorCard>> colorCardEntry : entry.getValue().entrySet()) {
+				cardJoiner.add(colorCardEntry.getKey() + " " + colorCardEntry.getValue().stream().map(c -> c.color().colorName).collect(Collectors.joining(", ")));
 			}
 			transportModeJoiner.add(entry.getKey() + ":");
 			transportModeJoiner.add(cardJoiner.toString());
@@ -240,9 +221,7 @@ public class Player {
 		sb.append(transportModeJoiner.toString());
 
 		sb.append(System.lineSeparator());
-		sb.append(this.missionCards.stream()
-				.map(MissionCard::toString)
-				.collect(Collectors.joining(", ", "MissionCards: ", "")));
+		sb.append(this.missionCards.stream().map(MissionCard::toString).collect(Collectors.joining(", ", "MissionCards: ", "")));
 		return sb.toString();
 	}
 

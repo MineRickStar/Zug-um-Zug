@@ -32,8 +32,8 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 
 import application.Application;
-import game.board.Connection;
-import game.board.SingleConnection;
+import connection.Connection;
+import connection.SingleConnection;
 import game.cards.ColorCard;
 import game.cards.MyColor;
 
@@ -62,11 +62,9 @@ public class BuyingDialog extends JDialog {
 
 		Connection connection = singleConnection.parentConnection;
 		JLabel description = new JLabel(
-				String.format("Connection: From %s to %s, Cost: %d %s", connection.fromLocation.name,
-						connection.toLocation.name, connection.length, singleConnection.color.colorName));
+				String.format("Connection: From %s to %s, Cost: %d %s", connection.fromLocation.name, connection.toLocation.name, connection.length, singleConnection.color.colorName));
 
-		JScrollPane buyingOptionsScrollPane = this.getColorCardsScrollPane(buyingOptions, parentFrame.getWidth(),
-				parentFrame.getHeight());
+		JScrollPane buyingOptionsScrollPane = this.getColorCardsScrollPane(buyingOptions, parentFrame.getWidth(), parentFrame.getHeight());
 
 		JPanel buttonPanel = this.createButtonPanel();
 
@@ -97,12 +95,7 @@ public class BuyingDialog extends JDialog {
 		gbc.gridy = 0;
 		gbc.insets = new Insets(10, 10, 10, 10);
 
-		Collections.sort(buyingOptions, (o1, o2) -> Long.compare(Stream.of(o1)
-				.filter(c -> c.color() == MyColor.RAINBOW)
-				.count(),
-				Stream.of(o2)
-						.filter(c -> c.color() == MyColor.RAINBOW)
-						.count()));
+		Collections.sort(buyingOptions, (o1, o2) -> Long.compare(Stream.of(o1).filter(c -> c.color() == MyColor.RAINBOW).count(), Stream.of(o2).filter(c -> c.color() == MyColor.RAINBOW).count()));
 
 		for (ColorCard[] option : buyingOptions) {
 			ColorPanel cardPanel = new ColorPanel(option);
@@ -123,7 +116,7 @@ public class BuyingDialog extends JDialog {
 					label.setOpaque(false);
 				} else {
 					label = new JLabel(colorCard.color().colorName);
-					label.setForeground(Application.getComplementaryColor(colorCard.color().realColor));
+					label.setForeground(MyColor.getComplementaryColor(colorCard.color()));
 					label.setBackground(colorCard.color().realColor);
 					label.setOpaque(true);
 				}
@@ -136,10 +129,8 @@ public class BuyingDialog extends JDialog {
 			gbc.gridy++;
 		}
 
-		MyJScrollPane buyingOptionsScrollPane = new MyJScrollPane(buyingOptionPanel,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		buyingOptionsScrollPane.getVerticalScrollBar()
-				.setUnitIncrement(16);
+		MyJScrollPane buyingOptionsScrollPane = new MyJScrollPane(buyingOptionPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		buyingOptionsScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 		return buyingOptionsScrollPane;
 	}
 
@@ -204,22 +195,16 @@ public class BuyingDialog extends JDialog {
 		protected void paintComponent(Graphics g) {
 			Graphics2D g2 = (Graphics2D) g.create();
 
-			MyColor[] colors = { MyColor.BLACK, MyColor.PURPLE, MyColor.BLUE, MyColor.GREEN, MyColor.YELLOW,
-					MyColor.ORANGE, MyColor.RED, MyColor.WHITE };
+			MyColor[] colors = { MyColor.BLACK, MyColor.PURPLE, MyColor.BLUE, MyColor.GREEN, MyColor.YELLOW, MyColor.ORANGE, MyColor.RED, MyColor.WHITE };
 			final int stripHeigth = this.getHeight() / (colors.length - 1);
 
 			float[] fractions = new float[colors.length];
-			Float[] floats = IntStream.range(0, colors.length)
-					.mapToObj(value -> (float) (value * stripHeigth) / this.getHeight())
-					.toArray(Float[]::new);
+			Float[] floats = IntStream.range(0, colors.length).mapToObj(value -> (float) (value * stripHeigth) / this.getHeight()).toArray(Float[]::new);
 			for (int i = 0; i < floats.length; i++) {
 				fractions[i] = floats[i];
 			}
 
-			LinearGradientPaint lgp = new LinearGradientPaint(new Point(0, 0), new Point(0, this.getHeight()),
-					fractions, Stream.of(colors)
-							.map(MyColor::getRealColor)
-							.toArray(Color[]::new));
+			LinearGradientPaint lgp = new LinearGradientPaint(new Point(0, 0), new Point(0, this.getHeight()), fractions, Stream.of(colors).map(MyColor::getRealColor).toArray(Color[]::new));
 			g2.setPaint(lgp);
 			g2.fillRect(0, 0, this.getWidth(), this.getHeight());
 			g2.dispose();

@@ -26,12 +26,12 @@ import javax.swing.JPopupMenu;
 
 import application.Application;
 import application.StopWatch;
+import connection.Connection;
+import connection.SingleConnection;
 import game.Game;
 import game.Path;
 import game.Player;
-import game.board.Connection;
 import game.board.Location;
-import game.board.SingleConnection;
 import game.cards.ColorCard;
 
 public class GameBoardPanel extends JPanel {

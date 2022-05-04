@@ -4,10 +4,14 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
+import connection.Connection;
 import game.Game;
 
 public class Location implements Comparable<Location> {
+
+	public record LocationPair(Location start, Location end) {}
 
 	public static final List<Location> nonPathLocations = new ArrayList<>();
 
@@ -20,12 +24,14 @@ public class Location implements Comparable<Location> {
 		Location.nonPathLocations.add(instance.getLocation("Dänemark"));
 	}
 
+	public final UUID ID;
 	public final String name;
 	public final Point point;
 
 	private final List<Connection> connectionsFromHere;
 
 	public Location(String name, Point point) {
+		this.ID = UUID.randomUUID();
 		this.name = name;
 		this.point = point;
 		this.connectionsFromHere = new ArrayList<>();
@@ -51,9 +57,9 @@ public class Location implements Comparable<Location> {
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) { return true; }
-		if ((obj == null) || (this.getClass() != obj.getClass())) { return false; }
-		Location other = (Location) obj;
-		return Objects.equals(this.name, other.name) && Objects.equals(this.point, other.point);
+		if (obj == null) { return false; }
+		if (obj instanceof Location other) { return this.ID.equals(other.ID); }
+		return false;
 	}
 
 	@Override
@@ -63,6 +69,6 @@ public class Location implements Comparable<Location> {
 
 	@Override
 	public int compareTo(Location o) {
-		return this.name.compareTo(o.name);
+		return this.ID.compareTo(o.ID);
 	}
 }

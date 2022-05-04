@@ -6,13 +6,14 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
-import application.Algorithm.AlgorithmSettings;
-import application.Algorithm.LocationPair;
+import algorithm.Algorithm;
+import algorithm.AlgorithmSettings;
+import connection.SingleConnection;
 import game.Game;
 import game.Path;
 import game.Player;
 import game.board.Location;
-import game.board.SingleConnection;
+import game.board.Location.LocationPair;
 import game.cards.MyColor;
 import gui.MyFrame;
 

@@ -11,20 +11,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.swing.SwingWorker;
 
-import application.Algorithm;
-import application.Algorithm.AlgorithmSettings;
-import application.Algorithm.LocationPair;
+import algorithm.Algorithm;
+import algorithm.AlgorithmSettings;
 import application.Application;
 import application.Property;
-import game.board.Connection;
+import connection.Connection;
+import connection.SingleConnection;
 import game.board.GameBoard;
 import game.board.Location;
-import game.board.SingleConnection;
+import game.board.Location.LocationPair;
 import game.cards.ColorCard;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
@@ -120,8 +121,19 @@ public class Game implements PropertyChangeListener {
 
 				@Override
 				protected Void doInBackground() throws Exception {
+					long time = System.currentTimeMillis();
 					Game.this.calculateMissionCards(missionCards, currentPlayer);
+					System.out.println("Whole time: " + (System.currentTimeMillis() - time));
 					return null;
+				}
+
+				@Override
+				protected void done() {
+					try {
+						this.get();
+					} catch (InterruptedException | ExecutionException e) {
+						e.printStackTrace();
+					}
 				}
 			};
 			worker.execute();

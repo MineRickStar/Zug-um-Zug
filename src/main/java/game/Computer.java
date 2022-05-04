@@ -14,19 +14,17 @@ public class Computer extends Player {
 	public void nextMove() {
 		System.out.println("Computer Spielt");
 		try {
-			Thread.sleep(5000);
+			Thread.sleep(500);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		Game.getInstance()
-				.colorCardDrawn(false, 0);
-		Game.getInstance()
-				.colorCardDrawn(false, 0);
+		Game.getInstance().colorCardDrawn(false, 0);
+		Game.getInstance().colorCardDrawn(false, 0);
 	}
 
 	@Override
 	public void addNewMissionCards(List<MissionCard> missionCards) {
-		super.addNewMissionCards(missionCards);
+		super.addMissionCards(new MissionCard[] { missionCards.get(0), missionCards.get(1) });
 		// TODO in new Thread
 		System.out.println("Computer Mission Cards");
 	}

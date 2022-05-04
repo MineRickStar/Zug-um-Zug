@@ -25,9 +25,20 @@ public enum MyColor {
 	}
 
 	public static MyColor[] getNormalMyColors() {
-		return Stream.of(MyColor.values())
-				.filter(c -> c != GRAY && c != RAINBOW)
-				.toArray(MyColor[]::new);
+		return Stream.of(MyColor.values()).filter(c -> c != GRAY && c != RAINBOW).toArray(MyColor[]::new);
+	}
+
+	public static Color getComplementaryColor(MyColor myColor) {
+		Color color = myColor.realColor;
+		if (color == Color.WHITE) { return Color.BLACK; }
+		if (color == Color.BLACK) { return Color.WHITE; }
+		int r = color.getRed();
+		int g = color.getGreen();
+		int b = color.getBlue();
+		int maxRGB = Math.max(r, Math.max(g, b));
+		int minRGB = Math.min(r, Math.min(g, b));
+		int addition = maxRGB + minRGB;
+		return new Color(addition - r, addition - g, addition - b);
 	}
 
 	@Override

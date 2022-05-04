@@ -13,20 +13,20 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JFrame;
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
-import application.Algorithm.LocationPair;
 import application.Application;
+import connection.SingleConnection;
 import game.Game;
 import game.Player;
 import game.Rules;
-import game.board.SingleConnection;
+import game.board.Location.LocationPair;
 import game.cards.MissionCard;
 
-public class MissionCardHelperFrame extends JFrame implements ItemListener {
+public class MissionCardHelperFrame extends JDialog implements ItemListener {
 
 	private static final long serialVersionUID = 1028232963445078845L;
 
@@ -37,9 +37,8 @@ public class MissionCardHelperFrame extends JFrame implements ItemListener {
 	private final Player player;
 
 	public MissionCardHelperFrame(Player player) {
-		super("Missioncard selection");
+		super(Application.frame, "Missioncard selection");
 		this.player = player;
-		this.setAlwaysOnTop(true);
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.addWindowListener(new WindowAdapter() {
 
@@ -63,12 +62,12 @@ public class MissionCardHelperFrame extends JFrame implements ItemListener {
 		JButton okButton = new JButton("OK");
 		okButton.addActionListener(e -> {
 			int count = player.getMissionCards().size() == 0 ? Rules.getInstance().getFirstMissionCardsKeeping() : Rules.getInstance().getDefaultMissionCardsKeeping();
-			if (this.missionPanels.stream().filter(p -> p.showMissionButton.isSelected()).count() < count) {
+			if (this.missionPanels.stream().filter(MissionPanel::isSelected).count() < count) {
 				JOptionPane.showMessageDialog(this, String.format("Please select at least %d Missions", count));
 				return;
 			}
-			List<MissionCard> missionCards = this.missionPanels.stream().filter(p -> p.showMissionButton.isSelected()).map(p -> p.missionCardPanel.missionCard).toList();
-			missionCards.forEach(player::addMissionCard);
+			MissionCard[] missionCards = this.missionPanels.stream().filter(MissionPanel::isSelected).map(p -> p.missionCardPanel.missionCard).toArray(MissionCard[]::new);
+			player.addMissionCards(missionCards);
 			Application.frame.revalidate();
 			Application.frame.repaint();
 			this.dispose();
@@ -83,6 +82,7 @@ public class MissionCardHelperFrame extends JFrame implements ItemListener {
 		this.add(okButton, gbc);
 
 		this.pack();
+		this.setResizable(false);
 		this.setLocationRelativeTo(Application.frame);
 		this.setVisible(true);
 	}
@@ -93,11 +93,13 @@ public class MissionCardHelperFrame extends JFrame implements ItemListener {
 
 		public JMissionCardPanel missionCardPanel;
 		public JCheckBox showMissionButton;
+		public JCheckBox selectMission;
 
 		public MissionPanel(MissionCard mission) {
 			super(new GridBagLayout());
 			this.showMissionButton = new JCheckBox("Show Mission");
 			this.showMissionButton.addItemListener(MissionCardHelperFrame.this);
+			this.selectMission = new JCheckBox("Select Mission");
 			this.missionCardPanel = new JMissionCardPanel(mission);
 
 			GridBagConstraints gbc = new GridBagConstraints();
@@ -110,6 +112,17 @@ public class MissionCardHelperFrame extends JFrame implements ItemListener {
 
 			gbc.gridx++;
 			this.add(this.showMissionButton, gbc);
+
+			gbc.gridx++;
+			this.add(this.selectMission, gbc);
+		}
+
+		public boolean isShowMissionSelected() {
+			return this.showMissionButton.isSelected();
+		}
+
+		public boolean isSelected() {
+			return this.selectMission.isSelected();
 		}
 
 	}
@@ -117,7 +130,7 @@ public class MissionCardHelperFrame extends JFrame implements ItemListener {
 	@Override
 	public void itemStateChanged(ItemEvent e) {
 		List<LocationPair> pairs = this.missionPanels.stream()
-			.filter(p -> p.showMissionButton.isSelected())
+			.filter(MissionPanel::isShowMissionSelected)
 			.map(p -> new LocationPair(p.missionCardPanel.missionCard.getFromLocation(), p.missionCardPanel.missionCard.getToLocation()))
 			.toList();
 		Game.getInstance().highlightConnection(new ArrayList<>(pairs), this.player);

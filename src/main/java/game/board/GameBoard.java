@@ -8,21 +8,23 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.SwingWorker;
 import javax.swing.SwingWorker.StateValue;
 
-import application.Algorithm;
-import application.Algorithm.AlgorithmSettings;
-import application.Algorithm.LocationPair;
+import algorithm.Algorithm;
+import algorithm.AlgorithmSettings;
 import application.Application;
+import connection.Connection;
 import csvCoder.Decode;
 import game.Game;
 import game.Path;
 import game.Player;
 import game.Rules;
+import game.board.Location.LocationPair;
 import game.cards.ColorCard;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
@@ -38,14 +40,14 @@ public class GameBoard {
 	private List<ColorCard> openCards;
 	private List<ColorCard> usedCards;
 
-	private List<Location> locations;
-	private List<Connection> connections;
+	private TreeMap<String, Location> locations;
+	private TreeMap<UUID, Connection> connections;
 
 	private List<Path> highlightedConnections;
 
 	public GameBoard() {
-		this.locations = new ArrayList<>();
-		this.connections = new ArrayList<>();
+		this.locations = new TreeMap<>();
+		this.connections = new TreeMap<>();
 		this.loadLocations();
 		this.loadConnections();
 		this.missionCards = new EnumMap<>(Distance.class);
@@ -186,15 +188,15 @@ public class GameBoard {
 	}
 
 	public List<Location> getLocations() {
-		return this.locations;
+		return new ArrayList<>(this.locations.values());
 	}
 
 	public List<Connection> getConnections() {
-		return this.connections;
+		return new ArrayList<>(this.connections.values());
 	}
 
 	public Connection getConnectionFromLocations(Location fromLocation, Location toLocation) {
-		return this.connections.parallelStream().filter(c -> {
+		return this.connections.values().parallelStream().filter(c -> {
 			if (c.fromLocation.equals(fromLocation) || c.fromLocation.equals(toLocation)) { return c.toLocation.equals(fromLocation) || c.toLocation.equals(toLocation); }
 			return false;
 		}).findAny().orElse(null);
@@ -209,7 +211,7 @@ public class GameBoard {
 				int x = Integer.parseInt(line[1]);
 				int y = Integer.parseInt(line[2]);
 				Point p = new Point(x, y);
-				this.locations.add(new Location(name, p));
+				this.locations.put(name, new Location(name, p));
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -217,9 +219,7 @@ public class GameBoard {
 	}
 
 	public Location getLocation(String locationName) {
-		Optional<Location> optional = this.locations.stream().filter(e -> locationName.equals(e.name)).findAny();
-		if (optional.isEmpty()) { return null; }
-		return optional.get();
+		return this.locations.getOrDefault(locationName, null);
 	}
 
 	private void loadConnections() {
@@ -264,8 +264,8 @@ public class GameBoard {
 	}
 
 	private void addConnection(Connection connection) {
-		if (!this.connections.contains(connection)) {
-			this.connections.add(connection);
+		if (!this.connections.containsKey(connection.ID)) {
+			this.connections.put(connection.ID, connection);
 		} else {
 			System.err.println("Connection already saved: " + connection);
 		}

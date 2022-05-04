@@ -1,21 +1,24 @@
-package game.board;
+package connection;
 
 import java.awt.Color;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.UUID;
 
+import game.board.Location;
 import game.cards.MyColor;
 import game.cards.TransportMode;
 
 public class Connection {
 
+	public final UUID ID;
 	public final Location fromLocation;
 	public final Location toLocation;
 	public final byte length;
 	public final byte multiplicity;
 	public final SingleConnection[] singleConnections;
+	public final boolean isGray;
 
 	public Connection(Location fromLocation, Location toLocation, byte length, byte multiplicity, MyColor[] colors, TransportMode[] transportMode) {
+		this.ID = UUID.randomUUID();
 		this.fromLocation = fromLocation;
 		this.toLocation = toLocation;
 		this.length = length;
@@ -24,6 +27,7 @@ public class Connection {
 		for (int i = 0; i < multiplicity; i++) {
 			this.singleConnections[i] = new SingleConnection(this, colors[Math.min(colors.length - 1, i)], transportMode[i]);
 		}
+		this.isGray = colors[0] == MyColor.GRAY;
 	}
 
 	public SingleConnection getSingleConnectionAt(int count) {
@@ -35,6 +39,10 @@ public class Connection {
 			if (singleConnection.color == color) { return singleConnection; }
 		}
 		return null;
+	}
+
+	public boolean isSingleConnection() {
+		return this.singleConnections.length == 1;
 	}
 
 	public Color getColor(int count) {
@@ -49,32 +57,35 @@ public class Connection {
 		return this.toLocation;
 	}
 
+	public Location getNextLocation(Location fromLocation) {
+		return this.fromLocation.equals(fromLocation) ? this.toLocation : this.fromLocation;
+	}
+
+	public boolean IsNextLocationAPathNode(Location fromLocation) {
+		return Location.isPathNode(this.getNextLocation(fromLocation));
+	}
+
+	public String getCompressedString() {
+		return this.fromLocation.name.substring(0, 2) + " -> " + this.toLocation.name.substring(0, 2);
+	}
+
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = (prime * result) + Arrays.hashCode(this.singleConnections);
-		return (prime * result) + Objects.hash(this.fromLocation, this.length, this.multiplicity, this.toLocation);
+		return this.ID.hashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) { return true; }
-		if ((obj == null) || (this.getClass() != obj.getClass())) { return false; }
-		Connection other = (Connection) obj;
-		boolean b = this.singleConnections.length == other.singleConnections.length;
-		if (!b) { return false; }
-		for (int i = 0; i < this.singleConnections.length; i++) {
-			b &= this.singleConnections[i].color == other.singleConnections[i].color;
-		}
-		return b && Objects.equals(this.fromLocation, other.fromLocation) && (this.length == other.length) && (this.multiplicity == other.multiplicity)
-				&& Objects.equals(this.toLocation, other.toLocation);
+		if (obj == null) { return false; }
+		if (obj instanceof Connection other) { return this.ID.equals(other.ID); }
+		return false;
 	}
 
 	@Override
 	public String toString() {
-		return System.lineSeparator() + "Connection [From=" + this.fromLocation + ", To=" + this.toLocation + ", length=" + this.length + ", multipliticity=" + this.multiplicity + ", colors="
-				+ Arrays.toString(this.singleConnections) + "]";
+		return System.lineSeparator() + "Connection [From=" + this.fromLocation + ", To=" + this.toLocation + ", length=" + this.length + ", multipliticity=" + this.multiplicity + " , isGray: "
+				+ this.isGray + "]";
 	}
 
 }

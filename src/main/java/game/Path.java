@@ -8,8 +8,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import algorithm.AlgorithmSettings;
+import connection.Connection;
+import connection.SingleConnection;
 import game.board.Location;
-import game.board.SingleConnection;
 import game.cards.TransportMode;
 
 public class Path implements Iterable<SingleConnection>, Cloneable {
@@ -18,19 +20,25 @@ public class Path implements Iterable<SingleConnection>, Cloneable {
 	private int length;
 	private int connections;
 	private EnumMap<TransportMode, Integer> modes;
+	private Location lastLocation;
+	private AlgorithmSettings settings;
 
-	public Path() {
-		this.connectionPath = new ArrayList<>();
+	public Path(int maxConnections, Location start, AlgorithmSettings settings) {
+		this.connectionPath = new ArrayList<>(maxConnections);
 		this.length = 0;
 		this.connections = 0;
 		this.modes = this.calculateModes();
+		this.lastLocation = start;
+		this.settings = settings;
 	}
 
-	private Path(List<SingleConnection> connectionPath, int length, int connections, EnumMap<TransportMode, Integer> modes) {
+	private Path(List<SingleConnection> connectionPath, int length, int connections, EnumMap<TransportMode, Integer> modes, Location lastLocation, AlgorithmSettings settings) {
 		this.connectionPath = new ArrayList<>(connectionPath);
 		this.length = length;
 		this.connections = connections;
 		this.modes = new EnumMap<>(modes);
+		this.lastLocation = lastLocation;
+		this.settings = settings;
 	}
 
 	private EnumMap<TransportMode, Integer> calculateModes() {
@@ -42,13 +50,9 @@ public class Path implements Iterable<SingleConnection>, Cloneable {
 		return map;
 	}
 
-	public void addConnection(SingleConnection connection, List<SingleConnection> connections) {
+	public void addConnection(SingleConnection connection) {
 		this.connectionPath.add(connection);
-		if (!connections.contains(connection)) {
-			this.length += connection.parentConnection.length;
-			this.connections++;
-			this.modes.put(connection.transportMode, this.modes.get(connection.transportMode) + connection.parentConnection.length);
-		}
+		this.lastLocation = connection.parentConnection.getNextLocation(this.lastLocation);
 	}
 
 	public SingleConnection get(int index) {
@@ -60,11 +64,34 @@ public class Path implements Iterable<SingleConnection>, Cloneable {
 	}
 
 	public int getLength() {
+		if (this.length == 0) {
+			this.calculate();
+		}
 		return this.length;
 	}
 
 	public int getConnections() {
+		if (this.connections == 0) {
+			this.calculate();
+		}
 		return this.connections;
+	}
+
+	public boolean isPathPossible() {
+		if (this.modes.isEmpty()) {
+			this.calculate();
+		}
+		return !this.modes.entrySet().stream().anyMatch(entry -> entry.getValue() > this.settings.carrigesLeft.get(entry.getKey()));
+	}
+
+	private void calculate() {
+		this.connectionPath.forEach(connection -> {
+			if (!this.settings.availableConnections.contains(connection)) {
+				this.length += connection.parentConnection.length;
+				this.connections++;
+				this.modes.put(connection.transportMode, this.modes.get(connection.transportMode) + connection.parentConnection.length);
+			}
+		});
 	}
 
 	public List<SingleConnection> getConnectionPath() {
@@ -77,6 +104,14 @@ public class Path implements Iterable<SingleConnection>, Cloneable {
 
 	public boolean contains(SingleConnection connection) {
 		return this.connectionPath.contains(connection);
+	}
+
+	public boolean containsConnection(Connection connection) {
+		return Stream.of(connection.singleConnections).anyMatch(this::contains);
+	}
+
+	public Location getLastLocation() {
+		return this.lastLocation;
 	}
 
 	public Stream<SingleConnection> stream() {
@@ -120,16 +155,13 @@ public class Path implements Iterable<SingleConnection>, Cloneable {
 
 	@Override
 	public String toString() {
-		return "Path [length=" + this.length + ", connections=" + this.getConnections() + ", Path="
-				+ this.connectionPath.stream()
-					.map(s -> s.parentConnection.fromLocation.name.substring(0, 2) + " -> " + s.parentConnection.toLocation.name.substring(0, 2))
-					.collect(Collectors.joining(", "))
-				+ "]";
+		return "Path [length=" + this.length + ", connections=" + this.connections + ", Path="
+				+ this.connectionPath.stream().map(s -> s.parentConnection.getCompressedString()).collect(Collectors.joining(", ")) + "]";
 	}
 
 	@Override
 	public Path clone() {
-		return new Path(this.connectionPath, this.length, this.connections, this.modes);
+		return new Path(this.connectionPath, this.length, this.connections, this.modes, this.lastLocation, this.settings);
 	}
 
 }
