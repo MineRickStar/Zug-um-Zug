@@ -24,7 +24,7 @@ public class Computer extends Player {
 
 	@Override
 	public void addNewMissionCards(List<MissionCard> missionCards) {
-		super.addMissionCards(new MissionCard[] { missionCards.get(0), missionCards.get(1) });
+		this.missionCards.addAll(missionCards);
 		// TODO in new Thread
 		System.out.println("Computer Mission Cards");
 	}

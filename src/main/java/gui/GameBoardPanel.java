@@ -24,15 +24,15 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
-import application.Application;
 import application.StopWatch;
 import connection.Connection;
 import connection.SingleConnection;
+import connection.SingleConnectionPath;
 import game.Game;
-import game.Path;
 import game.Player;
 import game.board.Location;
 import game.cards.ColorCard;
+import gui.dialog.BuyingDialog;
 
 public class GameBoardPanel extends JPanel {
 
@@ -177,12 +177,12 @@ public class GameBoardPanel extends JPanel {
 		boolean containsPoint = this.hoveredPoint == null ? false : polygons.stream().anyMatch(p -> p.contains(this.hoveredPoint));
 		boolean contains = containsPoint && (this.hoveredConnection == null);
 		Graphics2D g2d = (Graphics2D) g.create();
-		List<Path> connections = Game.getInstance().getHighlightConnections();
+		List<SingleConnectionPath> connections = Game.getInstance().getHighlightConnections();
 		boolean missionPath = false;
 		isTrue: if (connections != null) {
 			contains = false;
-			for (Path path : connections) {
-				for (SingleConnection con : path) {
+			for (SingleConnectionPath path : connections) {
+				for (SingleConnection con : path.getConnectionPath()) {
 					if (con.equals(singleConnection)) {
 						missionPath = true;
 						break isTrue;
@@ -320,7 +320,7 @@ public class GameBoardPanel extends JPanel {
 		buyButton.setEnabled(canBuyConnection);
 		buyButton.addActionListener(e1 -> {
 			if (canBuyConnection) {
-				List<ColorCard> bought = this.displayBuyingOptions(selectedConnection);
+				List<ColorCard> bought = this.getBuyingOptions(selectedConnection);
 				if ((bought != null) && !bought.isEmpty()) {
 					Game.getInstance().playerBuysConnection(selectedConnection, bought);
 				}
@@ -328,14 +328,11 @@ public class GameBoardPanel extends JPanel {
 			}
 		});
 		menu.add(buyButton);
-		menu.show(e.getComponent(), e.getX(), e.getY());
+		menu.show(e.getComponent(), e.getX() - 20, e.getY() - 10);
 	}
 
-	private List<ColorCard> displayBuyingOptions(SingleConnection singleConnection) {
-		BuyingDialog dialog = new BuyingDialog(Application.frame, singleConnection,
-				Game.getInstance().getBuyingOptions(singleConnection.getColorCardRepresentation(), singleConnection.parentConnection.length));
-		dialog.setLocationRelativeTo(this);
-		dialog.setVisible(true);
+	private List<ColorCard> getBuyingOptions(SingleConnection singleConnection) {
+		BuyingDialog dialog = new BuyingDialog(this, singleConnection, Game.getInstance().getBuyingOptions(singleConnection.getColorCardRepresentation(), singleConnection.parentConnection.length));
 		ColorCard[] colors = dialog.getSelectedBuyingOption();
 		if ((colors == null) || (colors.length == 0)) { return Collections.emptyList(); }
 		return Arrays.asList(colors);

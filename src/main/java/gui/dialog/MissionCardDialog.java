@@ -1,4 +1,4 @@
-package gui;
+package gui.dialog;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -32,7 +32,6 @@ public class MissionCardDialog extends JDialog {
 	public MissionCardDialog(boolean start) {
 		super(Application.frame, "Draw Mission Cards", true);
 		this.start = start;
-		this.setResizable(false);
 		JPanel panel = new JPanel(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
 
@@ -89,6 +88,7 @@ public class MissionCardDialog extends JDialog {
 		this.add(panel);
 
 		this.pack();
+		this.setResizable(false);
 		this.setLocationRelativeTo(Application.frame);
 		this.setVisible(true);
 	}

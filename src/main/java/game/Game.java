@@ -22,6 +22,7 @@ import algorithm.AlgorithmSettings;
 import application.Application;
 import application.Property;
 import connection.Connection;
+import connection.SingleConnectionPath;
 import connection.SingleConnection;
 import game.board.GameBoard;
 import game.board.Location;
@@ -29,9 +30,9 @@ import game.board.Location.LocationPair;
 import game.cards.ColorCard;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
+import gui.dialog.MissionCardDialog;
+import gui.dialog.MissionCardHelperDialog;
 import game.cards.MyColor;
-import gui.MissionCardDialog;
-import gui.MissionCardHelperFrame;
 
 public class Game implements PropertyChangeListener {
 
@@ -137,7 +138,7 @@ public class Game implements PropertyChangeListener {
 				}
 			};
 			worker.execute();
-			new MissionCardHelperFrame(currentPlayer);
+			new MissionCardHelperDialog(currentPlayer);
 		}
 		this.nextPlayer();
 	}
@@ -201,12 +202,12 @@ public class Game implements PropertyChangeListener {
 		this.gameBoard.highlightConnection(locationPairs, player);
 	}
 
-	public void setHighlightConnections(List<Path> paths) {
+	public void setHighlightConnections(List<SingleConnectionPath> paths) {
 		if (this.gameBoard == null) { return; }
 		this.gameBoard.setHighlightConnections(paths);
 	}
 
-	public List<Path> getHighlightConnections() {
+	public List<SingleConnectionPath> getHighlightConnections() {
 		if (this.gameBoard == null) { return null; }
 		return this.gameBoard.getHighlightedConnections();
 	}

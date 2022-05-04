@@ -42,6 +42,7 @@ import game.cards.ColorCard;
 import game.cards.MissionCard;
 import game.cards.MyColor;
 import game.cards.TransportMode;
+import gui.dialog.MissionCardDialog;
 
 public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 

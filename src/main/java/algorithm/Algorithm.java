@@ -17,8 +17,8 @@ import java.util.stream.Stream;
 
 import connection.Connection;
 import connection.ConnectionPath;
+import connection.SingleConnectionPath;
 import connection.SingleConnection;
-import game.Path;
 import game.board.Location;
 import game.board.Location.LocationPair;
 
@@ -32,18 +32,18 @@ public class Algorithm {
 		this.cache = new AlgorithmChache();
 	}
 
-	public static synchronized List<Path> findShortestPath(List<LocationPair> locationPairs, AlgorithmSettings settings) {
+	public static synchronized List<SingleConnectionPath> findShortestPath(List<LocationPair> locationPairs, AlgorithmSettings settings) {
 		return Algorithm.instance.findShortestPath0(locationPairs, settings);
 	}
 
 	private AlgorithmSettings settings;
 
-	private List<Path> findShortestPath0(List<LocationPair> locationPairs, AlgorithmSettings settings) {
-		List<Path> bestPaths = this.cache.getSingleConnection(locationPairs, settings);
+	private List<SingleConnectionPath> findShortestPath0(List<LocationPair> locationPairs, AlgorithmSettings settings) {
+		List<SingleConnectionPath> bestPaths = this.cache.getSingleConnection(locationPairs, settings);
 		if (bestPaths != null) { return bestPaths; }
 		bestPaths = new ArrayList<>();
 		this.settings = settings;
-		Map<LocationPair, SortedMap<Integer, List<Path>>> rankings = new HashMap<>();
+		Map<LocationPair, SortedMap<Integer, List<SingleConnectionPath>>> rankings = new HashMap<>();
 		for (LocationPair pair : locationPairs) {
 			this.connectionList = new ArrayList<>(10000);
 			this.noSingleConnectionList = new ArrayList<>();
@@ -65,12 +65,12 @@ public class Algorithm {
 //			}
 			this.calculatePathsIterataive(pair.end());
 			System.out.println(System.currentTimeMillis() - t);
-			rankings.put(pair, this.getRankings(this.connectionList, Path::getLength, Path::getConnections));
+			rankings.put(pair, this.getRankings(this.connectionList, SingleConnectionPath::getLength, SingleConnectionPath::getConnections));
 		}
-		SortedMap<Integer, List<Path>> locationPairRanking = new TreeMap<>();
+		SortedMap<Integer, List<SingleConnectionPath>> locationPairRanking = new TreeMap<>();
 		for (LocationPair pair : locationPairs) {
 			bestPaths = locationPairRanking.getOrDefault(1, new ArrayList<>());
-			SortedMap<Integer, List<Path>> path = rankings.get(pair);
+			SortedMap<Integer, List<SingleConnectionPath>> path = rankings.get(pair);
 			bestPaths.add(path.get(path.firstKey()).get(0));
 			locationPairRanking.put(1, bestPaths);
 		}
@@ -79,12 +79,12 @@ public class Algorithm {
 		return bestPaths;
 	}
 
-	List<Path> connectionList;
+	List<SingleConnectionPath> connectionList;
 	List<ConnectionPath> noSingleConnectionList;
 	List<ConnectionPath> allPaths;
 	int index;
 
-	private synchronized List<Path> getConnectionList() {
+	private synchronized List<SingleConnectionPath> getConnectionList() {
 		return this.connectionList;
 	}
 
@@ -144,8 +144,8 @@ public class Algorithm {
 		for (ConnectionPath connectionPath : paths) {
 			int pathSize = connectionPath.getConnectionsCount();
 			Location start = connectionPath.getLocations().get(0);
-			List<Path> singlePaths = new ArrayList<>(connectionPath.getMultipleCount());
-			IntStream.range(0, connectionPath.getMultipleCount()).forEach(i -> singlePaths.add(new Path(pathSize, start, this.settings)));
+			List<SingleConnectionPath> singlePaths = new ArrayList<>(connectionPath.getMultipleCount());
+			IntStream.range(0, connectionPath.getMultipleCount()).forEach(i -> singlePaths.add(new SingleConnectionPath(pathSize, start, this.settings)));
 
 			connectionPath.getConnections().forEach(c -> {
 				SingleConnection[] singles = c.singleConnections;
@@ -161,28 +161,28 @@ public class Algorithm {
 					}
 				}
 			});
-			this.getConnectionList().addAll(singlePaths.stream().filter(Path::isPathPossible).toList());
+			this.getConnectionList().addAll(singlePaths.stream().filter(SingleConnectionPath::isPathPossible).toList());
 		}
 	}
 
 	@SafeVarargs
-	private SortedMap<Integer, List<Path>> getRankings(List<Path> paths, ToIntFunction<Path>... functions) {
+	private SortedMap<Integer, List<SingleConnectionPath>> getRankings(List<SingleConnectionPath> paths, ToIntFunction<SingleConnectionPath>... functions) {
 		List<Integer> mins = this.getExtreme(paths, true, functions);
 		List<Integer> max = this.getExtreme(paths, false, functions);
-		SortedMap<Integer, List<Path>> rankings = new TreeMap<>();
+		SortedMap<Integer, List<SingleConnectionPath>> rankings = new TreeMap<>();
 		IntStream.rangeClosed(1, this.getDifference(max, mins)).forEach(i -> rankings.put(i, new ArrayList<>()));
-		for (Path path : paths) {
+		for (SingleConnectionPath path : paths) {
 			rankings.get(this.getDifference(this.getList(path, functions), mins)).add(path);
 		}
 		this.compressMap(rankings);
 		return rankings;
 	}
 
-	private void compressMap(SortedMap<Integer, List<Path>> map) {
+	private void compressMap(SortedMap<Integer, List<SingleConnectionPath>> map) {
 		ArrayList<Integer> rankings = new ArrayList<>();
-		Iterator<Entry<Integer, List<Path>>> iterator = map.entrySet().iterator();
+		Iterator<Entry<Integer, List<SingleConnectionPath>>> iterator = map.entrySet().iterator();
 		while (iterator.hasNext()) {
-			Entry<Integer, List<Path>> next = iterator.next();
+			Entry<Integer, List<SingleConnectionPath>> next = iterator.next();
 			if (next.getValue().isEmpty()) {
 				rankings.add(next.getKey());
 			} else {
@@ -197,14 +197,14 @@ public class Algorithm {
 	}
 
 	@SafeVarargs
-	private List<Integer> getList(Path path, ToIntFunction<Path>... functions) {
+	private List<Integer> getList(SingleConnectionPath path, ToIntFunction<SingleConnectionPath>... functions) {
 		return Stream.of(functions).map(f -> f.applyAsInt(path)).toList();
 	}
 
 	@SafeVarargs
-	private List<Integer> getExtreme(List<Path> paths, boolean min, ToIntFunction<Path>... functions) {
+	private List<Integer> getExtreme(List<SingleConnectionPath> paths, boolean min, ToIntFunction<SingleConnectionPath>... functions) {
 		List<Integer> list = new ArrayList<>();
-		for (ToIntFunction<Path> function : functions) {
+		for (ToIntFunction<SingleConnectionPath> function : functions) {
 			list.add(paths.parallelStream().mapToInt(function).reduce((left, right) -> min ? Integer.min(left, right) : Integer.max(left, right)).orElse(-1));
 		}
 		return list;
@@ -218,7 +218,7 @@ public class Algorithm {
 		return diff;
 	}
 
-	private record ConnectionCache(List<LocationPair> locationPairs, AlgorithmSettings settings, List<Path> connections) {}
+	private record ConnectionCache(List<LocationPair> locationPairs, AlgorithmSettings settings, List<SingleConnectionPath> connections) {}
 
 	private static final class AlgorithmChache {
 		private List<ConnectionCache> cache = new ArrayList<>();
@@ -228,12 +228,12 @@ public class Algorithm {
 			return start;
 		};
 
-		private synchronized void addConnection(List<LocationPair> locationPairs, AlgorithmSettings settings, List<Path> bestPaths) {
+		private synchronized void addConnection(List<LocationPair> locationPairs, AlgorithmSettings settings, List<SingleConnectionPath> bestPaths) {
 			Collections.sort(locationPairs, this.comparator);
 			this.cache.add(new ConnectionCache(locationPairs, settings, bestPaths));
 		}
 
-		private synchronized List<Path> getSingleConnection(List<LocationPair> locationPairs, AlgorithmSettings settings) {
+		private synchronized List<SingleConnectionPath> getSingleConnection(List<LocationPair> locationPairs, AlgorithmSettings settings) {
 			Collections.sort(locationPairs, this.comparator);
 			Optional<ConnectionCache> optional = this.cache.parallelStream().filter(c -> (c.locationPairs.equals(locationPairs) && c.settings.equals(settings))).findAny();
 			if (optional.isEmpty()) { return null; }

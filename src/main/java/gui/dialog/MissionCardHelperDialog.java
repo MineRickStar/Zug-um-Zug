@@ -1,4 +1,4 @@
-package gui;
+package gui.dialog;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -25,8 +25,9 @@ import game.Player;
 import game.Rules;
 import game.board.Location.LocationPair;
 import game.cards.MissionCard;
+import gui.JMissionCardPanel;
 
-public class MissionCardHelperFrame extends JDialog implements ItemListener {
+public class MissionCardHelperDialog extends JDialog implements ItemListener {
 
 	private static final long serialVersionUID = 1028232963445078845L;
 
@@ -36,7 +37,7 @@ public class MissionCardHelperFrame extends JDialog implements ItemListener {
 
 	private final Player player;
 
-	public MissionCardHelperFrame(Player player) {
+	public MissionCardHelperDialog(Player player) {
 		super(Application.frame, "Missioncard selection");
 		this.player = player;
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -98,7 +99,7 @@ public class MissionCardHelperFrame extends JDialog implements ItemListener {
 		public MissionPanel(MissionCard mission) {
 			super(new GridBagLayout());
 			this.showMissionButton = new JCheckBox("Show Mission");
-			this.showMissionButton.addItemListener(MissionCardHelperFrame.this);
+			this.showMissionButton.addItemListener(MissionCardHelperDialog.this);
 			this.selectMission = new JCheckBox("Select Mission");
 			this.missionCardPanel = new JMissionCardPanel(mission);
 

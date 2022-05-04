@@ -26,14 +26,14 @@ public class Player {
 
 	private final UUID ID;
 
-	private String name;
+	protected String name;
 	public final MyColor playerColor;
 
-	private EnumMap<TransportMode, Integer> pieceCount;
+	protected EnumMap<TransportMode, Integer> pieceCount;
 
-	private Map<TransportMode, SortedMap<Integer, List<ColorCard>>> playerCards;
-	private List<MissionCard> missionCards;
-	private List<MissionCard> newMissionCards;
+	protected Map<TransportMode, SortedMap<Integer, List<ColorCard>>> playerCards;
+	protected List<MissionCard> missionCards;
+	protected List<MissionCard> newMissionCards;
 
 	private boolean decideForMissionCards;
 

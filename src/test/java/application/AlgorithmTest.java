@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Test;
 import algorithm.Algorithm;
 import algorithm.AlgorithmSettings;
 import connection.SingleConnection;
+import connection.SingleConnectionPath;
 import game.Game;
-import game.Path;
 import game.Player;
 import game.board.Location;
 import game.board.Location.LocationPair;
@@ -32,10 +32,10 @@ class AlgorithmTest {
 		AlgorithmSettings settings = new AlgorithmSettings(new Player("TestPlayer", MyColor.BLACK));
 		Application.frame = new MyFrame();
 
-		List<Path> paths = Algorithm.findShortestPath(new ArrayList<>(List.of(p, p1)), settings);
+		List<SingleConnectionPath> paths = Algorithm.findShortestPath(new ArrayList<>(List.of(p, p1)), settings);
 		Assert.assertFalse("No Path found", paths.size() == 0);
-		Path first = paths.get(0);
-		SingleConnection con = first.get(0);
+		SingleConnectionPath first = paths.get(0);
+		SingleConnection con = first.getConnectionPath().get(0);
 		Assert.assertEquals("Not equal", con.parentConnection.toLocation, l3);
 	}
 

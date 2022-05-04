@@ -19,9 +19,9 @@ import algorithm.Algorithm;
 import algorithm.AlgorithmSettings;
 import application.Application;
 import connection.Connection;
+import connection.SingleConnectionPath;
 import csvCoder.Decode;
 import game.Game;
-import game.Path;
 import game.Player;
 import game.Rules;
 import game.board.Location.LocationPair;
@@ -43,7 +43,7 @@ public class GameBoard {
 	private TreeMap<String, Location> locations;
 	private TreeMap<UUID, Connection> connections;
 
-	private List<Path> highlightedConnections;
+	private List<SingleConnectionPath> highlightedConnections;
 
 	public GameBoard() {
 		this.locations = new TreeMap<>();
@@ -132,10 +132,10 @@ public class GameBoard {
 			Application.frame.repaint();
 			return;
 		}
-		SwingWorker<List<Path>, Void> worker = new SwingWorker<List<Path>, Void>() {
+		SwingWorker<List<SingleConnectionPath>, Void> worker = new SwingWorker<List<SingleConnectionPath>, Void>() {
 
 			@Override
-			public List<Path> doInBackground() {
+			public List<SingleConnectionPath> doInBackground() {
 				return Algorithm.findShortestPath(locationPairs, new AlgorithmSettings(player));
 			}
 
@@ -159,11 +159,11 @@ public class GameBoard {
 
 	}
 
-	public void setHighlightConnections(List<Path> paths) {
+	public void setHighlightConnections(List<SingleConnectionPath> paths) {
 		this.highlightedConnections = paths;
 	}
 
-	public List<Path> getHighlightedConnections() {
+	public List<SingleConnectionPath> getHighlightedConnections() {
 		return this.highlightedConnections;
 	}
 

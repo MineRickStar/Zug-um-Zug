@@ -1,4 +1,4 @@
-package gui;
+package gui.dialog;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -48,8 +47,8 @@ public class BuyingDialog extends JDialog {
 
 	private ColorCard[] selectedBuyingOption;
 
-	public BuyingDialog(JFrame parentFrame, SingleConnection singleConnection, List<ColorCard[]> buyingOptions) {
-		super(parentFrame, "Buy Connection?", true);
+	public BuyingDialog(JPanel parentPanel, SingleConnection singleConnection, List<ColorCard[]> buyingOptions) {
+		super(Application.frame, "Buy Connection?", true);
 		this.setLayout(new GridBagLayout());
 		this.addWindowListener(new WindowAdapter() {
 
@@ -64,7 +63,7 @@ public class BuyingDialog extends JDialog {
 		JLabel description = new JLabel(
 				String.format("Connection: From %s to %s, Cost: %d %s", connection.fromLocation.name, connection.toLocation.name, connection.length, singleConnection.color.colorName));
 
-		JScrollPane buyingOptionsScrollPane = this.getColorCardsScrollPane(buyingOptions, parentFrame.getWidth(), parentFrame.getHeight());
+		JScrollPane buyingOptionsScrollPane = this.getColorCardsScrollPane(buyingOptions, Application.frame.getWidth(), Application.frame.getHeight());
 
 		JPanel buttonPanel = this.createButtonPanel();
 
@@ -87,6 +86,9 @@ public class BuyingDialog extends JDialog {
 
 		this.setMaximumSize(new Dimension(500, 300));
 		this.pack();
+		this.setResizable(false);
+		this.setLocationRelativeTo(parentPanel);
+		this.setVisible(true);
 	}
 
 	private JScrollPane getColorCardsScrollPane(List<ColorCard[]> buyingOptions, int width, int height) {
