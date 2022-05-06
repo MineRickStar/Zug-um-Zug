@@ -95,9 +95,13 @@ public class MissionCardDialog extends JDialog {
 
 	private JSlider getMissionCardSlider(Distance distance) {
 		int distanceCards = Game.getInstance().getMissionCardCount(distance);
-		JSlider slider = new JSlider(SwingConstants.HORIZONTAL, 0, Math.min(distanceCards, Rules.getInstance().getMissionCardsDrawing()),
-				Math.min(Math.min(distanceCards, Rules.getInstance().getMissionCardsDrawing()), 2));
-		if (Game.getInstance().getMissionCardCount(distance) == 0) {
+		int maxCardAmount = Math.min(distanceCards, Rules.getInstance().getMissionCardsDrawing());
+		int value = Math.min(Math.min(distanceCards, Rules.getInstance().getMissionCardsDrawing()), 2);
+		if (distance == Distance.LONG) {
+			value = 0;
+		}
+		JSlider slider = new JSlider(SwingConstants.HORIZONTAL, 0, maxCardAmount, value);
+		if (distanceCards == 0) {
 			slider.setEnabled(false);
 		}
 		slider.setMinorTickSpacing(1);

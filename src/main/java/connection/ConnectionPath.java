@@ -33,7 +33,7 @@ public class ConnectionPath implements Cloneable {
 
 	public void addConnection(Connection connection) {
 		this.connections.add(connection);
-		this.length += connection.length;
+		this.length += connection.getMinLength();
 		this.connectionsCount++;
 		this.multipleCount *= connection.isGray ? 1 : connection.multiplicity;
 		this.locations.add(connection.getNextLocation(this.getLastLocation()));

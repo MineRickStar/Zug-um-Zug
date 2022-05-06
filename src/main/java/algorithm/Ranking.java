@@ -10,7 +10,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.ToIntFunction;
 import java.util.stream.IntStream;
 
 import connection.Connection;
@@ -30,23 +29,23 @@ public class Ranking {
 
 	SortedMap<Integer, List<SingleConnectionPath>> rankings;
 
-	private List<ToIntFunction<SingleConnectionPath>> functions;
+//	private static final List<ToIntFunction<SingleConnectionPath>> functions = List.of(SingleConnectionPath::getLength, SingleConnectionPath::getConnections, SingleConnectionPath::getPoints);
 
 	private int maxCarriges;
 
 	public Ranking(AlgorithmSettings settings) {
 		this.settings = settings;
-		this.queue = new ArrayBlockingQueue<>(settings.pathSegments * 50000);
-		this.queueReady = new ArrayBlockingQueue<>(settings.pathSegments * 1000);
+		this.queue = new ArrayBlockingQueue<>(settings.pathSegments * 500000);
+		this.queueReady = new ArrayBlockingQueue<>(settings.pathSegments * 100000);
 		this.connectionList = new ArrayList<>(settings.pathSegments * 1000);
 		this.maxCarriges = settings.carrigesLeft.values().stream().reduce((t, u) -> t + u).orElse(0);
-		this.functions = List.of(SingleConnectionPath::getLength, SingleConnectionPath::getConnections, SingleConnectionPath::getPoints);
 	}
 
 	public void start(LocationList list) {
-		List<List<SingleConnectionPath>> connectedPaths = new ArrayList<>(this.settings.pathSegments * 1000);
+		List<List<SingleConnectionPath>> connectedPaths = new ArrayList<>(16);
 
 		int processors = (int) Math.max(Runtime.getRuntime().availableProcessors() * .5, 1);
+		processors = 16;
 		double three_quarters = 3 / 4.0;
 
 		Iterator<Location> iterator = list.locations().iterator();
@@ -73,6 +72,7 @@ public class Ranking {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+
 			connectedPaths.add(new ArrayList<>(this.connectionList));
 			this.connectionList.clear();
 		}
@@ -153,8 +153,6 @@ public class Ranking {
 					}
 				}
 			});
-//			Game.getInstance().setHighlightConnections(singlePaths);
-//			Application.frame.repaint();
 			this.getConnectionList().addAll(singlePaths.stream().filter(SingleConnectionPath::isPathPossible).toList());
 		}
 	}
@@ -194,21 +192,23 @@ public class Ranking {
 	}
 
 	private List<Integer> getList(SingleConnectionPath path) {
-		return this.functions.stream().map(f -> f.applyAsInt(path)).toList();
+		return List.of(path.getLength(), path.getPoints(), path.getConnections());
 	}
 
 	private List<Integer> getExtreme(boolean min) {
 		List<Integer> list = new ArrayList<>();
-		for (ToIntFunction<SingleConnectionPath> function : this.functions) {
+		if (min) {
 			try {
-				// TODO Nullpointer Exception
-				list.add(this.connectionList.stream().mapToInt(function).reduce((left, right) -> (min ? Integer.min(left, right) : Integer.max(left, right))).orElse(-1));
+				list.add(this.getConnectionList().stream().mapToInt(SingleConnectionPath::getLength).min().orElse(-1));
+				list.add(this.getConnectionList().stream().mapToInt(SingleConnectionPath::getPoints).min().orElse(-1));
+				list.add(this.getConnectionList().stream().mapToInt(SingleConnectionPath::getConnections).min().orElse(-1));
 			} catch (NullPointerException e) {
-				System.out.println(list);
-				System.out.println(this.connectionList.size());
-				System.out.println(function);
 				e.printStackTrace();
 			}
+		} else {
+			list.add(this.getConnectionList().stream().mapToInt(SingleConnectionPath::getLength).max().orElse(-1));
+			list.add(this.getConnectionList().stream().mapToInt(SingleConnectionPath::getPoints).max().orElse(-1));
+			list.add(this.getConnectionList().stream().mapToInt(SingleConnectionPath::getConnections).max().orElse(-1));
 		}
 		return list;
 	}

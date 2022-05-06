@@ -3,6 +3,7 @@ package connection;
 import java.util.UUID;
 
 import game.Player;
+import game.Rules;
 import game.cards.ColorCard;
 import game.cards.MyColor;
 import game.cards.TransportMode;
@@ -14,14 +15,18 @@ public class SingleConnection {
 	public final Connection parentConnection;
 	public final MyColor color;
 	public final TransportMode transportMode;
+	public final byte length;
+	public final byte points;
 
 	private Player owner;
 
-	public SingleConnection(Connection parentConnection, MyColor color, TransportMode transportMode) {
+	public SingleConnection(Connection parentConnection, MyColor color, TransportMode transportMode, byte length) {
 		this.ID = UUID.randomUUID();
 		this.parentConnection = parentConnection;
 		this.color = color;
 		this.transportMode = transportMode;
+		this.length = length;
+		this.points = Rules.getInstance().getPointsConnection(transportMode)[length - 1];
 	}
 
 	public Player getOwner() {

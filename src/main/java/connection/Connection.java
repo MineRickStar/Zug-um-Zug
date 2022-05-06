@@ -2,6 +2,7 @@ package connection;
 
 import java.awt.Color;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import game.board.Location;
 import game.cards.MyColor;
@@ -12,20 +13,23 @@ public class Connection {
 	public final UUID ID;
 	public final Location fromLocation;
 	public final Location toLocation;
-	public final byte length;
 	public final byte multiplicity;
+//	public final byte[] length;
+//	public final byte[] points;
 	public final SingleConnection[] singleConnections;
 	public final boolean isGray;
 
-	public Connection(Location fromLocation, Location toLocation, byte length, byte multiplicity, MyColor[] colors, TransportMode[] transportMode) {
+	public Connection(Location fromLocation, Location toLocation, byte multiplicity, byte[] length, MyColor[] colors, TransportMode[] transportMode) {
 		this.ID = UUID.randomUUID();
 		this.fromLocation = fromLocation;
 		this.toLocation = toLocation;
-		this.length = length;
+//		this.length = length;
 		this.multiplicity = multiplicity;
+//		this.points = new byte[multiplicity];
 		this.singleConnections = new SingleConnection[multiplicity];
 		for (int i = 0; i < multiplicity; i++) {
-			this.singleConnections[i] = new SingleConnection(this, colors[Math.min(colors.length - 1, i)], transportMode[i]);
+//			this.points[i] = Rules.getInstance().getPointsConnection(transportMode[i])[length[i] - 1];
+			this.singleConnections[i] = new SingleConnection(this, colors[Math.min(colors.length - 1, i)], transportMode[i], length[i]);
 		}
 		this.isGray = colors[0] == MyColor.GRAY;
 	}
@@ -69,6 +73,10 @@ public class Connection {
 		return this.fromLocation.name.substring(0, 2) + " -> " + this.toLocation.name.substring(0, 2);
 	}
 
+	public int getMinLength() {
+		return Stream.of(this.singleConnections).mapToInt(s -> s.length).min().orElse(0);
+	}
+
 	@Override
 	public int hashCode() {
 		return this.ID.hashCode();
@@ -84,8 +92,7 @@ public class Connection {
 
 	@Override
 	public String toString() {
-		return System.lineSeparator() + "Connection [From=" + this.fromLocation + ", To=" + this.toLocation + ", length=" + this.length + ", multipliticity=" + this.multiplicity + " , isGray: "
-				+ this.isGray + "]";
+		return System.lineSeparator() + "Connection [From=" + this.fromLocation + ", To=" + this.toLocation + ", multipliticity=" + this.multiplicity + " , isGray: " + this.isGray + "]";
 	}
 
 }

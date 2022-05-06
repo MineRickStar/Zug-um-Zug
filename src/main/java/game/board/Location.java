@@ -12,7 +12,6 @@ import game.Game;
 public class Location implements Comparable<Location> {
 
 	public record LocationList(List<Location> locations) {
-
 		public Location start() {
 			return this.locations.get(0);
 		}
@@ -20,18 +19,6 @@ public class Location implements Comparable<Location> {
 		public Location end() {
 			return this.locations.get(this.locations.size() - 1);
 		}
-
-	}
-
-	public static final List<Location> nonPathLocations = new ArrayList<>();
-
-	static {
-		Game instance = Game.getInstance();
-		Location.nonPathLocations.add(instance.getLocation("�sterreich"));
-		Location.nonPathLocations.add(instance.getLocation("Schweiz"));
-		Location.nonPathLocations.add(instance.getLocation("Frankreich"));
-		Location.nonPathLocations.add(instance.getLocation("Niederlande"));
-		Location.nonPathLocations.add(instance.getLocation("D�nemark"));
 	}
 
 	public final UUID ID;
@@ -55,8 +42,22 @@ public class Location implements Comparable<Location> {
 		return this.connectionsFromHere;
 	}
 
+	public static final List<Location> nonPathLocations = new ArrayList<>();
+
 	public static boolean isPathNode(Location location) {
+		if (Location.nonPathLocations.isEmpty()) {
+			Location.loadNonPathLocations();
+		}
 		return !Location.nonPathLocations.contains(location);
+	}
+
+	private static void loadNonPathLocations() {
+		Game instance = Game.getInstance();
+		Location.nonPathLocations.add(instance.getLocation("Österreich"));
+		Location.nonPathLocations.add(instance.getLocation("Schweiz"));
+		Location.nonPathLocations.add(instance.getLocation("Frankreich"));
+		Location.nonPathLocations.add(instance.getLocation("Niederlande"));
+		Location.nonPathLocations.add(instance.getLocation("Dänemark"));
 	}
 
 	@Override

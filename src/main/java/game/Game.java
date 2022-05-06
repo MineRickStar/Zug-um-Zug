@@ -122,9 +122,10 @@ public class Game implements PropertyChangeListener {
 
 				@Override
 				protected Void doInBackground() throws Exception {
-					long time = System.currentTimeMillis();
-					Game.this.calculateMissionCards(missionCards, currentPlayer);
-					System.out.println("Whole time: " + (System.currentTimeMillis() - time));
+					// TODO
+//					long time = System.currentTimeMillis();
+//					Game.this.calculateMissionCards(missionCards, currentPlayer);
+//					System.out.println("Whole time: " + (System.currentTimeMillis() - time));
 					return null;
 				}
 
@@ -143,6 +144,7 @@ public class Game implements PropertyChangeListener {
 		this.nextPlayer();
 	}
 
+	@SuppressWarnings("unused")
 	private void calculateMissionCards(List<MissionCard> missionCards, Player currentPlayer) {
 		List<List<LocationList>> pairs = Game.subsets(missionCards.stream().map(m -> new LocationList(m.getLocations())).toList());
 		AlgorithmSettings settings = new AlgorithmSettings(currentPlayer);
@@ -164,8 +166,8 @@ public class Game implements PropertyChangeListener {
 
 	public boolean canPlayerBuySingleConnection(SingleConnection singleConnection) {
 		Player currentPlayer = this.getCurrentPlayer();
-		boolean enoughCarriges = currentPlayer.getPieceCount(singleConnection.transportMode) >= singleConnection.parentConnection.length;
-		boolean enoughColorCards = currentPlayer.hasPlayerEnoughColorCards(singleConnection.getColorCardRepresentation(), singleConnection.parentConnection.length);
+		boolean enoughCarriges = currentPlayer.getPieceCount(singleConnection.transportMode) >= singleConnection.length;
+		boolean enoughColorCards = currentPlayer.hasPlayerEnoughColorCards(singleConnection.getColorCardRepresentation(), singleConnection.length);
 		return enoughCarriges && enoughColorCards;
 	}
 
@@ -200,7 +202,8 @@ public class Game implements PropertyChangeListener {
 	}
 
 	public void highlightConnection(List<LocationList> locationPairs, Player player) {
-		this.gameBoard.highlightConnection(locationPairs, player);
+		// TODO solver NullPointer in Algorithm
+//		this.gameBoard.highlightConnection(locationPairs, player);
 	}
 
 	public void setHighlightConnections(List<SingleConnectionPath> paths) {

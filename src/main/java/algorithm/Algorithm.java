@@ -36,7 +36,7 @@ public class Algorithm {
 			long t = System.currentTimeMillis();
 			Ranking ranking = new Ranking(settings);
 			ranking.start(locationList);
-			System.out.println(System.currentTimeMillis() - t);
+			System.out.println("Time: " + (System.currentTimeMillis() - t));
 			rankings.put(locationList, ranking.getMap());
 		}
 		SortedMap<Integer, List<SingleConnectionPath>> locationPairRanking = new TreeMap<>();
@@ -65,7 +65,9 @@ public class Algorithm {
 
 		private synchronized void addConnection(List<LocationList> locationPairs, AlgorithmSettings settings, List<SingleConnectionPath> bestPaths) {
 			Collections.sort(locationPairs, this.comparator);
-			this.cache.add(new ConnectionCache(new ArrayList<>(locationPairs), settings.clone(), new ArrayList<>(bestPaths)));
+			ArrayList<LocationList> list = new ArrayList<>();
+			locationPairs.forEach(l -> list.add(new LocationList(new ArrayList<>(l.locations()))));
+			this.cache.add(new ConnectionCache(list, settings.clone(), new ArrayList<>(bestPaths)));
 		}
 
 		private synchronized List<SingleConnectionPath> getSingleConnection(List<LocationList> locationPairs, AlgorithmSettings settings) {

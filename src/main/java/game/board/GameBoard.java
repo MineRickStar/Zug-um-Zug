@@ -223,10 +223,11 @@ public class GameBoard {
 	}
 
 	private void loadConnections() {
+		String[] line = null;
 		try {
 			Decode decode = Decode.decode("Connections.txt");
 			while (decode.hasNext()) {
-				String[] line = decode.next();
+				line = decode.next();
 
 				Location fromLocation = this.getLocation(line[0]);
 				if (fromLocation == null) {
@@ -238,27 +239,22 @@ public class GameBoard {
 					System.err.println("To Location not found " + line[1]);
 					continue;
 				}
-				byte length = 0;
-				byte multiplicity = 0;
-				try {
-					length = Byte.parseByte(line[2]);
-					multiplicity = Byte.parseByte(line[3]);
-				} catch (NumberFormatException nfe) {
-					System.err.println(Arrays.toString(line));
-					continue;
-				}
+				byte multiplicity = Byte.parseByte(line[2]);
+				byte[] length = new byte[multiplicity];
 				MyColor[] colors = new MyColor[multiplicity];
 				TransportMode[] transportMode = new TransportMode[multiplicity];
-				for (int i = 0; i < multiplicity; i++) {
-					colors[i] = MyColor.getMyColor(line[i + 4]);
-					transportMode[i] = TransportMode.getTransportMode(line[i + 4 + multiplicity]);
+				for (byte i = 0; i < multiplicity; i++) {
+					length[i] = Byte.parseByte(line[i + 3]);
+					colors[i] = MyColor.getMyColor(line[i + 3 + multiplicity]);
+					transportMode[i] = TransportMode.getTransportMode(line[i + 3 + 2 * multiplicity]);
 				}
-				Connection connection = new Connection(fromLocation, toLocation, length, multiplicity, colors, transportMode);
+				Connection connection = new Connection(fromLocation, toLocation, multiplicity, length, colors, transportMode);
 				fromLocation.addConnection(connection);
 				toLocation.addConnection(connection);
 				this.addConnection(connection);
 			}
-		} catch (IOException e) {
+		} catch (IOException | NumberFormatException e) {
+			System.err.println(Arrays.toString(line));
 			e.printStackTrace();
 		}
 	}

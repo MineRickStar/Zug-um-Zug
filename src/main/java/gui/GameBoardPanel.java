@@ -151,22 +151,28 @@ public class GameBoardPanel extends JPanel {
 			List<Polygon> polygons = Collections.emptyList();
 			switch (connection.multiplicity) {
 			case 1:
-				polygons = this.createPolygons(x1, y1, x2, y2, multiLineDistanceX, multiLineDistanceY, .5f, -.5f, radiansSlope, connection.length);
-				this.setAndDrawConnection(g, polygons, connection.getSingleConnectionAt(0));
+				SingleConnection s01 = connection.getSingleConnectionAt(0);
+				polygons = this.createPolygons(x1, y1, x2, y2, multiLineDistanceX, multiLineDistanceY, .5f, -.5f, radiansSlope, s01.length);
+				this.setAndDrawConnection(g, polygons, s01);
 				break;
 			case 2:
-				polygons = this.createPolygons(x1, y1, x2, y2, multiLineDistanceX, multiLineDistanceY, 1f, .25f, radiansSlope, connection.length);
-				this.setAndDrawConnection(g, polygons, connection.getSingleConnectionAt(0));
-				polygons = this.createPolygons(x1, y1, x2, y2, multiLineDistanceX, multiLineDistanceY, -.25f, -1f, radiansSlope, connection.length);
-				this.setAndDrawConnection(g, polygons, connection.getSingleConnectionAt(1));
+				SingleConnection s02 = connection.getSingleConnectionAt(0);
+				polygons = this.createPolygons(x1, y1, x2, y2, multiLineDistanceX, multiLineDistanceY, 1f, .25f, radiansSlope, s02.length);
+				this.setAndDrawConnection(g, polygons, s02);
+				SingleConnection s12 = connection.getSingleConnectionAt(1);
+				polygons = this.createPolygons(x1, y1, x2, y2, multiLineDistanceX, multiLineDistanceY, -.25f, -1f, radiansSlope, s12.length);
+				this.setAndDrawConnection(g, polygons, s12);
 				break;
 			case 3:
-				polygons = this.createPolygons(x1, y1, x2, y2, multiLineDistanceX, multiLineDistanceY, 1f, .5f, radiansSlope, connection.length);
-				this.setAndDrawConnection(g, polygons, connection.getSingleConnectionAt(0));
-				polygons = this.createPolygons(x1, y1, x2, y2, multiLineDistanceX, multiLineDistanceY, .25f, -.25f, radiansSlope, connection.length);
-				this.setAndDrawConnection(g, polygons, connection.getSingleConnectionAt(1));
-				polygons = this.createPolygons(x1, y1, x2, y2, multiLineDistanceX, multiLineDistanceY, -.5f, -1f, radiansSlope, connection.length);
-				this.setAndDrawConnection(g, polygons, connection.getSingleConnectionAt(2));
+				SingleConnection s03 = connection.getSingleConnectionAt(0);
+				polygons = this.createPolygons(x1, y1, x2, y2, multiLineDistanceX, multiLineDistanceY, 1f, .5f, radiansSlope, s03.length);
+				this.setAndDrawConnection(g, polygons, s03);
+				SingleConnection s13 = connection.getSingleConnectionAt(1);
+				polygons = this.createPolygons(x1, y1, x2, y2, multiLineDistanceX, multiLineDistanceY, .25f, -.25f, radiansSlope, s13.length);
+				this.setAndDrawConnection(g, polygons, s13);
+				SingleConnection s23 = connection.getSingleConnectionAt(2);
+				polygons = this.createPolygons(x1, y1, x2, y2, multiLineDistanceX, multiLineDistanceY, -.5f, -1f, radiansSlope, s23.length);
+				this.setAndDrawConnection(g, polygons, s23);
 				break;
 			}
 		}
@@ -332,7 +338,7 @@ public class GameBoardPanel extends JPanel {
 	}
 
 	private List<ColorCard> getBuyingOptions(SingleConnection singleConnection) {
-		BuyingDialog dialog = new BuyingDialog(this, singleConnection, Game.getInstance().getBuyingOptions(singleConnection.getColorCardRepresentation(), singleConnection.parentConnection.length));
+		BuyingDialog dialog = new BuyingDialog(this, singleConnection, Game.getInstance().getBuyingOptions(singleConnection.getColorCardRepresentation(), singleConnection.length));
 		ColorCard[] colors = dialog.getSelectedBuyingOption();
 		if ((colors == null) || (colors.length == 0)) { return Collections.emptyList(); }
 		return Arrays.asList(colors);

@@ -61,7 +61,7 @@ public class BuyingDialog extends JDialog {
 
 		Connection connection = singleConnection.parentConnection;
 		JLabel description = new JLabel(
-				String.format("Connection: From %s to %s, Cost: %d %s", connection.fromLocation.name, connection.toLocation.name, connection.length, singleConnection.color.colorName));
+				String.format("Connection: From %s to %s, Cost: %d %s", connection.fromLocation.name, connection.toLocation.name, singleConnection.length, singleConnection.color.colorName));
 
 		JScrollPane buyingOptionsScrollPane = this.getColorCardsScrollPane(buyingOptions, Application.frame.getWidth(), Application.frame.getHeight());
 

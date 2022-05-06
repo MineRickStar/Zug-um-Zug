@@ -15,6 +15,7 @@ public class SingleConnectionPath {
 	private List<SingleConnection> connectionPath;
 	private int length;
 	private int connections;
+	private int points;
 	private EnumMap<TransportMode, Integer> modes;
 	private Location lastLocation;
 	private AlgorithmSettings settings;
@@ -23,6 +24,7 @@ public class SingleConnectionPath {
 		this.connectionPath = new ArrayList<>(maxConnections);
 		this.length = 0;
 		this.connections = 0;
+		this.points = 0;
 		this.modes = new EnumMap<>(TransportMode.class);
 		this.lastLocation = start;
 		this.settings = settings;
@@ -48,7 +50,10 @@ public class SingleConnectionPath {
 	}
 
 	public int getPoints() {
-		return 0;
+		if (this.points == 0) {
+			this.calculate();
+		}
+		return this.points;
 	}
 
 	public boolean isPathPossible() {
@@ -59,11 +64,12 @@ public class SingleConnectionPath {
 	}
 
 	private void calculate() {
-		this.connectionPath.forEach(connection -> {
-			if (!this.settings.availableConnections.contains(connection)) {
-				this.length += connection.parentConnection.length;
+		this.connectionPath.forEach(singleConnection -> {
+			if (!this.settings.availableConnections.contains(singleConnection)) {
+				this.length += singleConnection.length;
 				this.connections++;
-				this.modes.put(connection.transportMode, this.modes.getOrDefault(connection.transportMode, 0) + connection.parentConnection.length);
+				this.points += singleConnection.points;
+				this.modes.put(singleConnection.transportMode, this.modes.getOrDefault(singleConnection.transportMode, 0) + singleConnection.length);
 			}
 		});
 	}

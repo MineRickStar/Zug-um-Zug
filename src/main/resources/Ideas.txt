@@ -11,6 +11,7 @@ Button für anzeige der eigenen und freien Strecken (Doppelte Strecken als einfa
 ScrollPane bei Missionkarten
 Wenn schon eine Karte gezogen wurde missionkarten nicht mehr ziehen können
 Anzahl der carriges anzeigen (auch von anderen Spielern)
+Show Mission highlights den Start und Endbahnhof
 
 
 Gameplay:

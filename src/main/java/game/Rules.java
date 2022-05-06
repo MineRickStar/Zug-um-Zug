@@ -42,6 +42,10 @@ public class Rules {
 	private int shipCount = 20;
 	private int airplaneCount = 10;
 
+	private byte[] pointsTrainConnection = { 1, 2, 4, 7, 10, 15, 18 };
+	private byte[] pointsShipConnection = { 1, 2, 4, 7, 10, 15, 18 };
+	private byte[] pointsAirConnection = { 1, 2, 4, 7, 10, 15, 18 };
+
 	private Rules() {}
 
 	public int getCardsLimit() {
@@ -214,6 +218,30 @@ public class Rules {
 		map.put(TransportMode.SHIP, this.getShipCount());
 		map.put(TransportMode.AIRPLANE, this.getAirplaneCount());
 		return map;
+	}
+
+	public byte[] getPointsTrainConnection() {
+		return this.pointsTrainConnection;
+	}
+
+	public byte[] getPointsShipConnection() {
+		return this.pointsShipConnection;
+	}
+
+	public byte[] getPointsAirConnection() {
+		return this.pointsAirConnection;
+	}
+
+	public byte[] getPointsConnection(TransportMode transportMode) {
+		switch (transportMode) {
+		case AIRPLANE:
+			return this.getPointsAirConnection();
+		case SHIP:
+			return this.getPointsShipConnection();
+		case TRAIN:
+			return this.getPointsTrainConnection();
+		}
+		return new byte[0];
 	}
 
 }
