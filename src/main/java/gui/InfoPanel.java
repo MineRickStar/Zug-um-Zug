@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
@@ -112,8 +111,7 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 	private void createColorCardButtonPanel() {
 		this.colorCardButtonPanel = new JPanel(new GridBagLayout());
 		this.colorCardButtonPanel.setBackground(Color.LIGHT_GRAY);
-		// TODO anzahl der gezogenen Karten anzeigen
-		this.colorCardsBorder = BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), "Drawcards (" + Game.getInstance().getRemainingCards() + ")");
+		this.colorCardsBorder = BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), this.getTitleString());
 		this.colorCardButtonPanel.setBorder(this.colorCardsBorder);
 
 		this.drawColorCardButtonPanel();
@@ -137,20 +135,21 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 				colorCardButton = new JButton();
 			} else if (colorCard.color() == MyColor.RAINBOW) {
 				colorCardButton = new JGradientButton(colorCard, i);
-				if ((Rules.getInstance().getColorCardsDrawing() - Game.getInstance().getCurrentPlayerColorCardDraws()) < Rules.getInstance().getLocomotiveWorth()) {
-					colorCardButton.setEnabled(false);
-				}
 			} else {
 				colorCardButton = new JColorCardButton(colorCard, i);
 			}
 			colorCardButton.addActionListener(e -> {
-				if (e.getSource() instanceof JColorCardButton) {
-					JColorCardButton button = (JColorCardButton) e.getSource();
-					Game.getInstance().colorCardDrawn(true, button.index);
+				if (e.getSource() instanceof JColorCardButton button) {
+					Game.getInstance().drawColorCardsFromOpenDeck(button.index);
 					this.updateColorCardPanelTitle();
 				}
 			});
 			colorCardButton.setEnabled(Game.getInstance().isPlayersTurn());
+			if (colorCard.color() == MyColor.RAINBOW) {
+				if ((Rules.getInstance().getColorCardsDrawing() - Game.getInstance().getCurrentPlayerColorCardDraws()) < Rules.getInstance().getLocomotiveWorth()) {
+					colorCardButton.setEnabled(false);
+				}
+			}
 			this.colorCardButtons.add(colorCardButton);
 
 			this.colorCardButtonPanel.add(colorCardButton, colorCardConstraints);
@@ -163,7 +162,7 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 		this.drawColorCardsButton = new JButton("Draw Card");
 
 		this.drawColorCardsButton.addActionListener(e -> {
-			Game.getInstance().colorCardDrawn(false, 0);
+			Game.getInstance().drawColorCardFromDeck();
 			this.updateColorCardPanelTitle();
 		});
 		this.drawMissionCardsButton = new JButton("Draw Mission Cards");
@@ -174,10 +173,18 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 	}
 
 	private void updateColorCardPanelTitle() {
-		this.colorCardsBorder.setTitle("Drawcards (" + Game.getInstance().getRemainingCards() + ")");
+		this.colorCardsBorder.setTitle(this.getTitleString());
 		this.drawColorCardButtonPanel();
 		this.revalidate();
 		this.repaint();
+	}
+
+	private String getTitleString() {
+		String drawCards = "Drawcards (" + Game.getInstance().getRemainingCards() + ")";
+		if (Game.getInstance().isPlayersTurn() && Game.getInstance().getCurrentPlayerColorCardDraws() > 0) {
+			drawCards += " Cards left to draw (" + (Rules.getInstance().getColorCardsDrawing() - Game.getInstance().getCurrentPlayerColorCardDraws()) + ")";
+		}
+		return drawCards;
 	}
 
 	////////// Private Panel //////////
@@ -317,8 +324,7 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 		int maxWidth = (int) (maxHeight * ratio);
 
 		int maxPossibleHeight = (this.colorCardPanel.getHeight()
-				/ rankingMap.values().stream().flatMap(t -> Stream.of(t.values().stream().flatMap(List::stream).collect(Collectors.toList()).size())).mapToInt(i -> i).max().getAsInt())
-				- (2 * padding);
+				/ rankingMap.values().stream().flatMap(t -> Stream.of(t.values().stream().flatMap(List::stream).toList().size())).mapToInt(i -> i).max().getAsInt()) - (2 * padding);
 
 		int maxPossibleWidth = ((this.colorCardPanel.getWidth() - 10) / rankingMap.values().stream().flatMap(t -> Stream.of(new ArrayList<>(t.keySet()).get(0))).reduce(0, (t, u) -> t + u))
 				- (2 * padding);
@@ -446,9 +452,12 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 			}
 			SwingUtilities.invokeLater(this::updateColorCardPanel);
 		} else if (Property.COLORCARDCHANGE.name().equals(evt.getPropertyName())) {
-			if (evt.getSource() instanceof Computer) { return; }
-			ColorCard card = evt.getNewValue() == null ? (ColorCard) evt.getOldValue() : (ColorCard) evt.getNewValue();
-			SwingUtilities.invokeLater(() -> this.addCardAndUpdatePanel(card, evt.getNewValue() == null));
+			if (evt.getSource() instanceof Computer) {
+				this.updateColorCardPanelTitle();
+			} else {
+				ColorCard card = evt.getNewValue() == null ? (ColorCard) evt.getOldValue() : (ColorCard) evt.getNewValue();
+				SwingUtilities.invokeLater(() -> this.addCardAndUpdatePanel(card, evt.getNewValue() == null));
+			}
 		} else if (Property.PLAYERCHANGE.name().equals(evt.getPropertyName())) {
 			Player newPlayer = (Player) evt.getNewValue();
 			this.currentPlayerLabel.setText("Current Player: " + newPlayer.getName());

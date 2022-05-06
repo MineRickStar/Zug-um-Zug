@@ -86,11 +86,7 @@ public class Connection {
 	public boolean equals(Object obj) {
 		if (this == obj) { return true; }
 		if (obj == null) { return false; }
-//		if (obj instanceof Connection other) { return this.ID.equals(other.ID); }
-		if (obj instanceof Connection) {
-			Connection other = (Connection) obj;
-			return this.ID.equals(other.ID);
-		}
+		if (obj instanceof Connection other) { return this.ID.equals(other.ID); }
 		return false;
 	}
 

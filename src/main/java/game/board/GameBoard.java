@@ -101,7 +101,7 @@ public class GameBoard {
 	public ColorCard drawCardFromOpenCards(int index) {
 		ColorCard colorCard = this.openCards.remove(index);
 		this.openCards.add(this.drawColorCard());
-		if (Rules.getInstance().isShuffleWithThreeLocomotives()
+		if (Rules.getInstance().isShuffleWithMaxOpenLocomotives()
 				&& (this.openCards.stream().filter(c -> c != null).filter(c -> c.color() == MyColor.RAINBOW).count() == Rules.getInstance().getMaxOpenLocomotives())) {
 			this.usedCards.addAll(this.openCards);
 			this.openCards.clear();

@@ -18,8 +18,8 @@ public class Computer extends Player {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		Game.getInstance().colorCardDrawn(false, 0);
-		Game.getInstance().colorCardDrawn(false, 0);
+		Game.getInstance().drawColorCardFromDeck();
+		Game.getInstance().drawColorCardFromDeck();
 	}
 
 	@Override

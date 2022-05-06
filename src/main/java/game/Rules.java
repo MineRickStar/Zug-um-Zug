@@ -26,8 +26,8 @@ public class Rules {
 	private int firstMissionCardsKeeping = 2;
 	private int defaultMissionCardsKeeping = 1;
 
-	private boolean shuffleWithThreeLocomotives = true;
-	private int MaxOpenLocomotives = 3;
+	private boolean shuffleWithMaxOpenLocomotives = true;
+	private int maxOpenLocomotives = 3;
 
 	private int trainColorCardCount = 12;
 	private int trainRainbowColorCardCount = 14;
@@ -120,20 +120,20 @@ public class Rules {
 		this.defaultMissionCardsKeeping = defaultMissionCardsKeeping;
 	}
 
-	public boolean isShuffleWithThreeLocomotives() {
-		return this.shuffleWithThreeLocomotives;
+	public boolean isShuffleWithMaxOpenLocomotives() {
+		return this.shuffleWithMaxOpenLocomotives;
 	}
 
-	public void setShuffleWithThreeLocomotives(boolean shuffleWithThreeLocomotives) {
-		this.shuffleWithThreeLocomotives = shuffleWithThreeLocomotives;
+	public void setShuffleWithMaxOpenLocomotives(boolean shuffleWithMaxOpenLocomotives) {
+		this.shuffleWithMaxOpenLocomotives = shuffleWithMaxOpenLocomotives;
 	}
 
 	public int getMaxOpenLocomotives() {
-		return this.MaxOpenLocomotives;
+		return this.maxOpenLocomotives;
 	}
 
 	public void setMaxOpenLocomotives(int maxOpenLocomotives) {
-		this.MaxOpenLocomotives = maxOpenLocomotives;
+		this.maxOpenLocomotives = maxOpenLocomotives;
 	}
 
 	public int getTrainColorCardCount() {

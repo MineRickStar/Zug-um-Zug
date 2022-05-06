@@ -146,7 +146,7 @@ public class Game implements PropertyChangeListener {
 
 	@SuppressWarnings("unused")
 	private void calculateMissionCards(List<MissionCard> missionCards, Player currentPlayer) {
-		List<List<LocationList>> pairs = Game.subsets(missionCards.stream().map(m -> new LocationList(m.getLocations())).collect(Collectors.toList()));
+		List<List<LocationList>> pairs = Game.subsets(missionCards.stream().map(m -> new LocationList(m.getLocations())).toList());
 		AlgorithmSettings settings = new AlgorithmSettings(currentPlayer);
 		settings.pathSegments = 12;
 		pairs.stream().sorted((o1, o2) -> Integer.compare(o1.size(), o2.size())).forEach(l -> Algorithm.findShortestPath(l, settings));
@@ -182,20 +182,22 @@ public class Game implements PropertyChangeListener {
 		return this.getCurrentPlayer().getBuyingOptions(colorCard, count);
 	}
 
-	public void colorCardDrawn(boolean openCardDrawn, int index) {
+	public void drawColorCardFromDeck() {
+		this.colorCardDrawn(this.gameBoard.drawColorCard(), false);
+	}
+
+	public void drawColorCardsFromOpenDeck(int index) {
+		this.colorCardDrawn(this.gameBoard.drawCardFromOpenCards(index), true);
+	}
+
+	private void colorCardDrawn(ColorCard colorCard, boolean openCardDrawn) {
 		Player currentPlayer = this.getCurrentPlayer();
-		ColorCard colorCard;
-		if (openCardDrawn) {
-			colorCard = this.gameBoard.drawCardFromOpenCards(index);
-		} else {
-			colorCard = this.gameBoard.drawColorCard();
-		}
-		currentPlayer.addColorCard(colorCard);
 		if (openCardDrawn && (colorCard.color() == MyColor.RAINBOW)) {
 			this.currentPlayerColorCardDraws += Rules.getInstance().getLocomotiveWorth();
 		} else {
 			this.currentPlayerColorCardDraws++;
 		}
+		currentPlayer.addColorCard(colorCard);
 		if (this.currentPlayerColorCardDraws >= Rules.getInstance().getColorCardsDrawing()) {
 			this.nextPlayer();
 		}
@@ -248,8 +250,7 @@ public class Game implements PropertyChangeListener {
 		this.currentPlayerCounter = (this.currentPlayerCounter + 1) % this.players.size();
 		this.currentPlayerColorCardDraws = 0;
 		this.fireAction(this, Property.PLAYERCHANGE, oldValue, this.getCurrentPlayer());
-		if (this.getCurrentPlayer() instanceof Computer) {
-			Computer com = (Computer) this.getCurrentPlayer();
+		if (this.getCurrentPlayer() instanceof Computer com) {
 			new Thread(() -> com.nextMove()).start();
 		}
 	}
@@ -313,7 +314,7 @@ public class Game implements PropertyChangeListener {
 			ArrayList<MissionCard> l = new ArrayList<>(t);
 			l.addAll(u);
 			return l;
-		}).get().parallelStream().filter(mission -> mission.getFromLocation().equals(location) || mission.getToLocation().equals(location)).collect(Collectors.toList());
+		}).get().parallelStream().filter(mission -> mission.getFromLocation().equals(location) || mission.getToLocation().equals(location)).toList();
 	}
 
 	@SuppressWarnings("unchecked")

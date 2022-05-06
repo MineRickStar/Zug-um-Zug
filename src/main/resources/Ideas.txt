@@ -1,14 +1,12 @@
 
 Currently in Process:
 
-Kartendeck und Infopanel updaten nach Computer
-
+Erldigte Karten in einen anderen Stapel legen mit info wie viele
 
 GUI:
 
 Unterschied zwischen Boot, Zügen und Flugzeugen
 Nicht mehr als maxNoOfMissionCards auswählen
-Erldigte Karten in einen anderen Stapel legen mit info wie viele
 Weiße Linien besser zeichnen
 Button für anzeige der eigenen und freien Strecken (Doppelte Strecken als einfache anzeigen)
 ScrollPane bei Missionkarten
@@ -31,6 +29,11 @@ Handkarten in Berechnung einbeziehen
 Strecken die belegt sind in Berechnung mit einbeziehen
 
 Lösungsvorschläge für NullPointer
-Auf Java 11 Ändern
+Auf Java 11 Ändern (XXX)
 Schauen wie oft die Methoden in der SingleConnectionPath Klasse aufgerufen werden
 Lebenszyklus eines Lambdas rausfinden
+
+
+Done:
+
+Kartendeck und Infopanel updaten nach Computer

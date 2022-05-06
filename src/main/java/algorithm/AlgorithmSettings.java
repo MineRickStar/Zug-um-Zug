@@ -58,11 +58,7 @@ public class AlgorithmSettings implements Cloneable {
 	public boolean equals(Object obj) {
 		if (this == obj) { return true; }
 		if (obj == null) { return false; }
-//		if (obj instanceof AlgorithmSettings other) { return this.hashCode() == other.hashCode(); }
-		if (obj instanceof AlgorithmSettings) {
-			AlgorithmSettings other = (AlgorithmSettings) obj;
-			return this.hashCode() == other.hashCode();
-		}
+		if (obj instanceof AlgorithmSettings other) { return this.hashCode() == other.hashCode(); }
 		return false;
 	}
 
