@@ -10,6 +10,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -130,7 +131,10 @@ public class MissionCardHelperDialog extends JDialog implements ItemListener {
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		List<LocationList> pairs = this.missionPanels.stream().filter(MissionPanel::isShowMissionSelected).map(p -> new LocationList(p.missionCardPanel.missionCard.getLocations())).toList();
+		List<LocationList> pairs = this.missionPanels.stream()
+			.filter(MissionPanel::isShowMissionSelected)
+			.map(p -> new LocationList(p.missionCardPanel.missionCard.getLocations()))
+			.collect(Collectors.toList());
 		Game.getInstance().highlightConnection(new ArrayList<>(pairs), this.player);
 	}
 

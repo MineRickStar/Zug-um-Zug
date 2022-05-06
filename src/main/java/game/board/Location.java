@@ -11,7 +11,17 @@ import game.Game;
 
 public class Location implements Comparable<Location> {
 
-	public record LocationList(List<Location> locations) {
+	public static class LocationList {
+		private List<Location> locations;
+
+		public LocationList(List<Location> locations) {
+			this.locations = locations;
+		}
+
+		public List<Location> locations() {
+			return this.locations;
+		}
+
 		public Location start() {
 			return this.locations.get(0);
 		}
@@ -69,7 +79,11 @@ public class Location implements Comparable<Location> {
 	public boolean equals(Object obj) {
 		if (this == obj) { return true; }
 		if (obj == null) { return false; }
-		if (obj instanceof Location other) { return this.ID.equals(other.ID); }
+//		if (obj instanceof Location other) { return this.ID.equals(other.ID); }
+		if (obj instanceof Location) {
+			Location other = (Location) obj;
+			return this.ID.equals(other.ID);
+		}
 		return false;
 	}
 

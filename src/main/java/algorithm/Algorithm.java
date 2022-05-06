@@ -53,7 +53,17 @@ public class Algorithm {
 		return bestPaths;
 	}
 
-	private record ConnectionCache(List<LocationList> locationPairs, AlgorithmSettings settings, List<SingleConnectionPath> connections) {}
+	private static class ConnectionCache {
+		private List<LocationList> locationPairs;
+		private AlgorithmSettings settings;
+		private List<SingleConnectionPath> connections;
+
+		private ConnectionCache(List<LocationList> locationPairs, AlgorithmSettings settings, List<SingleConnectionPath> connections) {
+			this.locationPairs = locationPairs;
+			this.settings = settings;
+			this.connections = connections;
+		}
+	}
 
 	private static final class AlgorithmChache {
 		private List<ConnectionCache> cache = new ArrayList<>();

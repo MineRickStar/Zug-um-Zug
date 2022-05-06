@@ -10,6 +10,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import connection.Connection;
@@ -153,7 +154,7 @@ public class Ranking {
 					}
 				}
 			});
-			this.getConnectionList().addAll(singlePaths.stream().filter(SingleConnectionPath::isPathPossible).toList());
+			this.getConnectionList().addAll(singlePaths.stream().filter(SingleConnectionPath::isPathPossible).collect(Collectors.toList()));
 		}
 	}
 

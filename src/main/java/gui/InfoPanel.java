@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
@@ -143,7 +144,8 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 				colorCardButton = new JColorCardButton(colorCard, i);
 			}
 			colorCardButton.addActionListener(e -> {
-				if (e.getSource() instanceof JColorCardButton button) {
+				if (e.getSource() instanceof JColorCardButton) {
+					JColorCardButton button = (JColorCardButton) e.getSource();
 					Game.getInstance().colorCardDrawn(true, button.index);
 					this.updateColorCardPanelTitle();
 				}
@@ -315,7 +317,8 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 		int maxWidth = (int) (maxHeight * ratio);
 
 		int maxPossibleHeight = (this.colorCardPanel.getHeight()
-				/ rankingMap.values().stream().flatMap(t -> Stream.of(t.values().stream().flatMap(List::stream).toList().size())).mapToInt(i -> i).max().getAsInt()) - (2 * padding);
+				/ rankingMap.values().stream().flatMap(t -> Stream.of(t.values().stream().flatMap(List::stream).collect(Collectors.toList()).size())).mapToInt(i -> i).max().getAsInt())
+				- (2 * padding);
 
 		int maxPossibleWidth = ((this.colorCardPanel.getWidth() - 10) / rankingMap.values().stream().flatMap(t -> Stream.of(new ArrayList<>(t.keySet()).get(0))).reduce(0, (t, u) -> t + u))
 				- (2 * padding);
