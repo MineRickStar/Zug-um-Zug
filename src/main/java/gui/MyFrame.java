@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.Frame;
+import java.awt.Toolkit;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
@@ -9,9 +10,15 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 
 import game.Game;
+import gui.dialog.ClientSettingsDialog;
+import gui.dialog.ComputerPlayDialog;
+import gui.dialog.CreatePlayerDialog;
+import gui.dialog.OnlinePlayerDialogHost;
+import gui.dialog.OnlinePlayerDialogJoin;
 
 public class MyFrame extends JFrame {
 
@@ -65,15 +72,40 @@ public class MyFrame extends JFrame {
 	private void addMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
 
-		JMenu menu = new JMenu("New Game");
+		JMenu newGameMenu = new JMenu("New Game");
+		JMenu onlinePlay = new JMenu("Online spielen");
+		JMenuItem onlinePlayHost = new JMenuItem("Create new Game");
+		onlinePlayHost.setAccelerator(KeyStroke.getKeyStroke('O', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+		onlinePlayHost.addActionListener(e -> new OnlinePlayerDialogHost());
+		JMenuItem onlinePlayJoin = new JMenuItem("Join Game");
+		onlinePlayJoin.addActionListener(e -> new OnlinePlayerDialogJoin());
+		onlinePlay.add(onlinePlayHost);
+		onlinePlay.add(onlinePlayJoin);
 
-		JMenuItem menuItem = new JMenuItem("Against Computer");
+		JMenuItem againstComputerMenu = new JMenuItem("Against Computer");
+		againstComputerMenu.addActionListener(e -> {
+			CreatePlayerDialog playerDialog = new CreatePlayerDialog();
+			if (!playerDialog.wasCanceled()) {
+				ComputerPlayDialog comDialog = new ComputerPlayDialog();
+				if (!comDialog.wasCanceled()) {
+					Game.getInstance().startGame();
+				}
+			}
+		});
+		againstComputerMenu.setAccelerator(KeyStroke.getKeyStroke('A', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
 
-		menuItem.addActionListener(e -> Game.getInstance().startComputerGame());
+		newGameMenu.add(onlinePlay);
+		newGameMenu.add(againstComputerMenu);
 
-		menu.add(menuItem);
+		menuBar.add(newGameMenu);
 
-		menuBar.add(menu);
+		JMenu settingsMenu = new JMenu("Settings");
+		JMenuItem settingsMenuItem = new JMenuItem("Settings");
+		settingsMenuItem.addActionListener(e -> new ClientSettingsDialog());
+		settingsMenu.add(settingsMenuItem);
+
+		menuBar.add(settingsMenu);
+
 		this.setJMenuBar(menuBar);
 	}
 

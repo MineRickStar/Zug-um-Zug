@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import game.board.Location;
+import game.board.LocationOrganizer;
 
 public class MissionCard implements Comparable<MissionCard> {
 
@@ -38,6 +39,10 @@ public class MissionCard implements Comparable<MissionCard> {
 
 	public List<Location> getLocations() {
 		return this.locations;
+	}
+
+	public boolean isFinished(LocationOrganizer locationOrganizer) {
+		return locationOrganizer.isInOnePool(this.locations);
 	}
 
 	@Override

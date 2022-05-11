@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 
 import application.Property;
 import connection.SingleConnection;
+import game.board.LocationOrganizer;
 import game.cards.ColorCard;
 import game.cards.MissionCard;
 import game.cards.MyColor;
@@ -33,11 +34,10 @@ public class Player {
 
 	protected Map<TransportMode, SortedMap<Integer, List<ColorCard>>> playerCards;
 	protected List<MissionCard> missionCards;
-	protected List<MissionCard> newMissionCards;
-
-	private boolean decideForMissionCards;
+	protected List<MissionCard> finishedMissionCards;
 
 	private List<SingleConnection> singleConnections;
+	private LocationOrganizer locationOrganizer;
 
 	public Player(String name, MyColor color) {
 		this.ID = UUID.randomUUID();
@@ -46,49 +46,56 @@ public class Player {
 		this.pieceCount = Rules.getInstance().getTransportMap();
 		this.playerCards = new EnumMap<>(TransportMode.class);
 		this.missionCards = new ArrayList<>();
-		this.decideForMissionCards = false;
+		this.finishedMissionCards = new ArrayList<>();
 		this.singleConnections = new ArrayList<>();
+		this.locationOrganizer = new LocationOrganizer();
 		if (name.equals("Patrick")) {
 			SingleConnection c = Game.getInstance().getConnectionFromLocations("Kassel", "Frankfurt", MyColor.WHITE);
 			c.setOwner(this);
-			this.singleConnections.add(c);
+			this.buySingleConnection(c, new ArrayList<>());
 		}
 	}
 
-	public void addColorCard(ColorCard colorCard) {
-		this.editColorCards(colorCard, 1, true);
+	///// Color Cards on Hand /////
+
+	public void addColorCard(ColorCard[] colorCards) {
+		this.editColorCards(colorCards, true);
 	}
 
-	public void removeColorCards(ColorCard colorCard, int count) {
-		this.editColorCards(colorCard, count, false);
+	public void removeColorCards(ColorCard[] colorCards) {
+		this.editColorCards(colorCards, false);
 	}
 
 	public Map<TransportMode, SortedMap<Integer, List<ColorCard>>> getColorCards() {
 		return this.playerCards;
 	}
 
-	private void editColorCards(ColorCard colorCard, int count, boolean add) {
-		SortedMap<Integer, List<ColorCard>> map = this.playerCards.getOrDefault(colorCard.transportMode(), new TreeMap<Integer, List<ColorCard>>(Collections.reverseOrder()));
-		int colorCardCount = this.getColorCardCount(colorCard);
-		List<ColorCard> list = map.getOrDefault(colorCardCount, new ArrayList<>());
-		list.remove(colorCard);
-		if (list.isEmpty()) {
-			map.remove(colorCardCount);
-		}
-		list = map.getOrDefault(colorCardCount + (add ? count : (-count)), new ArrayList<>());
-		list.add(colorCard);
-		map.put(colorCardCount + (add ? count : (-count)), list);
-		this.playerCards.put(colorCard.transportMode(), map);
-		for (int i = 0; i < count; i++) {
-			if (add) {
-				Game.getInstance().fireAction(this, Property.COLORCARDCHANGE, null, colorCard);
-			} else {
-				Game.getInstance().fireAction(this, Property.COLORCARDCHANGE, colorCard, null);
+	public List<MissionCard> getFinishedMissionCards() {
+		return this.finishedMissionCards;
+	}
+
+	private void editColorCards(ColorCard[] colorCards, boolean add) {
+		for (ColorCard colorCard : colorCards) {
+			SortedMap<Integer, List<ColorCard>> map = this.playerCards.getOrDefault(colorCard.transportMode(), new TreeMap<Integer, List<ColorCard>>(Collections.reverseOrder()));
+			int colorCardCount = this.getColorCardCount(colorCard);
+			List<ColorCard> list = map.getOrDefault(colorCardCount, new ArrayList<>());
+			list.remove(colorCard);
+			if (list.isEmpty()) {
+				map.remove(colorCardCount);
 			}
+			list = map.getOrDefault(colorCardCount + (add ? 1 : (-1)), new ArrayList<>());
+			list.add(colorCard);
+			map.put(colorCardCount + (add ? 1 : (-1)), list);
+			this.playerCards.put(colorCard.transportMode(), map);
+		}
+		if (add) {
+			Game.getInstance().fireAction(this, Property.COLORCARDCHANGE, null, colorCards);
+		} else {
+			Game.getInstance().fireAction(this, Property.COLORCARDCHANGE, colorCards, null);
 		}
 	}
 
-	public int getColorCardCount(ColorCard colorCard) {
+	private int getColorCardCount(ColorCard colorCard) {
 		if (colorCard.color() == MyColor.GRAY) { return -1; }
 		return this.playerCards.getOrDefault(colorCard.transportMode(), new TreeMap<>())
 			.entrySet()
@@ -98,6 +105,8 @@ public class Player {
 			.findAny()
 			.orElseGet(() -> Integer.valueOf(0));
 	}
+
+	///// Connections /////
 
 	public boolean hasPlayerEnoughColorCards(ColorCard colorCard, int count) {
 		SortedMap<Integer, List<ColorCard>> map = this.playerCards.getOrDefault(colorCard.transportMode(), new TreeMap<Integer, List<ColorCard>>());
@@ -148,39 +157,47 @@ public class Player {
 		colorList.add(colors);
 	}
 
-	public void addNewMissionCards(List<MissionCard> newMissionCards) {
-		this.newMissionCards = newMissionCards;
-	}
-
-	public List<MissionCard> getNewMissionCards() {
-		return this.newMissionCards;
-	}
-
-	public void addMissionCards(MissionCard[] missionCards) {
-		this.missionCards.addAll(List.of(missionCards));
-		new Thread(() -> Game.getInstance().fireAction(this, Property.MISSIONCARDADDED, null, missionCards)).start();
-	}
-
-	public List<MissionCard> getMissionCards() {
-		return this.missionCards;
+	public boolean canPlayerBuySingleConnection(SingleConnection singleConnection) {
+		boolean enoughCarriges = this.getPieceCount(singleConnection.transportMode) >= singleConnection.length;
+		boolean enoughColorCards = this.hasPlayerEnoughColorCards(singleConnection.getColorCardRepresentation(), singleConnection.length);
+		return enoughCarriges && enoughColorCards;
 	}
 
 	public void buySingleConnection(SingleConnection singleConnection, List<ColorCard> buyingCards) {
 		this.singleConnections.add(singleConnection);
-		buyingCards.forEach(card -> this.removeColorCards(card, 1));
+		this.locationOrganizer.addSingleConnection(singleConnection);
+		this.removeColorCards(buyingCards.toArray(ColorCard[]::new));
+		this.testForFinishedMissionCards();
 	}
 
 	public List<SingleConnection> getSingleConnections() {
 		return this.singleConnections;
 	}
 
-	public boolean isDecideForMissionCards() {
-		return this.decideForMissionCards;
+	///// Missioncards /////
+
+	public void addMissionCards(MissionCard[] missionCards) {
+		this.missionCards.addAll(List.of(missionCards));
+		this.testForFinishedMissionCards();
+		List<MissionCard> cards = new ArrayList<>(List.of(missionCards));
+		cards.removeAll(this.finishedMissionCards);
+		// New Thread because InvokeAndWait cannot be called from EDT
+		new Thread(() -> Game.getInstance().fireAction(this, Property.MISSIONCARDADDED, null, cards.toArray(MissionCard[]::new))).start();
 	}
 
-	public void setDecideForMissionCards(boolean decideForMissionCards) {
-		this.decideForMissionCards = decideForMissionCards;
+	public List<MissionCard> getMissionCards() {
+		return this.missionCards;
 	}
+
+	private void testForFinishedMissionCards() {
+		this.missionCards.stream().filter(m -> m.isFinished(this.locationOrganizer)).forEach(m -> {
+			this.finishedMissionCards.add(m);
+			Game.getInstance().fireAction(this, Property.MISSIONCARDFINISHED, null, m);
+		});
+		this.missionCards.removeAll(this.finishedMissionCards);
+	}
+
+	///// Pieces (Trains, Ships, Airplanes) /////
 
 	public EnumMap<TransportMode, Integer> getPieceCount() {
 		return this.pieceCount;
@@ -195,12 +212,10 @@ public class Player {
 		this.pieceCount = pieceCount;
 	}
 
+	///// Player Info /////
+
 	public String getName() {
 		return this.name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public String getPlayerInfo() {

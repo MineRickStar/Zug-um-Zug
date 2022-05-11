@@ -2,6 +2,7 @@
 Currently in Process:
 
 Erldigte Karten in einen anderen Stapel legen mit info wie viele
+Auch, Was passiert wann, wer greift auf was zu?
 
 GUI:
 
@@ -13,6 +14,10 @@ ScrollPane bei Missionkarten
 Wenn schon eine Karte gezogen wurde missionkarten nicht mehr ziehen können
 Anzahl der carriges anzeigen (auch von anderen Spielern)
 Show Mission highlights den Start und Endbahnhof
+Die MissionCards selbst sortieren lassen
+MissionCards schauen nicht gut aus, gridbaglayout anpassen dass am ende noch ein dummy panel hinzugefügt wird wenn nötig
+Finished MissionCards schön anordnen
+Missionskarten ausblenden können, z.B. Wenn diese nicht mehr geschafft werden
 
 
 Gameplay:
@@ -20,6 +25,7 @@ Gameplay:
 Flüge und Schiffe nicht als Karten findbar in einfacher Version
 Karte ohne Flüge und Schiffe
 Karten schon früher mischen als wenn keine mehr da sind
+Verschiedene Karten laden lassen (-> Koordinaten in Locations.txt File entweder erweitern, oder anderes System findens)
 
 
 Algorithmus:

@@ -5,17 +5,15 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.swing.SwingWorker;
+import javax.swing.SwingUtilities;
 
 import algorithm.Algorithm;
 import algorithm.AlgorithmSettings;
@@ -23,7 +21,6 @@ import application.Application;
 import application.Property;
 import connection.Connection;
 import connection.SingleConnection;
-import connection.SingleConnectionPath;
 import game.board.GameBoard;
 import game.board.Location;
 import game.board.Location.LocationList;
@@ -34,7 +31,7 @@ import game.cards.MyColor;
 import gui.dialog.MissionCardDialog;
 import gui.dialog.MissionCardHelperDialog;
 
-public class Game implements PropertyChangeListener {
+public class Game {
 
 	private static Game instance;
 
@@ -50,6 +47,7 @@ public class Game implements PropertyChangeListener {
 
 	private GameBoard gameBoard;
 
+	private Player instancePlayer;
 	private List<Player> players;
 	private int currentPlayerCounter;
 	private int currentPlayerColorCardDraws;
@@ -61,52 +59,37 @@ public class Game implements PropertyChangeListener {
 		this.players = new ArrayList<>();
 		this.gameBoard = new GameBoard();
 		this.propertyChangeSupport = new PropertyChangeSupport(this);
-		this.addPropertyChangeListener(Property.DRAWMISSIONCARDS, this);
-	}
-
-	public void startComputerGame() {
-		this.startGame();
-
-		if (this.getCurrentPlayer() instanceof Computer) {
-			EnumMap<Distance, Integer> cards = new EnumMap<>(Distance.class);
-			cards.put(Distance.SHORT, 2);
-			cards.put(Distance.MIDDLE, 2);
-			this.drawMissionCards(cards, false);
-		} else {
-			new MissionCardDialog(true);
-		}
-
-		if (this.getCurrentPlayer() instanceof Computer) {
-			EnumMap<Distance, Integer> cards = new EnumMap<>(Distance.class);
-			cards.put(Distance.SHORT, 2);
-			cards.put(Distance.MIDDLE, 2);
-			this.drawMissionCards(cards, false);
-		} else {
-			new MissionCardDialog(true);
-		}
 	}
 
 	public void startGame() {
-		this.gameStarted = true;
 		this.gameBoard.startGame();
 		Application.frame.start();
 		this.currentPlayerCounter = this.getRandomGenerator().nextInt(this.players.size());
 		this.distributeCards();
+
+		for (int i = 0; i < this.players.size(); i++) {
+			if (i == this.players.size() - 1) {
+				this.gameStarted = true;
+			}
+			if (this.isPlayersTurn()) {
+				new MissionCardDialog(true);
+			} else {
+				this.getCurrentPlayerComputer().drawMissionCards();
+			}
+		}
+		Application.frame.revalidate();
+		Application.frame.repaint();
 	}
 
 	public void distributeCards() {
-		this.players.forEach(p -> {
-			for (int i = 0; i < Rules.getInstance().getFirstColorCards(); i++) {
-				p.addColorCard(this.gameBoard.drawColorCard());
-			}
-		});
+		this.players.forEach(p -> p.addColorCard(IntStream.range(0, Rules.getInstance().getFirstColorCards()).mapToObj(i -> this.gameBoard.drawColorCard()).toArray(ColorCard[]::new)));
 	}
 
 	public int getMissionCardCount(Distance distance) {
 		return this.gameBoard.getMissionCardCount(distance);
 	}
 
-	public void drawMissionCards(Map<Distance, Integer> missionCardDistribution, boolean fireProperty) {
+	public void drawMissionCards(Map<Distance, Integer> missionCardDistribution) {
 		List<MissionCard> missionCards = new ArrayList<>();
 		Iterator<Entry<Distance, Integer>> it = missionCardDistribution.entrySet().iterator();
 		while (it.hasNext()) {
@@ -115,31 +98,10 @@ public class Game implements PropertyChangeListener {
 				missionCards.add(this.gameBoard.drawMissionCard(entry.getKey()));
 			}
 		}
-		Player currentPlayer = this.getCurrentPlayer();
-		currentPlayer.addNewMissionCards(missionCards);
-		if (fireProperty) {
-			SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-
-				@Override
-				protected Void doInBackground() throws Exception {
-					// TODO
-//					long time = System.currentTimeMillis();
-//					Game.this.calculateMissionCards(missionCards, currentPlayer);
-//					System.out.println("Whole time: " + (System.currentTimeMillis() - time));
-					return null;
-				}
-
-				@Override
-				protected void done() {
-					try {
-						this.get();
-					} catch (InterruptedException | ExecutionException e) {
-						e.printStackTrace();
-					}
-				}
-			};
-			worker.execute();
-			new MissionCardHelperDialog(currentPlayer);
+		if (this.isPlayersTurn()) {
+			SwingUtilities.invokeLater(() -> new MissionCardHelperDialog(missionCards));
+		} else {
+			this.getCurrentPlayerComputer().decideForMissionCards(missionCards);
 		}
 		this.nextPlayer();
 	}
@@ -164,58 +126,30 @@ public class Game implements PropertyChangeListener {
 		}).collect(Collectors.toList());
 	}
 
-	public boolean canPlayerBuySingleConnection(SingleConnection singleConnection) {
-		Player currentPlayer = this.getCurrentPlayer();
-		boolean enoughCarriges = currentPlayer.getPieceCount(singleConnection.transportMode) >= singleConnection.length;
-		boolean enoughColorCards = currentPlayer.hasPlayerEnoughColorCards(singleConnection.getColorCardRepresentation(), singleConnection.length);
-		return enoughCarriges && enoughColorCards;
-	}
-
-	public void playerBuysConnection(SingleConnection singelConnection, List<ColorCard> buyingCards) {
-		Player currentPlayer = this.getCurrentPlayer();
-		currentPlayer.buySingleConnection(singelConnection, buyingCards);
-		singelConnection.setOwner(this.getCurrentPlayer());
+	public void playerBuysConnection(Player player, SingleConnection singelConnection, List<ColorCard> buyingCards) {
+		singelConnection.setOwner(player);
+		player.buySingleConnection(singelConnection, buyingCards);
 		this.nextPlayer();
 	}
 
-	public List<ColorCard[]> getBuyingOptions(ColorCard colorCard, int count) {
-		return this.getCurrentPlayer().getBuyingOptions(colorCard, count);
+	public void drawColorCardFromDeck(Player player) {
+		this.colorCardDrawn(player, this.gameBoard.drawColorCard(), false);
 	}
 
-	public void drawColorCardFromDeck() {
-		this.colorCardDrawn(this.gameBoard.drawColorCard(), false);
+	public void drawColorCardsFromOpenDeck(Player player, int index) {
+		this.colorCardDrawn(player, this.gameBoard.drawCardFromOpenCards(index), true);
 	}
 
-	public void drawColorCardsFromOpenDeck(int index) {
-		this.colorCardDrawn(this.gameBoard.drawCardFromOpenCards(index), true);
-	}
-
-	private void colorCardDrawn(ColorCard colorCard, boolean openCardDrawn) {
-		Player currentPlayer = this.getCurrentPlayer();
+	private void colorCardDrawn(Player player, ColorCard colorCard, boolean openCardDrawn) {
 		if (openCardDrawn && (colorCard.color() == MyColor.RAINBOW)) {
 			this.currentPlayerColorCardDraws += Rules.getInstance().getLocomotiveWorth();
 		} else {
 			this.currentPlayerColorCardDraws++;
 		}
-		currentPlayer.addColorCard(colorCard);
+		player.addColorCard(new ColorCard[] { colorCard });
 		if (this.currentPlayerColorCardDraws >= Rules.getInstance().getColorCardsDrawing()) {
 			this.nextPlayer();
 		}
-	}
-
-	public void highlightConnection(List<LocationList> locationPairs, Player player) {
-		// TODO solver NullPointer in Algorithm
-//		this.gameBoard.highlightConnection(locationPairs, player);
-	}
-
-	public void setHighlightConnections(List<SingleConnectionPath> paths) {
-		if (this.gameBoard == null) { return; }
-		this.gameBoard.setHighlightConnections(paths);
-	}
-
-	public List<SingleConnectionPath> getHighlightConnections() {
-		if (this.gameBoard == null) { return null; }
-		return this.gameBoard.getHighlightedConnections();
 	}
 
 	public List<ColorCard> getOpenCards() {
@@ -223,7 +157,7 @@ public class Game implements PropertyChangeListener {
 	}
 
 	public int getRemainingCards() {
-		return this.gameBoard.getRemainingCards();
+		return this.gameBoard.getClosedCardCount();
 	}
 
 	public int getCurrentPlayerColorCardDraws() {
@@ -234,35 +168,53 @@ public class Game implements PropertyChangeListener {
 		return this.currentPlayerColorCardDraws != 0;
 	}
 
-	public Player getCurrentPlayer() {
+	private Player getCurrentPlayer() {
 		return this.players.get(this.currentPlayerCounter);
 	}
 
+	public Player getInstancePlayer() {
+		return this.instancePlayer;
+	}
+
+	public Computer getCurrentPlayerComputer() {
+		return (Computer) this.getCurrentPlayer();
+	}
+
 	public boolean isPlayersTurn() {
-		return this.getCurrentPlayer().equals(Application.player);
+		return this.getCurrentPlayer().equals(this.instancePlayer);
+	}
+
+	public boolean isColorAvailable(MyColor color) {
+		return this.players.stream().noneMatch(p -> p.playerColor == color);
 	}
 
 	public void nextPlayer() {
-		System.out.println();
-		System.out.println("Spieler: ");
-		System.out.println(this.getCurrentPlayer());
 		Player oldValue = this.getCurrentPlayer();
 		this.currentPlayerCounter = (this.currentPlayerCounter + 1) % this.players.size();
 		this.currentPlayerColorCardDraws = 0;
-		this.fireAction(this, Property.PLAYERCHANGE, oldValue, this.getCurrentPlayer());
-		if (this.getCurrentPlayer() instanceof Computer com) {
-			new Thread(() -> com.nextMove()).start();
+		if (this.gameStarted) {
+			this.fireAction(this, Property.PLAYERCHANGE, oldValue, this.getCurrentPlayer());
+			if (this.getCurrentPlayer() instanceof Computer com) {
+				new Thread(() -> com.nextMove()).start();
+			}
 		}
+		System.out.println();
+		System.out.println("Nächster spieler: ");
+		System.out.println(this.getCurrentPlayer());
 	}
 
-	public Player addPlayer(String playerName, MyColor color) {
-		Player player = new Player(playerName, color);
-		this.players.add(player);
-		return player;
+	public Player addInstancePlayer(String playerName, MyColor color) {
+		if (this.instancePlayer == null) {
+			Player player = new Player(playerName, color);
+			this.instancePlayer = player;
+			this.players.add(player);
+			return player;
+		}
+		return null;
 	}
 
-	public void addComputer(String computerName, MyColor color) {
-		Computer computer = new Computer(computerName, color);
+	public void addComputer(String computerName, MyColor color, int difficulty) {
+		Computer computer = new Computer(computerName, color, difficulty);
 		this.players.add(computer);
 	}
 
@@ -315,14 +267,6 @@ public class Game implements PropertyChangeListener {
 			l.addAll(u);
 			return l;
 		}).get().parallelStream().filter(mission -> mission.getFromLocation().equals(location) || mission.getToLocation().equals(location)).toList();
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-		if (Property.DRAWMISSIONCARDS.name().equals(evt.getPropertyName())) {
-			this.drawMissionCards((Map<Distance, Integer>) evt.getNewValue(), true);
-		}
 	}
 
 }

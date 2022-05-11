@@ -10,21 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
-import javax.swing.SwingWorker;
-import javax.swing.SwingWorker.StateValue;
-
-import algorithm.Algorithm;
-import algorithm.AlgorithmSettings;
-import application.Application;
 import connection.Connection;
-import connection.SingleConnectionPath;
 import csvCoder.Decode;
 import game.Game;
-import game.Player;
 import game.Rules;
-import game.board.Location.LocationList;
 import game.cards.ColorCard;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
@@ -36,14 +26,12 @@ public class GameBoard {
 
 	private Map<Distance, List<MissionCard>> missionCards;
 
-	private List<ColorCard> allCards;
+	private List<ColorCard> closedCards;
 	private List<ColorCard> openCards;
 	private List<ColorCard> usedCards;
 
 	private TreeMap<String, Location> locations;
 	private TreeMap<UUID, Connection> connections;
-
-	private List<SingleConnectionPath> highlightedConnections;
 
 	public GameBoard() {
 		this.locations = new TreeMap<>();
@@ -56,7 +44,7 @@ public class GameBoard {
 		}
 		this.readMissionCards();
 
-		this.allCards = new ArrayList<>();
+		this.closedCards = new ArrayList<>();
 		this.openCards = new ArrayList<>();
 		this.usedCards = new ArrayList<>();
 		this.fillCards();
@@ -84,18 +72,18 @@ public class GameBoard {
 
 	private void fillColor(int max, MyColor color, TransportMode transportMode) {
 		for (int i = 0; i < max; i++) {
-			this.allCards.add(new ColorCard(color, transportMode));
+			this.closedCards.add(new ColorCard(color, transportMode));
 		}
 	}
 
 	public ColorCard drawColorCard() {
-		if (this.allCards.size() == 0) {
+		if (this.closedCards.size() == 0) {
 			if (this.usedCards.isEmpty()) { return null; }
-			this.allCards.addAll(this.usedCards);
+			this.closedCards.addAll(this.usedCards);
 			this.usedCards.clear();
 			this.shuffleCards();
 		}
-		return this.allCards.remove(0);
+		return this.closedCards.remove(0);
 	}
 
 	public ColorCard drawCardFromOpenCards(int index) {
@@ -116,55 +104,14 @@ public class GameBoard {
 		return this.openCards;
 	}
 
-	public int getRemainingCards() {
-		return this.allCards.size();
+	public int getClosedCardCount() {
+		return this.closedCards.size();
 	}
 
 	public void addUsedCards(ColorCard color, int count) {
 		for (int i = 0; i <= count; i++) {
 			this.usedCards.add(color);
 		}
-	}
-
-	public void highlightConnection(List<LocationList> locationPairs, Player player) {
-		if (locationPairs == null || locationPairs.isEmpty()) {
-			this.highlightedConnections = null;
-			Application.frame.repaint();
-			return;
-		}
-		SwingWorker<List<SingleConnectionPath>, Void> worker = new SwingWorker<List<SingleConnectionPath>, Void>() {
-
-			@Override
-			public List<SingleConnectionPath> doInBackground() {
-				return Algorithm.findShortestPath(locationPairs, new AlgorithmSettings(player));
-			}
-
-			@Override
-			protected void done() {
-				try {
-					GameBoard.this.highlightedConnections = this.get();
-				} catch (InterruptedException | ExecutionException e) {
-					e.printStackTrace();
-				}
-			}
-		};
-		worker.addPropertyChangeListener(evt -> {
-			if ("state".equals(evt.getPropertyName())) {
-				if ((StateValue) evt.getNewValue() == StateValue.DONE) {
-					Application.frame.repaint();
-				}
-			}
-		});
-		worker.execute();
-
-	}
-
-	public void setHighlightConnections(List<SingleConnectionPath> paths) {
-		this.highlightedConnections = paths;
-	}
-
-	public List<SingleConnectionPath> getHighlightedConnections() {
-		return this.highlightedConnections;
 	}
 
 	public MissionCard drawMissionCard(Distance distance) {
@@ -303,7 +250,7 @@ public class GameBoard {
 	}
 
 	public void shuffleCards() {
-		Collections.shuffle(this.allCards, Game.getInstance().getRandomGenerator());
+		Collections.shuffle(this.closedCards, Game.getInstance().getRandomGenerator());
 	}
 
 }

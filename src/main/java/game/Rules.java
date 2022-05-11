@@ -35,8 +35,8 @@ public class Rules {
 	private int shipColorCardCount = 6;
 	private int shipRainbowColorCardCount = 6;
 
-	private int airplaneColorCardCount = 6;
-	private int airplaneRainbowColorCardCount = 6;
+	private int airplaneColorCardCount = 2;
+	private int airplaneRainbowColorCardCount = 2;
 
 	private int trainCount = 45;
 	private int shipCount = 20;

@@ -15,9 +15,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 
 import application.Application;
-import application.Property;
 import game.Game;
 import game.Rules;
 import game.cards.MissionCard.Distance;
@@ -26,12 +26,8 @@ public class MissionCardDialog extends JDialog {
 
 	private static final long serialVersionUID = 3371834066035120352L;
 
-	private final boolean start;
-
-	// TODO rework because missionCards are not drawn when selected
 	public MissionCardDialog(boolean start) {
 		super(Application.frame, "Draw Mission Cards", true);
-		this.start = start;
 		JPanel panel = new JPanel(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
 
@@ -64,7 +60,7 @@ public class MissionCardDialog extends JDialog {
 			EnumMap<Distance, Integer> missionCards = new EnumMap<>(Distance.class);
 			distanceSlider.entrySet().forEach(entry -> missionCards.put(entry.getKey(), entry.getValue().getValue()));
 			if (missionCards.values().stream().collect(Collectors.summingInt(Integer::intValue)) == Rules.getInstance().getMissionCardsDrawing()) {
-				Game.getInstance().fireAction(this, Property.DRAWMISSIONCARDS, null, missionCards);
+				Game.getInstance().drawMissionCards(missionCards);
 				this.dispose();
 			} else {
 				JOptionPane.showMessageDialog(this, "The sum of all Mission Cards must be " + Rules.getInstance().getMissionCardsDrawing());
@@ -72,20 +68,20 @@ public class MissionCardDialog extends JDialog {
 		});
 
 		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(e -> {
-			if (this.start) {
-				JOptionPane.showMessageDialog(this, "Cancel not Possible at start of Game");
-				return;
-			}
-			this.dispose();
-		});
+		cancelButton.addActionListener(e -> this.dispose());
 
 		buttonPanel.add(okButton);
-		buttonPanel.add(cancelButton);
+		if (!start) {
+			buttonPanel.add(cancelButton);
+		}
 
 		panel.add(buttonPanel, gbc);
 
 		this.add(panel);
+
+		if (start) {
+			this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		}
 
 		this.pack();
 		this.setResizable(false);
