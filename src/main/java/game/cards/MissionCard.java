@@ -30,7 +30,7 @@ public class MissionCard implements Comparable<MissionCard> {
 
 	public List<Location> getMidLocations() {
 		if (this.locations.size() == 2) { return Collections.emptyList(); }
-		return this.locations.subList(1, this.locations.size() - 2);
+		return this.locations.subList(1, this.locations.size() - 1);
 	}
 
 	public Location getToLocation() {
@@ -62,12 +62,11 @@ public class MissionCard implements Comparable<MissionCard> {
 	@Override
 	public String toString() {
 		String over = this.getLocations().size() > 2 ? this.locations.subList(1, this.getLocations().size() - 1).stream().map(l -> l.name).collect(Collectors.joining(", ", ", Over: (", ")")) : "";
-		return System.lineSeparator() + "Card [fromLocation=" + this.getFromLocation() + over + ", toLocation=" + this.getToLocation() + ", points=" + this.points + ", distance=" + this.distance
-				+ "]";
+		return "Card [fromLocation=" + this.getFromLocation() + over + ", toLocation=" + this.getToLocation() + ", points=" + this.points + ", distance=" + this.distance + "]";
 	}
 
 	public enum Distance {
-		SHORT("Short Card", "s"), MIDDLE("Middle Card", "m"), LONG("Long Card", "l");
+		SHORT("Short Card", "s"), MIDDLE("Middle Card", "m"), LONG("Long Card", "l"), EXTRA_LONG("Extra Long Card", "e");
 
 		public final String cardLength;
 		public final String abbreviation;

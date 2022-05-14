@@ -2,16 +2,21 @@ package gui.dialog;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 
 import application.Application;
@@ -31,43 +36,70 @@ public class MissionCardHelperDialog extends JDialog {
 
 	public MissionCardHelperDialog(List<MissionCard> missionCardList) {
 		super(Application.frame, "Missioncard selection");
-		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		this.setLayout(new GridBagLayout());
 
-		JPanel missionCardPanel = new JPanel(new GridLayout(missionCardList.size(), 2, 10, 10));
+		JPanel missionCardPanel = new JPanel(new GridBagLayout());
+		GridBagConstraints missionCardgbc = new GridBagConstraints();
+		missionCardgbc.insets = new Insets(10, 10, 10, 10);
+		missionCardgbc.gridx = 0;
+		missionCardgbc.gridy = 0;
 
 		for (MissionCard element : missionCardList) {
 			MissionPanel missionPanel = new MissionPanel(element);
 			this.missionPanels.add(missionPanel);
-			missionCardPanel.add(missionPanel);
+			missionCardgbc.gridy++;
+			missionCardPanel.add(missionPanel, missionCardgbc);
 		}
 
 		JButton okButton = new JButton("OK");
-		okButton.addActionListener(e -> {
-			int count = Game.getInstance().getInstancePlayer().getMissionCards().size() == 0 ? Rules.getInstance().getFirstMissionCardsKeeping() : Rules.getInstance().getDefaultMissionCardsKeeping();
-			if (this.missionPanels.stream().filter(MissionPanel::isMissionSelected).count() < count) {
-				JOptionPane.showMessageDialog(this, String.format("Please select at least %d Missions", count));
-				return;
+		okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "OK");
+		okButton.getActionMap().put("OK", new AbstractAction() {
+			private static final long serialVersionUID = 6740774083608708284L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MissionCardHelperDialog.this.testMissionCards();
 			}
-			MissionCard[] missionCards = this.missionPanels.stream().filter(MissionPanel::isMissionSelected).map(p -> p.missionCardPanel.missionCard).toArray(MissionCard[]::new);
-			Game.getInstance().getInstancePlayer().addMissionCards(missionCards);
-			Application.frame.revalidate();
-			Application.frame.repaint();
-			this.dispose();
 		});
+		okButton.addActionListener(e -> this.testMissionCards());
 
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(10, 10, 10, 10);
 
 		gbc.gridy = 0;
 		this.add(missionCardPanel, gbc);
+		gbc.insets = new Insets(0, 0, 10, 0);
 		gbc.gridy = 1;
 		this.add(okButton, gbc);
+
+		((JPanel) this.getContentPane()).getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('A', InputEvent.CTRL_DOWN_MASK), "ALL");
+		((JPanel) this.getContentPane()).getActionMap().put("ALL", new AbstractAction() {
+
+			private static final long serialVersionUID = 1251851433534082983L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MissionCardHelperDialog.this.missionPanels.forEach(m -> m.selectMission.setSelected(true));
+			}
+		});
 
 		this.pack();
 		this.setResizable(false);
 		this.setLocationRelativeTo(Application.frame);
 		this.setVisible(true);
+	}
+
+	private void testMissionCards() {
+		int count = Game.getInstance().getInstancePlayer().getMissionCards().size() == 0 ? Rules.getInstance().getFirstMissionCardsKeeping() : Rules.getInstance().getDefaultMissionCardsKeeping();
+		if (this.missionPanels.stream().filter(MissionPanel::isMissionSelected).count() < count) {
+			JOptionPane.showMessageDialog(this, String.format("Please select at least %d Missions", count));
+			return;
+		}
+		MissionCard[] missionCards = this.missionPanels.stream().filter(MissionPanel::isMissionSelected).map(p -> p.missionCardPanel.missionCard).toArray(MissionCard[]::new);
+		Game.getInstance().getInstancePlayer().addMissionCards(missionCards);
+		Application.frame.revalidate();
+		Application.frame.repaint();
+		this.dispose();
 	}
 
 	public class MissionPanel extends JPanel {

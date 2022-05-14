@@ -61,3 +61,4 @@ m,22,Rostock,Konstanz
 m,22,Rostock,Österreich
 m,22,Dänemark,Lindau
 l,28,Dänemark,Düsseldorf,Lindau
+e,37,Österreich,Frankfurt,Dänemark,Berlin

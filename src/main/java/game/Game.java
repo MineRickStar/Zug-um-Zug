@@ -28,7 +28,7 @@ import game.cards.ColorCard;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
 import game.cards.MyColor;
-import gui.dialog.MissionCardDialog;
+import gui.dialog.DrawMissionCardDialog;
 import gui.dialog.MissionCardHelperDialog;
 
 public class Game {
@@ -72,7 +72,7 @@ public class Game {
 				this.gameStarted = true;
 			}
 			if (this.isPlayersTurn()) {
-				new MissionCardDialog(true);
+				new DrawMissionCardDialog(true);
 			} else {
 				this.getCurrentPlayerComputer().drawMissionCards();
 			}

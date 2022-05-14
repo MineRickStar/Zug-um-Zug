@@ -4,16 +4,22 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.swing.AbstractAction;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
@@ -22,11 +28,13 @@ import game.Game;
 import game.Rules;
 import game.cards.MissionCard.Distance;
 
-public class MissionCardDialog extends JDialog {
+public class DrawMissionCardDialog extends JDialog {
 
 	private static final long serialVersionUID = 3371834066035120352L;
 
-	public MissionCardDialog(boolean start) {
+	Map<Distance, JSlider> distanceSlider;
+
+	public DrawMissionCardDialog(boolean start) {
 		super(Application.frame, "Draw Mission Cards", true);
 		JPanel panel = new JPanel(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -39,14 +47,14 @@ public class MissionCardDialog extends JDialog {
 		gbc.gridy = 0;
 
 		Distance[] distances = Distance.values();
-		Map<Distance, JSlider> distanceSlider = new EnumMap<>(Distance.class);
+		this.distanceSlider = new EnumMap<>(Distance.class);
 
 		for (Distance distance : distances) {
 			JPanel missionCardPanel = new JPanel();
 			JLabel label = new JLabel(distance.cardLength);
 			missionCardPanel.add(label);
 			JSlider slider = this.getMissionCardSlider(distance);
-			distanceSlider.put(distance, slider);
+			this.distanceSlider.put(distance, slider);
 			missionCardPanel.add(slider);
 
 			panel.add(missionCardPanel, gbc);
@@ -56,16 +64,17 @@ public class MissionCardDialog extends JDialog {
 		JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 10, 10));
 
 		JButton okButton = new JButton("OK");
-		okButton.addActionListener(e -> {
-			EnumMap<Distance, Integer> missionCards = new EnumMap<>(Distance.class);
-			distanceSlider.entrySet().forEach(entry -> missionCards.put(entry.getKey(), entry.getValue().getValue()));
-			if (missionCards.values().stream().collect(Collectors.summingInt(Integer::intValue)) == Rules.getInstance().getMissionCardsDrawing()) {
-				Game.getInstance().drawMissionCards(missionCards);
-				this.dispose();
-			} else {
-				JOptionPane.showMessageDialog(this, "The sum of all Mission Cards must be " + Rules.getInstance().getMissionCardsDrawing());
+		okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "OK");
+		okButton.getActionMap().put("OK", new AbstractAction() {
+
+			private static final long serialVersionUID = 5594240801235444580L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DrawMissionCardDialog.this.testMissionCards();
 			}
 		});
+		okButton.addActionListener(e -> this.testMissionCards());
 
 		JButton cancelButton = new JButton("Cancel");
 		cancelButton.addActionListener(e -> this.dispose());
@@ -89,11 +98,22 @@ public class MissionCardDialog extends JDialog {
 		this.setVisible(true);
 	}
 
+	private void testMissionCards() {
+		EnumMap<Distance, Integer> missionCards = new EnumMap<>(Distance.class);
+		this.distanceSlider.entrySet().forEach(entry -> missionCards.put(entry.getKey(), entry.getValue().getValue()));
+		if (missionCards.values().stream().collect(Collectors.summingInt(Integer::intValue)) == Rules.getInstance().getMissionCardsDrawing()) {
+			Game.getInstance().drawMissionCards(missionCards);
+			this.dispose();
+		} else {
+			JOptionPane.showMessageDialog(this, "The sum of all Mission Cards must be " + Rules.getInstance().getMissionCardsDrawing());
+		}
+	}
+
 	private JSlider getMissionCardSlider(Distance distance) {
 		int distanceCards = Game.getInstance().getMissionCardCount(distance);
 		int maxCardAmount = Math.min(distanceCards, Rules.getInstance().getMissionCardsDrawing());
 		int value = Math.min(Math.min(distanceCards, Rules.getInstance().getMissionCardsDrawing()), 2);
-		if (distance == Distance.LONG) {
+		if (distance == Distance.LONG || distance == Distance.EXTRA_LONG) {
 			value = 0;
 		}
 		JSlider slider = new JSlider(SwingConstants.HORIZONTAL, 0, maxCardAmount, value);

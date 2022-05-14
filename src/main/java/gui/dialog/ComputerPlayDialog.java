@@ -4,6 +4,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -13,15 +15,18 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 
 import application.Application;
@@ -76,26 +81,16 @@ public class ComputerPlayDialog extends JDialog {
 	private JPanel createButtonPanel() {
 		JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 10, 10));
 		JButton okButton = new JButton("OK");
-		okButton.addActionListener(e -> {
-			for (ComPanel panel : this.comPanels) {
-				String opponentName = panel.opponentName.getText();
-				if (opponentName.isEmpty()) {
-					JOptionPane.showMessageDialog(this, "Name must not be emtpy");
-					return;
-				} else if (opponentName.isBlank()) {
-					JOptionPane.showMessageDialog(this, "Name must not be blank");
-					return;
-				}
-				if (panel.colorSelection.getSelectedIndex() == -1) {
-					JOptionPane.showMessageDialog(this, "Color must be selected");
-					return;
-				}
+		okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "OK");
+		okButton.getActionMap().put("OK", new AbstractAction() {
+			private static final long serialVersionUID = 8780924790082923986L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ComputerPlayDialog.this.testPanels();
 			}
-			this.comPanels.forEach(c -> {
-				Game.getInstance().addComputer(c.opponentName.getText(), (MyColor) c.colorSelection.getSelectedItem(), c.opponentLevel.getValue());
-			});
-			this.dispose();
 		});
+		okButton.addActionListener(e -> this.testPanels());
 
 		JButton cancelButton = new JButton("Cancel");
 		cancelButton.addActionListener(e -> {
@@ -107,6 +102,27 @@ public class ComputerPlayDialog extends JDialog {
 		buttonPanel.add(cancelButton);
 
 		return buttonPanel;
+	}
+
+	private void testPanels() {
+		for (ComPanel panel : this.comPanels) {
+			String opponentName = panel.opponentName.getText();
+			if (opponentName.isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Name must not be emtpy");
+				return;
+			} else if (opponentName.isBlank()) {
+				JOptionPane.showMessageDialog(this, "Name must not be blank");
+				return;
+			}
+			if (panel.colorSelection.getSelectedIndex() == -1) {
+				JOptionPane.showMessageDialog(this, "Color must be selected");
+				return;
+			}
+		}
+		this.comPanels.forEach(c -> {
+			Game.getInstance().addComputer(c.opponentName.getText(), (MyColor) c.colorSelection.getSelectedItem(), c.opponentLevel.getValue());
+		});
+		this.dispose();
 	}
 
 	private void addComPanel() {

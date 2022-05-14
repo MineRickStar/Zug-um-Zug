@@ -239,7 +239,7 @@ public class BuyingDialog extends JDialog {
 		}
 
 		@Override
-		public void mouseClicked(MouseEvent e) {
+		public void mousePressed(MouseEvent e) {
 			BuyingDialog.this.selectedPanel = (JPanel) e.getComponent();
 			BuyingDialog.this.allBuyingOptionPanels.forEach(p -> p.setBackground(Color.LIGHT_GRAY));
 			BuyingDialog.this.selectedPanel.setBackground(Color.DARK_GRAY);
