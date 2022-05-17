@@ -31,7 +31,7 @@ import javax.swing.SwingConstants;
 
 import application.Application;
 import game.Game;
-import game.cards.MyColor;
+import game.cards.ColorCard.MyColor;
 
 public class ComputerPlayDialog extends JDialog {
 

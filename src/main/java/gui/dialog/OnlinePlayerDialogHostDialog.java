@@ -4,16 +4,16 @@ import javax.swing.JDialog;
 
 import application.Application;
 
-public class OnlinePlayerDialogJoin extends JDialog {
+public class OnlinePlayerDialogHostDialog extends JDialog {
 
-	private static final long serialVersionUID = -5852193405708982004L;
+	private static final long serialVersionUID = 3316158703478959293L;
 
-	public OnlinePlayerDialogJoin() {
+	public OnlinePlayerDialogHostDialog() {
 		super(Application.frame, "TODO", true);
 		this.pack();
 		this.setLocationRelativeTo(Application.frame);
 		this.setVisible(true);
-		// TODO
+		// TODO Online Player Host Dialog
 	}
 
 }

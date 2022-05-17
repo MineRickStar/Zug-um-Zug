@@ -5,8 +5,8 @@ import java.util.UUID;
 import game.Player;
 import game.Rules;
 import game.cards.ColorCard;
-import game.cards.MyColor;
-import game.cards.TransportMode;
+import game.cards.ColorCard.MyColor;
+import game.cards.ColorCard.TransportMode;
 
 public class SingleConnection {
 

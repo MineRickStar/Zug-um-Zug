@@ -311,19 +311,20 @@ public class GameBoardPanel extends JPanel {
 		buyButton.setEnabled(canBuyConnection);
 		buyButton.addActionListener(e1 -> {
 			if (canBuyConnection) {
-				List<ColorCard> bought = this.getBuyingOptions(selectedConnection);
+				List<ColorCard> bought = this.getBuyingOptions(player, selectedConnection);
 				if ((bought != null) && !bought.isEmpty()) {
 					Game.getInstance().playerBuysConnection(player, selectedConnection, bought);
 					this.repaint();
 				}
 			}
 		});
+		buyButton.setSelected(true);
 		menu.add(buyButton);
 		menu.show(e.getComponent(), e.getX() - 20, e.getY() - 10);
 	}
 
-	private List<ColorCard> getBuyingOptions(SingleConnection singleConnection) {
-		BuyingDialog dialog = new BuyingDialog(this, singleConnection, Game.getInstance().getInstancePlayer().getBuyingOptions(singleConnection.getColorCardRepresentation(), singleConnection.length));
+	private List<ColorCard> getBuyingOptions(Player player, SingleConnection singleConnection) {
+		BuyingDialog dialog = new BuyingDialog(this, singleConnection, player);
 		ColorCard[] colors = dialog.getSelectedBuyingOption();
 		if ((colors == null) || (colors.length == 0)) { return Collections.emptyList(); }
 		return Arrays.asList(colors);

@@ -16,11 +16,11 @@ import csvCoder.Decode;
 import game.Game;
 import game.Rules;
 import game.cards.ColorCard;
+import game.cards.ColorCard.MyColor;
+import game.cards.ColorCard.TransportMode;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
 import game.cards.MissionCard.MissionCardConstraints;
-import game.cards.MyColor;
-import game.cards.TransportMode;
 
 public class GameBoard {
 

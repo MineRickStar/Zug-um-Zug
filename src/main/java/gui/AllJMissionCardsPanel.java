@@ -1,14 +1,13 @@
 package gui;
 
 import java.awt.Color;
+import java.awt.GridBagConstraints;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
-
-import game.cards.MissionCard;
 
 public class AllJMissionCardsPanel extends JPanel {
 
@@ -20,9 +19,7 @@ public class AllJMissionCardsPanel extends JPanel {
 	private boolean keepRowCount;
 	private boolean keepColumnCount;
 
-	private List<IMissionCardPanel> missionCardPanelList;
-
-	private boolean ignoreMissionCardVisibility;
+	private List<JMissionCardPanel> missionCardPanelList;
 
 	public AllJMissionCardsPanel() {
 		this("");
@@ -43,40 +40,33 @@ public class AllJMissionCardsPanel extends JPanel {
 		this.missionCardPanelList = new ArrayList<>();
 	}
 
-	public void addMissionPanel(IMissionCardPanel panel) {
-		this.missionCardPanelList.add(panel);
+	private void addJMissionCardPanel(JMissionCardPanel missionCard, boolean update) {
+		this.missionCardPanelList.add(missionCard);
+		if (update) {
+			this.update();
+		}
+	}
+
+	public void addMissionCard(JMissionCardPanel missionCard) {
+		this.addJMissionCardPanel(missionCard, true);
+	}
+
+	public void addMissionCards(JMissionCardPanel[] missionCardPanel) {
+		for (JMissionCardPanel missionCard : missionCardPanel) {
+			this.addJMissionCardPanel(missionCard, false);
+		}
 		this.update();
 	}
 
-	public void addAllMissionPanel(List<IMissionCardPanel> panels) {
-		panels.forEach(j -> this.missionCardPanelList.add(j));
-		this.update();
-	}
-
-	public void removeMissionPanel(IMissionCardPanel panel) {
-		this.missionCardPanelList.remove(panel);
-		this.update();
-	}
-
-	public void setFinished(MissionCard missionCard) {
-		this.missionCardPanelList.forEach(j -> {
-			if (j.getMissionCard().equals(missionCard)) {
-				j.setCardFinished(true);
-			}
-		});
+	public void addMissionCards(List<JMissionCardPanel> missionCards) {
+		missionCards.forEach(m -> this.addJMissionCardPanel(m, false));
 		this.update();
 	}
 
 	public void update() {
 		this.removeAll();
 		if (!this.keepColumnCount || !this.keepRowCount) {
-			// If one is set to -1 means resizable, otherwise no change on Layout
-			int count;
-			if (this.ignoreMissionCardVisibility) {
-				count = this.missionCardPanelList.size();
-			} else {
-				count = (int) this.missionCardPanelList.stream().filter(i -> i.isCardVisible() || !i.isCardFinished()).count();
-			}
+			int count = (int) this.missionCardPanelList.stream().filter(JMissionCardPanel::isPanelDisplayable).count();
 			if (this.keepColumnCount) {
 				this.rowCount = (int) Math.ceil(count / (double) this.columnCount);
 			}
@@ -89,12 +79,12 @@ public class AllJMissionCardsPanel extends JPanel {
 
 		for (int i = 0, panelSize = this.missionCardPanelList.size(); i < max; i++) {
 			if (i < panelSize) {
-				IMissionCardPanel missionPanel = this.missionCardPanelList.get(i);
-				if ((!this.ignoreMissionCardVisibility && !missionPanel.isCardVisible()) || missionPanel.isCardFinished()) {
-					max++;
+				JMissionCardPanel missionPanel = this.missionCardPanelList.get(i);
+				if (missionPanel.isPanelDisplayable()) {
+					this.add(missionPanel);
 					continue;
 				}
-				this.add(missionPanel.getPanel());
+				max++;
 			} else {
 				JPanel panel = new JPanel();
 				panel.setBackground(Color.LIGHT_GRAY);
@@ -103,28 +93,78 @@ public class AllJMissionCardsPanel extends JPanel {
 		}
 	}
 
+	public int indexOf(JMissionCardPanel panel) {
+		return this.missionCardPanelList.indexOf(panel);
+	}
+
+	public void movePanel(int currentIndex, int direction) {
+		if (currentIndex != -1 && this.testAction(currentIndex, direction)) {
+			int newIndex = this.newIndex(currentIndex, direction);
+			JMissionCardPanel missionCards = this.missionCardPanelList.remove(currentIndex);
+			this.missionCardPanelList.add(newIndex, missionCards);
+			this.update();
+			this.revalidate();
+			this.repaint();
+		}
+	}
+
+	public int newIndex(int currentIndex, int direction) {
+		if (!this.testAction(currentIndex, direction)) { return currentIndex; }
+		switch (direction) {
+		case GridBagConstraints.FIRST_LINE_START:
+			return 0;
+		case GridBagConstraints.NORTH:
+			return currentIndex - this.getColumnCount();
+		case GridBagConstraints.EAST:
+			return currentIndex + 1;
+		case GridBagConstraints.SOUTH:
+			return Math.min(currentIndex + this.getColumnCount(), this.missionCardPanelList.size() - 1);
+		case GridBagConstraints.WEST:
+			return currentIndex - 1;
+		case GridBagConstraints.LAST_LINE_END:
+			return this.missionCardPanelList.size() - 1;
+		default:
+			return currentIndex;
+		}
+	}
+
+	public boolean testAction(int index, int direction) {
+		if (index == -1) { return false; }
+		switch (direction) {
+		case GridBagConstraints.NORTH:
+			return index >= this.getColumnCount();
+		case GridBagConstraints.LAST_LINE_END:
+		case GridBagConstraints.EAST:
+			return index < this.missionCardPanelList.size() - 1;
+		case GridBagConstraints.SOUTH:
+			return index < this.getColumnCount() * (this.getRowCount() - 1);
+		case GridBagConstraints.FIRST_LINE_START:
+		case GridBagConstraints.WEST:
+			return index > 0;
+		default:
+			return false;
+		}
+	}
+
+	public void sortMissionCardPanels(int[] newLocations, int[] oldLocations) {
+		JMissionCardPanel[] newList = new JMissionCardPanel[newLocations.length];
+		for (int i = 0; i < newLocations.length; i++) {
+			newList[newLocations[i]] = this.missionCardPanelList.get(oldLocations[i]);
+		}
+		this.missionCardPanelList = new ArrayList<>(List.of(newList));
+		this.update();
+	}
+
+	public List<JMissionCardPanel> getMissionCardPanelList() {
+		return this.missionCardPanelList;
+	}
+
 	public int getRowCount() {
 		return this.rowCount;
 	}
 
 	public int getColumnCount() {
 		return this.columnCount;
-	}
-
-	public void setIgnoreMissionCardVisibility(boolean ignoreMissionCardVisibility) {
-		this.ignoreMissionCardVisibility = ignoreMissionCardVisibility;
-	}
-
-	public int getMissionCardCount() {
-		return this.missionCardPanelList.size();
-	}
-
-	public List<IMissionCardPanel> getMissionCardPanelList() {
-		return this.missionCardPanelList;
-	}
-
-	public void setMissionCardPanelList(List<IMissionCardPanel> missionCardPanelList) {
-		this.missionCardPanelList = new ArrayList<>(missionCardPanelList);
 	}
 
 }

@@ -5,8 +5,8 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import game.board.Location;
-import game.cards.MyColor;
-import game.cards.TransportMode;
+import game.cards.ColorCard.MyColor;
+import game.cards.ColorCard.TransportMode;
 
 public class Connection {
 

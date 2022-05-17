@@ -25,9 +25,9 @@ import game.board.GameBoard;
 import game.board.Location;
 import game.board.Location.LocationList;
 import game.cards.ColorCard;
+import game.cards.ColorCard.MyColor;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
-import game.cards.MyColor;
 import gui.dialog.DrawMissionCardDialog;
 import gui.dialog.MissionCardHelperDialog;
 
@@ -248,6 +248,10 @@ public class Game {
 
 	public boolean isGameStarted() {
 		return this.gameStarted;
+	}
+
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		this.propertyChangeSupport.addPropertyChangeListener(listener);
 	}
 
 	public void addPropertyChangeListener(Property property, PropertyChangeListener listener) {

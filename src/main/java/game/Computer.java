@@ -3,9 +3,9 @@ package game;
 import java.util.EnumMap;
 import java.util.List;
 
+import game.cards.ColorCard.MyColor;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
-import game.cards.MyColor;
 
 public class Computer extends Player {
 

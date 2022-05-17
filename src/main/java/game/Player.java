@@ -19,9 +19,9 @@ import application.Property;
 import connection.SingleConnection;
 import game.board.LocationOrganizer;
 import game.cards.ColorCard;
+import game.cards.ColorCard.MyColor;
+import game.cards.ColorCard.TransportMode;
 import game.cards.MissionCard;
-import game.cards.MyColor;
-import game.cards.TransportMode;
 
 public class Player {
 
@@ -95,7 +95,7 @@ public class Player {
 		}
 	}
 
-	private int getColorCardCount(ColorCard colorCard) {
+	public int getColorCardCount(ColorCard colorCard) {
 		if (colorCard.color() == MyColor.GRAY) { return -1; }
 		return this.playerCards.getOrDefault(colorCard.transportMode(), new TreeMap<>())
 			.entrySet()
@@ -182,7 +182,7 @@ public class Player {
 		List<MissionCard> cards = new ArrayList<>(List.of(missionCards));
 		cards.removeAll(this.finishedMissionCards);
 		// New Thread because InvokeAndWait cannot be called from EDT
-		new Thread(() -> Game.getInstance().fireAction(this, Property.MISSIONCARDADDED, null, cards.toArray(MissionCard[]::new))).start();
+		new Thread(() -> Game.getInstance().fireAction(this, Property.MISSIONCARDSADDED, null, cards.toArray(MissionCard[]::new))).start();
 	}
 
 	public List<MissionCard> getMissionCards() {

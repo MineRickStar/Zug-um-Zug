@@ -1,10 +1,10 @@
 
 Currently in Process:
 
-Die MissionCards selbst sortieren lassen
-MissionCards schauen nicht gut aus, gridbaglayout anpassen dass am ende noch ein dummy panel hinzugefügt wird wenn nötig
-Finished MissionCards schön anordnen
-Missionskarten ausblenden können, z.B. Wenn diese nicht mehr geschafft werden
+Bei grauen Strecken die kaufkarten so anordnen dass oben die Option mit den meisten Karten ist
+Kauf der Verbindung mit infos über Verbindungstyp
+ScrollPane bei Missionkarten
+
 
 GUI:
 
@@ -12,14 +12,12 @@ Unterschied zwischen Boot, Zügen und Flugzeugen
 Nicht mehr als maxNoOfMissionCards auswählen
 Weiße Linien besser zeichnen
 Button für anzeige der eigenen und freien Strecken (Doppelte Strecken als einfache anzeigen)
-ScrollPane bei Missionkarten
-Wenn schon eine Karte gezogen wurde missionkarten nicht mehr ziehen können
-Anzahl der carriges anzeigen (auch von anderen Spielern)
+Darstellung der Infos andere Spieler
+Anzahl der carriges anzeigen (auch von anderen Spielern) (zuerst darstellung anderer Spieler überlegen)
 Show Mission highlights den Start und Endbahnhof
-Bei grauen Strecken die kaufkarten so anordnen dass oben die Option mit den meisten Karten ist
 Die Hintergrundkarte sollte nicht aus dem Frame geschoben werden
 Button um die Hintergrundkarte wieder normal darzustellen
-Immer die erste Kaufoption highlighten
+Finished MissionCards auch mit ScrollPane
 
 
 Gameplay:
@@ -30,6 +28,10 @@ Karten schon früher mischen als wenn keine mehr da sind
 Verschiedene Karten laden lassen (-> Koordinaten in Locations.txt File entweder erweitern, oder anderes System finden)
 Computer richtig spielen lassen (Zuvor Algorithmus fixen)
 Write Settingsobserver and fireUpdate for changes
+Log für Spielmoves, anzeige im Bildschirm irgendwo klein an der Seite mit Button alles zu sehen
+Verschiedene Farben für verschiedene Spielmoves
+Soll neues Spiel während eines laufeneden Spieles gestartet werden, wenn ja, was passiert dann mit dem Spiel
+Einheitlicher Ort für Shortcuts/Sowie vereinheitlichung der Shortcuts
 
 
 Algorithmus:
@@ -49,3 +51,8 @@ Done:
 
 Kartendeck und Infopanel updaten nach Computer
 Erldigte Karten in einen anderen Stapel legen mit info wie viele
+Die MissionCards selbst sortieren lassen
+MissionCards schauen nicht gut aus, gridbaglayout anpassen dass am ende noch ein dummy panel hinzugefügt wird wenn nötig
+Finished MissionCards schön anordnen
+Missionskarten ausblenden können, z.B. Wenn diese nicht mehr geschafft werden
+

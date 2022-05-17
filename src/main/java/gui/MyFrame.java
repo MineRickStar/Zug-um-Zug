@@ -17,8 +17,8 @@ import game.Game;
 import gui.dialog.ClientSettingsDialog;
 import gui.dialog.ComputerPlayDialog;
 import gui.dialog.CreatePlayerDialog;
-import gui.dialog.OnlinePlayerDialogHost;
-import gui.dialog.OnlinePlayerDialogJoin;
+import gui.dialog.OnlinePlayerDialogHostDialog;
+import gui.dialog.OnlinePlayerDialogJoinDialog;
 
 public class MyFrame extends JFrame {
 
@@ -76,19 +76,21 @@ public class MyFrame extends JFrame {
 		JMenu onlinePlay = new JMenu("Online spielen");
 		JMenuItem onlinePlayHost = new JMenuItem("Create new Game");
 		onlinePlayHost.setAccelerator(KeyStroke.getKeyStroke('O', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-		onlinePlayHost.addActionListener(e -> new OnlinePlayerDialogHost());
+		onlinePlayHost.addActionListener(e -> new OnlinePlayerDialogHostDialog());
 		JMenuItem onlinePlayJoin = new JMenuItem("Join Game");
-		onlinePlayJoin.addActionListener(e -> new OnlinePlayerDialogJoin());
+		onlinePlayJoin.addActionListener(e -> new OnlinePlayerDialogJoinDialog());
 		onlinePlay.add(onlinePlayHost);
 		onlinePlay.add(onlinePlayJoin);
 
 		JMenuItem againstComputerMenu = new JMenuItem("Against Computer");
 		againstComputerMenu.addActionListener(e -> {
-			CreatePlayerDialog playerDialog = new CreatePlayerDialog();
-			if (!playerDialog.wasCanceled()) {
-				ComputerPlayDialog comDialog = new ComputerPlayDialog();
-				if (!comDialog.wasCanceled()) {
-					Game.getInstance().startGame();
+			if (!Game.getInstance().isGameStarted()) {
+				CreatePlayerDialog playerDialog = new CreatePlayerDialog();
+				if (!playerDialog.wasCanceled()) {
+					ComputerPlayDialog comDialog = new ComputerPlayDialog();
+					if (!comDialog.wasCanceled()) {
+						Game.getInstance().startGame();
+					}
 				}
 			}
 		});

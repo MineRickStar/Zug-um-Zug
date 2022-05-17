@@ -10,6 +10,10 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
@@ -17,25 +21,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
+import application.Application;
 import application.Property;
 import game.Computer;
 import game.Game;
 import game.Player;
 import game.Rules;
 import game.cards.ColorCard;
+import game.cards.ColorCard.MyColor;
 import game.cards.MissionCard;
-import game.cards.MyColor;
 import gui.dialog.DrawMissionCardDialog;
-import gui.dialog.EditMissionCardDialog;
-import gui.dialog.FinishedMissionCardDialog;
 
 public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 
@@ -56,10 +64,7 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 		super.setDividerLocation(.2);
 		this.revalidate();
 		this.repaint();
-		Game.getInstance().addPropertyChangeListener(Property.MISSIONCARDFINISHED, this);
-		Game.getInstance().addPropertyChangeListener(Property.MISSIONCARDADDED, this);
-		Game.getInstance().addPropertyChangeListener(Property.COLORCARDCHANGE, this);
-		Game.getInstance().addPropertyChangeListener(Property.PLAYERCHANGE, this);
+		Game.getInstance().addPropertyChangeListener(this);
 	}
 
 	////////// Public Panel //////////
@@ -172,6 +177,7 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 			this.drawColorCardsButton.setEnabled(Game.getInstance().getRemainingCards() > 0);
 		});
 		this.drawMissionCardsButton = new JButton("Draw Mission Cards");
+		this.addCTRLShortcut(this.drawMissionCardsButton, KeyEvent.VK_D, e -> new DrawMissionCardDialog(false));
 		this.drawMissionCardsButton.addActionListener(e -> new DrawMissionCardDialog(false));
 
 		this.cardButtonPanel.add(this.drawColorCardsButton);
@@ -202,15 +208,21 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 	private JButton showFinishedMissionCardsButton;
 	private JButton editMissionCards;
 
-	private AllJMissionCardsPanel allJMissionCardsPanel;
+	private JScrollPane allJMissionCardsScrollPane;
+	private AllJMissionCardsPanel missionCardsPanel;
 
 	private JColorCardPanel colorCardPanel;
 
 	private void setupPlayerPanel() {
 		this.playerPanel = new JPanel(new GridBagLayout());
 
-		this.missionCardsSettingsPanel = this.setUpFinishedMissionCardPanel();
-		this.allJMissionCardsPanel = new AllJMissionCardsPanel("Active Mission Cards");
+		this.missionCardsSettingsPanel = this.setUpMissionCardPanel();
+		this.missionCardsPanel = new AllJMissionCardsPanel("Active Mission Cards");
+		this.missionCardsPanel.setMinimumSize(new Dimension(0, (int) (this.getHeight() * .3)));
+		this.allJMissionCardsScrollPane = new JScrollPane(this.missionCardsPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		this.allJMissionCardsScrollPane.setMinimumSize(new Dimension(0, (int) (this.getHeight() * .3)));
+
+		this.allJMissionCardsScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 		this.colorCardPanel = new JColorCardPanel();
 
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -221,22 +233,23 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 
 		gbc.weightx = 1;
 		gbc.gridy = 1;
-		this.playerPanel.add(this.allJMissionCardsPanel, gbc);
+		this.playerPanel.add(this.allJMissionCardsScrollPane, gbc);
 
 		gbc.weighty = 1;
 		gbc.gridy = 2;
 		this.playerPanel.add(this.colorCardPanel, gbc);
 	}
 
-	private JPanel setUpFinishedMissionCardPanel() {
+	private JPanel setUpMissionCardPanel() {
 		JPanel missionCards = new JPanel(new GridBagLayout());
 		missionCards.setBackground(Color.LIGHT_GRAY);
 		this.finishedMissionCardLabel = new JLabel("Finished Missioncards: 0, Points: 0");
 		this.showFinishedMissionCardsButton = new JButton("Show Finished Mission Cards");
 		this.showFinishedMissionCardsButton.setEnabled(false);
-		this.showFinishedMissionCardsButton.addActionListener(e -> new FinishedMissionCardDialog(Game.getInstance().getInstancePlayer().getFinishedMissionCards()));
+		this.showFinishedMissionCardsButton.addActionListener(e -> Application.createNewFinishedMissionCardDialog());
 		this.editMissionCards = new JButton("Edit Missioncards");
-		this.editMissionCards.addActionListener(e -> new EditMissionCardDialog(this.allJMissionCardsPanel));
+		this.addCTRLShortcut(this.editMissionCards, KeyEvent.VK_E, e -> Application.createNewMssionCardEditor());
+		this.editMissionCards.addActionListener(e -> Application.createNewMssionCardEditor());
 
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(10, 10, 10, 10);
@@ -259,7 +272,30 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 		List<MissionCard> finishedMissionCards = Game.getInstance().getInstancePlayer().getFinishedMissionCards();
 		this.finishedMissionCardLabel.setText("Finished Missioncards: " + finishedMissionCards.size() + ", Points: " + finishedMissionCards.stream().mapToInt(m -> m.points).sum());
 		this.showFinishedMissionCardsButton.setEnabled(true);
-		this.allJMissionCardsPanel.setFinished(finishedMissionCard);
+		this.missionCardsPanel.getMissionCardPanelList().stream().filter(j -> j.missionCard.equals(finishedMissionCard)).map(j -> (InfoPanelMissionCardPanel) j).forEach(i -> i.finished = true);
+		this.missionCardsPanel.update();
+		this.allJMissionCardsScrollPane.revalidate();
+		this.allJMissionCardsScrollPane.repaint();
+	}
+
+	private class InfoPanelMissionCardPanel extends JMissionCardPanel {
+
+		private static final long serialVersionUID = -3372640083631650600L;
+
+		private boolean visible;
+		private boolean finished;
+
+		protected InfoPanelMissionCardPanel(MissionCard missionCard) {
+			super(missionCard);
+			this.finished = false;
+			this.visible = true;
+		}
+
+		@Override
+		public boolean isPanelDisplayable() {
+			return !this.finished && this.visible;
+		}
+
 	}
 
 	public static class JColorCardButton extends JButton {
@@ -309,12 +345,30 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 		return "<html><body>" + colorCard.transportMode().displayName + "<br>" + colorCard.color().colorName + "</body></html>";
 	}
 
+	private void addCTRLShortcut(JComponent component, int keyCode, ActionListener listener) {
+		this.addShortcut(component, KeyStroke.getKeyStroke(keyCode, InputEvent.CTRL_DOWN_MASK), listener);
+	}
+
+	private void addShortcut(JComponent component, KeyStroke stroke, ActionListener listener) {
+		component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(stroke, listener.toString());
+		component.getActionMap().put(listener.toString(), new AbstractAction() {
+			private static final long serialVersionUID = 5838774419550988688L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				listener.actionPerformed(e);
+			}
+		});
+	}
+
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		if (Property.MISSIONCARDADDED.name().equals(evt.getPropertyName())) {
+		if (Property.MISSIONCARDSADDED.name().equals(evt.getPropertyName())) {
 			try {
 				SwingUtilities.invokeAndWait(() -> {
-					Stream.of((MissionCard[]) evt.getNewValue()).map(JMissionCardPanel::new).forEach(this.allJMissionCardsPanel::addMissionPanel);
+					Stream.of((MissionCard[]) evt.getNewValue()).map(InfoPanelMissionCardPanel::new).forEach(i -> this.missionCardsPanel.addMissionCard(i));
+					this.allJMissionCardsScrollPane.revalidate();
+					this.allJMissionCardsScrollPane.repaint();
 					this.colorCardPanel.updateColorCardPanel();
 					this.revalidate();
 					this.repaint();
@@ -323,6 +377,16 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 				e.printStackTrace();
 			}
 			SwingUtilities.invokeLater(() -> this.colorCardPanel.updateColorCardPanel());
+		} else if (Property.MISSIONCARDHIDDEN.name().equals(evt.getPropertyName())) {
+			this.missionCardsPanel.getMissionCardPanelList()
+				.stream()
+				.filter(j -> j.missionCard.equals(evt.getSource()))
+				.map(j -> (InfoPanelMissionCardPanel) j)
+				.forEach(i -> i.visible = !(boolean) evt.getNewValue());
+			this.missionCardsPanel.update();
+			this.colorCardPanel.updateColorCardPanel();
+			this.revalidate();
+			this.repaint();
 		} else if (Property.COLORCARDCHANGE.name().equals(evt.getPropertyName())) {
 			if (evt.getSource() instanceof Computer) {
 				this.updateColorCardPanelTitle();
@@ -342,7 +406,13 @@ public class InfoPanel extends JSplitPane implements PropertyChangeListener {
 		} else if (Property.MISSIONCARDFINISHED.name().equals(evt.getPropertyName())) {
 			if (evt.getSource() instanceof Player player) {
 				this.updateFinishedMissionCardPanel((MissionCard) evt.getNewValue());
+				this.missionCardsPanel.getMissionCardPanelList().removeIf(j -> j.missionCard.equals(evt.getNewValue()));
+				this.missionCardsPanel.update();
 			}
+		} else if (Property.MISSIONCARDINDEXCHANGE.name().equals(evt.getPropertyName())) {
+			int[] oldLocations = (int[]) evt.getOldValue();
+			int[] newLocations = (int[]) evt.getNewValue();
+			this.missionCardsPanel.sortMissionCardPanels(newLocations, oldLocations);
 		}
 		this.revalidate();
 		this.repaint();

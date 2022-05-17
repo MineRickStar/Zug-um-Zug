@@ -20,7 +20,7 @@ import javax.swing.JTextField;
 
 import application.Application;
 import game.Game;
-import game.cards.MyColor;
+import game.cards.ColorCard.MyColor;
 
 public class CreatePlayerDialog extends JDialog {
 

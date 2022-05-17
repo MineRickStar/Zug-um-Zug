@@ -1,5 +1,6 @@
 package gui.dialog;
 
+import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -24,32 +25,40 @@ import connection.SingleConnection;
 import game.Game;
 import game.Rules;
 import game.cards.MissionCard;
+import gui.AllJMissionCardsPanel;
 import gui.JMissionCardPanel;
 
 public class MissionCardHelperDialog extends JDialog {
 
 	private static final long serialVersionUID = 1028232963445078845L;
 
-	private List<MissionPanel> missionPanels = new ArrayList<>();
+	private AllJMissionCardsPanel missionCardPanel;
+
+	private List<MissionPanel> selectedCards;
 
 	public List<SingleConnection[]> paths;
 
 	public MissionCardHelperDialog(List<MissionCard> missionCardList) {
 		super(Application.frame, "Missioncard selection");
-		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		this.setLayout(new GridBagLayout());
+		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		((JPanel) this.getContentPane()).getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('A', InputEvent.CTRL_DOWN_MASK), "ALL");
+		((JPanel) this.getContentPane()).getActionMap().put("ALL", new AbstractAction() {
 
-		JPanel missionCardPanel = new JPanel(new GridBagLayout());
-		GridBagConstraints missionCardgbc = new GridBagConstraints();
-		missionCardgbc.insets = new Insets(10, 10, 10, 10);
-		missionCardgbc.gridx = 0;
-		missionCardgbc.gridy = 0;
+			private static final long serialVersionUID = 1251851433534082983L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MissionCardHelperDialog.this.selectedCards = new ArrayList<>(MissionCardHelperDialog.this.missionCardPanel.getMissionCardPanelList().stream().map(j -> (MissionPanel) j).toList());
+				MissionCardHelperDialog.this.selectedCards.forEach(m -> m.selectMission.setSelected(true));
+			}
+		});
+		this.missionCardPanel = new AllJMissionCardsPanel(-1, 1, "");
+		this.selectedCards = new ArrayList<>(Rules.getInstance().getMissionCardsDrawing());
 
 		for (MissionCard element : missionCardList) {
 			MissionPanel missionPanel = new MissionPanel(element);
-			this.missionPanels.add(missionPanel);
-			missionCardgbc.gridy++;
-			missionCardPanel.add(missionPanel, missionCardgbc);
+			this.missionCardPanel.addMissionCard(missionPanel);
 		}
 
 		JButton okButton = new JButton("OK");
@@ -66,22 +75,12 @@ public class MissionCardHelperDialog extends JDialog {
 
 		GridBagConstraints gbc = new GridBagConstraints();
 
+		gbc.gridx = 0;
 		gbc.gridy = 0;
-		this.add(missionCardPanel, gbc);
+		this.add(this.missionCardPanel, gbc);
 		gbc.insets = new Insets(0, 0, 10, 0);
 		gbc.gridy = 1;
 		this.add(okButton, gbc);
-
-		((JPanel) this.getContentPane()).getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('A', InputEvent.CTRL_DOWN_MASK), "ALL");
-		((JPanel) this.getContentPane()).getActionMap().put("ALL", new AbstractAction() {
-
-			private static final long serialVersionUID = 1251851433534082983L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				MissionCardHelperDialog.this.missionPanels.forEach(m -> m.selectMission.setSelected(true));
-			}
-		});
 
 		this.pack();
 		this.setResizable(false);
@@ -91,42 +90,39 @@ public class MissionCardHelperDialog extends JDialog {
 
 	private void testMissionCards() {
 		int count = Game.getInstance().getInstancePlayer().getMissionCards().size() == 0 ? Rules.getInstance().getFirstMissionCardsKeeping() : Rules.getInstance().getDefaultMissionCardsKeeping();
-		if (this.missionPanels.stream().filter(MissionPanel::isMissionSelected).count() < count) {
+		if (this.selectedCards.size() < count) {
 			JOptionPane.showMessageDialog(this, String.format("Please select at least %d Missions", count));
 			return;
 		}
-		MissionCard[] missionCards = this.missionPanels.stream().filter(MissionPanel::isMissionSelected).map(p -> p.missionCardPanel.missionCard).toArray(MissionCard[]::new);
+		MissionCard[] missionCards = this.selectedCards.stream().map(m -> m.missionCard).toArray(MissionCard[]::new);
 		Game.getInstance().getInstancePlayer().addMissionCards(missionCards);
 		Application.frame.revalidate();
 		Application.frame.repaint();
 		this.dispose();
 	}
 
-	public class MissionPanel extends JPanel {
+	private class MissionPanel extends JMissionCardPanel {
 		private static final long serialVersionUID = 3577682247722769563L;
 
-		public JMissionCardPanel missionCardPanel;
-		public JCheckBox selectMission;
+		private JCheckBox selectMission;
 
-		public MissionPanel(MissionCard mission) {
-			super(new GridBagLayout());
+		public MissionPanel(MissionCard missionCard) {
+			super(missionCard, true);
 			this.selectMission = new JCheckBox("Select Mission");
-			this.missionCardPanel = new JMissionCardPanel(mission);
-
-			GridBagConstraints gbc = new GridBagConstraints();
-			gbc.insets = new Insets(10, 10, 10, 10);
-			gbc.weightx = 1;
-			gbc.weighty = 1;
-			gbc.fill = GridBagConstraints.BOTH;
-			gbc.gridx = 0;
-			this.add(this.missionCardPanel, gbc);
-
-			gbc.gridx++;
-			this.add(this.selectMission, gbc);
+			this.selectMission.setFocusable(false);
+			this.selectMission.addActionListener(e -> {
+				if (this.selectMission.isSelected()) {
+					MissionCardHelperDialog.this.selectedCards.add(this);
+				} else {
+					MissionCardHelperDialog.this.selectedCards.remove(this);
+				}
+			});
+			this.add(this.selectMission, BorderLayout.EAST);
 		}
 
-		public boolean isMissionSelected() {
-			return this.selectMission.isSelected();
+		@Override
+		public boolean isPanelDisplayable() {
+			return true;
 		}
 	}
 

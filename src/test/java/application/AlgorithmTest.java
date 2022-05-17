@@ -12,7 +12,7 @@ import game.Game;
 import game.Player;
 import game.board.Location;
 import game.board.Location.LocationList;
-import game.cards.MyColor;
+import game.cards.ColorCard.MyColor;
 
 class AlgorithmTest {
 

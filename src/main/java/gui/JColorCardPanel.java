@@ -26,8 +26,8 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import game.cards.ColorCard;
-import game.cards.MyColor;
-import game.cards.TransportMode;
+import game.cards.ColorCard.MyColor;
+import game.cards.ColorCard.TransportMode;
 
 public class JColorCardPanel extends JPanel {
 

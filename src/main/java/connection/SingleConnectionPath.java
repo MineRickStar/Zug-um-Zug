@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import algorithm.AlgorithmSettings;
 import game.board.Location;
-import game.cards.TransportMode;
+import game.cards.ColorCard.TransportMode;
 
 public class SingleConnectionPath {
 

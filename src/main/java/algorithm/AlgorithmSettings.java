@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import connection.SingleConnection;
 import game.Player;
 import game.cards.ColorCard;
-import game.cards.TransportMode;
+import game.cards.ColorCard.TransportMode;
 
 public class AlgorithmSettings implements Cloneable {
 	/**

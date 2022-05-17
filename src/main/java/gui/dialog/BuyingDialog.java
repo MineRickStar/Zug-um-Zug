@@ -11,6 +11,9 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.LinearGradientPaint;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -21,34 +24,40 @@ import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import javax.swing.AbstractAction;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 
 import application.Application;
 import connection.Connection;
 import connection.SingleConnection;
+import game.Player;
 import game.cards.ColorCard;
-import game.cards.MyColor;
+import game.cards.ColorCard.MyColor;
 
 public class BuyingDialog extends JDialog {
 
 	private static final long serialVersionUID = -2452919286579576889L;
 
+	private Player player;
+
 	private List<JPanel> allBuyingOptionPanels;
 
-	private JPanel highlightedPanel;
 	private JPanel selectedPanel;
 
-	private ColorCard[] selectedBuyingOption;
+	private ColorPanel selectedBuyingOption;
 
-	public BuyingDialog(JPanel parentPanel, SingleConnection singleConnection, List<ColorCard[]> buyingOptions) {
+	public BuyingDialog(JPanel parentPanel, SingleConnection singleConnection, Player player) {
 		super(Application.frame, "Buy Connection?", true);
+		this.player = player;
 		this.setLayout(new GridBagLayout());
 		this.addWindowListener(new WindowAdapter() {
 
@@ -60,10 +69,11 @@ public class BuyingDialog extends JDialog {
 		this.allBuyingOptionPanels = new ArrayList<>();
 
 		Connection connection = singleConnection.parentConnection;
-		JLabel description = new JLabel(
-				String.format("Connection: From %s to %s, Cost: %d %s", connection.fromLocation.name, connection.toLocation.name, singleConnection.length, singleConnection.color.colorName));
+		JLabel description = new JLabel(String.format("Connection: From %s to %s, Cost: %d %s %s", connection.fromLocation.name, connection.toLocation.name, singleConnection.length,
+				singleConnection.color.colorName, singleConnection.transportMode.displayName));
 
-		JScrollPane buyingOptionsScrollPane = this.getColorCardsScrollPane(buyingOptions, Application.frame.getWidth(), Application.frame.getHeight());
+		JScrollPane buyingOptionsScrollPane = this.getColorCardsScrollPane(player.getBuyingOptions(singleConnection.getColorCardRepresentation(), singleConnection.length),
+				Application.frame.getWidth(), Application.frame.getHeight());
 
 		JPanel buttonPanel = this.createButtonPanel();
 
@@ -97,34 +107,18 @@ public class BuyingDialog extends JDialog {
 		gbc.gridy = 0;
 		gbc.insets = new Insets(10, 10, 10, 10);
 
-		Collections.sort(buyingOptions, (o1, o2) -> Long.compare(Stream.of(o1).filter(c -> c.color() == MyColor.RAINBOW).count(), Stream.of(o2).filter(c -> c.color() == MyColor.RAINBOW).count()));
-
-		for (ColorCard[] option : buyingOptions) {
-			ColorPanel cardPanel = new ColorPanel(option);
-			cardPanel.addMouseListener(new MouseHelper());
-			if (buyingOptions.size() == 1) {
+		Collections.sort(buyingOptions, (o1, o2) -> {
+			long l = Long.compare(Stream.of(o1).filter(c -> c.color() == MyColor.RAINBOW).count(), Stream.of(o2).filter(c -> c.color() == MyColor.RAINBOW).count());
+			if (l == 0) { return -Integer.compare(this.player.getColorCardCount(o1[o1.length - 1]), this.player.getColorCardCount(o2[o2.length - 1])); }
+			return (int) l;
+		});
+		for (int i = 0, max = buyingOptions.size(); i < max; i++) {
+			ColorCard[] option = buyingOptions.get(i);
+			ColorPanel cardPanel = this.createColorPanel(option);
+			if (i == 0) {
 				this.selectedPanel = cardPanel;
 				this.selectedPanel.setBackground(Color.DARK_GRAY);
-				BuyingDialog.this.selectedBuyingOption = option;
-			} else {
-				cardPanel.setBackground(Color.LIGHT_GRAY);
-			}
-
-			for (ColorCard colorCard : option) {
-				JLabel label;
-				if (colorCard.color() == MyColor.RAINBOW) {
-					label = new JGradientLabel(colorCard.color().colorName);
-					label.setForeground(Color.BLACK);
-					label.setOpaque(false);
-				} else {
-					label = new JLabel(colorCard.color().colorName);
-					label.setForeground(MyColor.getComplementaryColor(colorCard.color()));
-					label.setBackground(colorCard.color().realColor);
-					label.setOpaque(true);
-				}
-				label.setHorizontalAlignment(SwingConstants.CENTER);
-				label.setPreferredSize(new Dimension(70, 100));
-				cardPanel.add(label);
+				BuyingDialog.this.selectedBuyingOption = cardPanel;
 			}
 			buyingOptionPanel.add(cardPanel, gbc);
 			this.allBuyingOptionPanels.add(cardPanel);
@@ -136,16 +130,44 @@ public class BuyingDialog extends JDialog {
 		return buyingOptionsScrollPane;
 	}
 
+	private ColorPanel createColorPanel(ColorCard[] colorCards) {
+		ColorPanel cardPanel = new ColorPanel(colorCards);
+		cardPanel.addMouseListener(new MouseHelper());
+		cardPanel.setBackground(Color.LIGHT_GRAY);
+
+		for (ColorCard colorCard : colorCards) {
+			JLabel label;
+			if (colorCard.color() == MyColor.RAINBOW) {
+				label = new JGradientLabel(colorCard.color().colorName);
+				label.setForeground(Color.BLACK);
+				label.setOpaque(false);
+			} else {
+				label = new JLabel(colorCard.color().colorName);
+				label.setForeground(MyColor.getComplementaryColor(colorCard.color()));
+				label.setBackground(colorCard.color().realColor);
+				label.setOpaque(true);
+			}
+			label.setHorizontalAlignment(SwingConstants.CENTER);
+			label.setPreferredSize(new Dimension(70, 100));
+			cardPanel.add(label);
+		}
+		return cardPanel;
+	}
+
 	private JPanel createButtonPanel() {
 		JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 10, 10));
 		JButton okButton = new JButton("OK");
-		okButton.addActionListener(e -> {
-			if (this.selectedBuyingOption == null) {
-				JOptionPane.showMessageDialog(this, "Please select an Option or Cancel");
-				return;
+		okButton.addActionListener(e -> this.testBuyOption());
+		okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "OK");
+		okButton.getActionMap().put("OK", new AbstractAction() {
+			private static final long serialVersionUID = 6740774083608708284L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				BuyingDialog.this.testBuyOption();
 			}
-			this.dispose();
 		});
+
 		JButton cancelButton = new JButton("Cancel");
 		cancelButton.addActionListener(e -> {
 			this.selectedBuyingOption = null;
@@ -156,8 +178,16 @@ public class BuyingDialog extends JDialog {
 		return buttonPanel;
 	}
 
+	private void testBuyOption() {
+		if (this.selectedBuyingOption == null) {
+			JOptionPane.showMessageDialog(this, "Please select an Option or Cancel");
+			return;
+		}
+		this.dispose();
+	}
+
 	public ColorCard[] getSelectedBuyingOption() {
-		return this.selectedBuyingOption;
+		return this.selectedBuyingOption == null ? null : this.selectedBuyingOption.colorOption;
 	}
 
 	private static final class ColorPanel extends JPanel {
@@ -216,37 +246,31 @@ public class BuyingDialog extends JDialog {
 	}
 
 	private final class MouseHelper extends MouseAdapter {
-
 		@Override
 		public void mouseExited(MouseEvent e) {
-			BuyingDialog.this.highlightedPanel = null;
-			BuyingDialog.this.allBuyingOptionPanels.forEach(p -> p.setBackground(Color.LIGHT_GRAY));
-			if (BuyingDialog.this.selectedPanel != null) {
-				BuyingDialog.this.selectedPanel.setBackground(Color.DARK_GRAY);
+			ColorPanel source = (ColorPanel) e.getComponent();
+			if (!source.equals(BuyingDialog.this.selectedBuyingOption)) {
+				source.setBackground(Color.LIGHT_GRAY);
 			}
-			BuyingDialog.this.repaint();
 		}
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			BuyingDialog.this.highlightedPanel = (JPanel) e.getComponent();
-			BuyingDialog.this.allBuyingOptionPanels.forEach(p -> p.setBackground(Color.LIGHT_GRAY));
-			BuyingDialog.this.highlightedPanel.setBackground(Color.GRAY);
-			if (BuyingDialog.this.selectedPanel != null) {
-				BuyingDialog.this.selectedPanel.setBackground(Color.DARK_GRAY);
+			ColorPanel source = (ColorPanel) e.getComponent();
+			if (!source.equals(BuyingDialog.this.selectedBuyingOption)) {
+				source.setBackground(Color.LIGHT_GRAY.darker());
 			}
-			BuyingDialog.this.repaint();
 		}
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-			BuyingDialog.this.selectedPanel = (JPanel) e.getComponent();
-			BuyingDialog.this.allBuyingOptionPanels.forEach(p -> p.setBackground(Color.LIGHT_GRAY));
-			BuyingDialog.this.selectedPanel.setBackground(Color.DARK_GRAY);
-			BuyingDialog.this.selectedBuyingOption = ((ColorPanel) e.getComponent()).colorOption;
-			BuyingDialog.this.repaint();
+			ColorPanel source = (ColorPanel) e.getComponent();
+			source.setBackground(Color.DARK_GRAY);
+			if (BuyingDialog.this.selectedBuyingOption != null) {
+				BuyingDialog.this.selectedBuyingOption.setBackground(Color.LIGHT_GRAY);
+			}
+			BuyingDialog.this.selectedBuyingOption = source;
 		}
-
 	}
 
 }

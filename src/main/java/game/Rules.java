@@ -2,7 +2,7 @@ package game;
 
 import java.util.EnumMap;
 
-import game.cards.TransportMode;
+import game.cards.ColorCard.TransportMode;
 
 public class Rules {
 
