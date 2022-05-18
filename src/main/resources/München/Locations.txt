@@ -1,10 +1,10 @@
 Location,X,Y
 Hauptbahnhof,926,725
-Hackerbrücke,881,712
-Donnersbergerbrücke,821,709
+HackerbrÃ¼cke,881,712
+DonnersbergerbrÃ¼cke,821,709
 Hirschgarten,752,703
 Laim,680,693
 Pasing,491,659
 Theresienwiese,898,755
-Schwanthalerhöhe,862,769
-Königsplatz,949,690
+SchwanthalerhÃ¶he,862,769
+KÃ¶nigsplatz,949,690

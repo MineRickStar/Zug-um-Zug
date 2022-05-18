@@ -1,5 +1,9 @@
 package application;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+
 import javax.swing.SwingUtilities;
 
 import gui.MyFrame;
@@ -20,6 +24,14 @@ public class Application {
 
 	public static void createNewFinishedMissionCardDialog() {
 		FinishedMissionCardDialog.create();
+	}
+
+	@SuppressWarnings("unused")
+	private static void printEncodings() {
+		System.out.println("Default Charset=" + Charset.defaultCharset());
+		System.out.println("file.encoding=" + Charset.defaultCharset().displayName());
+		System.out.println("Default Charset=" + Charset.defaultCharset());
+		System.out.println("Default Charset in Use=" + new OutputStreamWriter(new ByteArrayOutputStream()).getEncoding());
 	}
 
 }

@@ -15,7 +15,7 @@ Nicht mehr als maxNoOfMissionCards auswählen
 Weiße Linien besser zeichnen
 Button für anzeige der eigenen und freien Strecken (Doppelte Strecken als einfache anzeigen)
 Darstellung der Infos andere Spieler
-Anzahl der carriges anzeigen (auch von anderen Spielern) (zuerst darstellung anderer Spieler �berlegen)
+Anzahl der carriges anzeigen (auch von anderen Spielern) (zuerst darstellung anderer Spieler ï¿½berlegen)
 Show Mission highlights den Start und Endbahnhof
 Die Hintergrundkarte sollte nicht aus dem Frame geschoben werden
 Button um die Hintergrundkarte wieder normal darzustellen

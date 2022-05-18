@@ -3,7 +3,7 @@ s,4,Hauptbahnhof,Laim
 m,5,Hauptbahnhof,Pasing
 s,1,Pasing,Laim
 s,1,Laim,Hirschgarten
-s,2,Hauptbahnhof,Schwanthalerhöhe
-m,4,Schwanthalerhöhe,Königsplatz
-m,7,Pasing,Schwanthalerhöhe
-m,6,Pasing,Königsplatz
+s,2,Hauptbahnhof,SchwanthalerhÃ¶he
+m,4,SchwanthalerhÃ¶he,KÃ¶nigsplatz
+m,7,Pasing,SchwanthalerhÃ¶he
+m,6,Pasing,KÃ¶nigsplatz

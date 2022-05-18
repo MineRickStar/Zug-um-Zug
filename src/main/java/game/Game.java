@@ -199,7 +199,7 @@ public class Game {
 			}
 		}
 		System.out.println();
-		System.out.println("N�chster spieler: ");
+		System.out.println("Nächster spieler: ");
 		System.out.println(this.getCurrentPlayer());
 	}
 
