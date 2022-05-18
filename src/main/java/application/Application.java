@@ -30,7 +30,6 @@ public class Application {
 	private static void printEncodings() {
 		System.out.println("Default Charset=" + Charset.defaultCharset());
 		System.out.println("file.encoding=" + Charset.defaultCharset().displayName());
-		System.out.println("Default Charset=" + Charset.defaultCharset());
 		System.out.println("Default Charset in Use=" + new OutputStreamWriter(new ByteArrayOutputStream()).getEncoding());
 	}
 
