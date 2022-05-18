@@ -1,58 +1,42 @@
 package game.board;
 
-import java.awt.Point;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.UUID;
 
 import connection.Connection;
-import csvCoder.Decode;
 import game.Game;
+import game.GameMap;
 import game.Rules;
 import game.cards.ColorCard;
 import game.cards.ColorCard.MyColor;
 import game.cards.ColorCard.TransportMode;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
-import game.cards.MissionCard.MissionCardConstraints;
 
 public class GameBoard {
 
-	private Map<Distance, List<MissionCard>> missionCards;
+	private GameMap map;
 
 	private List<ColorCard> closedCards;
 	private List<ColorCard> openCards;
 	private List<ColorCard> usedCards;
 
-	private TreeMap<String, Location> locations;
-	private TreeMap<UUID, Connection> connections;
-
 	public GameBoard() {
-		this.locations = new TreeMap<>();
-		this.connections = new TreeMap<>();
-		this.loadLocations();
-		this.loadConnections();
-		this.missionCards = new EnumMap<>(Distance.class);
-		for (Distance distance : Distance.values()) {
-			this.missionCards.put(distance, new ArrayList<>());
-		}
-		this.readMissionCards();
-
 		this.closedCards = new ArrayList<>();
 		this.openCards = new ArrayList<>();
 		this.usedCards = new ArrayList<>();
 		this.fillCards();
 	}
 
+	public void setMap(GameMap map) {
+		this.map = map;
+		this.map.loadMap();
+
+	}
+
 	public void startGame() {
-		Collections.shuffle(this.missionCards.get(Distance.SHORT), Game.getInstance().getRandomGenerator());
-		Collections.shuffle(this.missionCards.get(Distance.LONG), Game.getInstance().getRandomGenerator());
+		this.map.startGame();
 		this.shuffleCards();
 		for (int i = 0, max = Rules.getInstance().getColorCardsLayingDown(); i < max; i++) {
 			this.openCards.add(this.drawColorCard());
@@ -114,139 +98,32 @@ public class GameBoard {
 		}
 	}
 
+	public GameMap getMap() {
+		return this.map;
+	}
+
 	public MissionCard drawMissionCard(Distance distance) {
-		return this.missionCards.get(distance).remove(0);
+		return this.map.drawMissionCard(distance);
 	}
 
 	public int getMissionCardCount(Distance distance) {
-		return this.missionCards.get(distance).size();
-	}
-
-	public void addNotUsedMissionCard(MissionCard missionCard) {
-		this.missionCards.get(missionCard.distance).add(missionCard);
-	}
-
-	public Map<Distance, List<MissionCard>> getMissionCards() {
-		return this.missionCards;
-	}
-
-	public int getMissionCardCount() {
-		return this.missionCards.size();
+		return this.map.getMissionCardCount(distance);
 	}
 
 	public List<Location> getLocations() {
-		return new ArrayList<>(this.locations.values());
+		return this.map.getLocations();
 	}
 
 	public List<Connection> getConnections() {
-		return new ArrayList<>(this.connections.values());
+		return this.map.getConnections();
 	}
 
 	public Connection getConnectionFromLocations(Location fromLocation, Location toLocation) {
-		return this.connections.values().parallelStream().filter(c -> {
-			if (c.fromLocation.equals(fromLocation) || c.fromLocation.equals(toLocation)) { return c.toLocation.equals(fromLocation) || c.toLocation.equals(toLocation); }
-			return false;
-		}).findAny().orElse(null);
-	}
-
-	private void loadLocations() {
-		try {
-			Decode decode = Decode.decode("Locations.txt");
-			while (decode.hasNext()) {
-				String[] line = decode.next();
-				String name = line[0];
-				int x = Integer.parseInt(line[1]);
-				int y = Integer.parseInt(line[2]);
-				Point p = new Point(x, y);
-				this.locations.put(name, new Location(name, p));
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		return this.map.getConnectionFromLocations(fromLocation, toLocation);
 	}
 
 	public Location getLocation(String locationName) {
-		return this.locations.getOrDefault(locationName, null);
-	}
-
-	private void loadConnections() {
-		String[] line = null;
-		try {
-			Decode decode = Decode.decode("Connections.txt");
-			while (decode.hasNext()) {
-				line = decode.next();
-
-				Location fromLocation = this.getLocation(line[0]);
-				if (fromLocation == null) {
-					System.err.println("From Location not found " + line[0]);
-					continue;
-				}
-				Location toLocation = this.getLocation(line[1]);
-				if (toLocation == null) {
-					System.err.println("To Location not found " + line[1]);
-					continue;
-				}
-				byte multiplicity = Byte.parseByte(line[2]);
-				byte[] length = new byte[multiplicity];
-				MyColor[] colors = new MyColor[multiplicity];
-				TransportMode[] transportMode = new TransportMode[multiplicity];
-				for (byte i = 0; i < multiplicity; i++) {
-					length[i] = Byte.parseByte(line[i + 3]);
-					colors[i] = MyColor.getMyColor(line[i + 3 + multiplicity]);
-					transportMode[i] = TransportMode.getTransportMode(line[i + 3 + 2 * multiplicity]);
-				}
-				Connection connection = new Connection(fromLocation, toLocation, multiplicity, length, colors, transportMode);
-				fromLocation.addConnection(connection);
-				toLocation.addConnection(connection);
-				this.addConnection(connection);
-			}
-		} catch (IOException | NumberFormatException e) {
-			System.err.println(Arrays.toString(line));
-			e.printStackTrace();
-		}
-	}
-
-	private void addConnection(Connection connection) {
-		if (!this.connections.containsKey(connection.ID)) {
-			this.connections.put(connection.ID, connection);
-		} else {
-			System.err.println("Connection already saved: " + connection);
-		}
-	}
-
-	private void readMissionCards() {
-		try {
-			Decode decode = Decode.decode("Missioncards.txt");
-			while (decode.hasNext()) {
-				String[] line = decode.next();
-				Distance distance = Distance.findByAbbreviation(line[0]);
-				byte points = 0;
-				try {
-					points = Byte.parseByte(line[1]);
-				} catch (NumberFormatException nfe) {
-					System.err.println(Arrays.toString(line));
-					continue;
-				}
-				List<Location> locations = new ArrayList<>();
-				for (int i = 2; i < line.length; i++) {
-					locations.add(this.getLocation(line[i]));
-				}
-				MissionCardConstraints constraints = new MissionCardConstraints();
-				MissionCard missionCard = new MissionCard(distance, points, locations, constraints);
-				this.addMissionCard(missionCard);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void addMissionCard(MissionCard missionCard) {
-		List<MissionCard> cards = this.missionCards.get(missionCard.distance);
-		if (!cards.contains(missionCard)) {
-			cards.add(missionCard);
-		} else {
-			System.err.println("MissionCard already saved: " + missionCard);
-		}
+		return this.map.getLocation(locationName);
 	}
 
 	public void shuffleCards() {

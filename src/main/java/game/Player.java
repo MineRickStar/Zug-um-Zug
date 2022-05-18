@@ -49,11 +49,11 @@ public class Player {
 		this.finishedMissionCards = new ArrayList<>();
 		this.singleConnections = new ArrayList<>();
 		this.locationOrganizer = new LocationOrganizer();
-		if (name.equals("Patrick")) {
-			SingleConnection c = Game.getInstance().getConnectionFromLocations("Kassel", "Frankfurt", MyColor.WHITE);
-			c.setOwner(this);
-			this.buySingleConnection(c, new ArrayList<>());
-		}
+//		if (name.equals("Patrick")) {
+//			SingleConnection c = Game.getInstance().getConnectionFromLocations("Kassel", "Frankfurt", MyColor.WHITE);
+//			c.setOwner(this);
+//			this.buySingleConnection(c, new ArrayList<>());
+//		}
 	}
 
 	///// Color Cards on Hand /////

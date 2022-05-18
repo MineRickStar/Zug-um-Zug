@@ -1,9 +1,11 @@
 
 Currently in Process:
 
-Bei grauen Strecken die kaufkarten so anordnen dass oben die Option mit den meisten Karten ist
-Kauf der Verbindung mit infos über Verbindungstyp
-ScrollPane bei Missionkarten
+Rework der Spielstart Dialoge, in einen, dass auch gleich die Karte und die Regeln festegelgt werden
+Redesign des Karten laden und infos speichern
+Map editor, locations, Connections und Missionskarten erzeugen/bzw. Missionkarten erzeugen lassen/ bearbeiten alter Maps
+Maps müssen somit nicht per Code gespeichert werden sondern in extra Files
+Synchronisieren der Karten (wenn Netzwerkkommunikation möglich ist)
 
 
 GUI:
@@ -13,7 +15,7 @@ Nicht mehr als maxNoOfMissionCards auswählen
 Weiße Linien besser zeichnen
 Button für anzeige der eigenen und freien Strecken (Doppelte Strecken als einfache anzeigen)
 Darstellung der Infos andere Spieler
-Anzahl der carriges anzeigen (auch von anderen Spielern) (zuerst darstellung anderer Spieler überlegen)
+Anzahl der carriges anzeigen (auch von anderen Spielern) (zuerst darstellung anderer Spieler �berlegen)
 Show Mission highlights den Start und Endbahnhof
 Die Hintergrundkarte sollte nicht aus dem Frame geschoben werden
 Button um die Hintergrundkarte wieder normal darzustellen
@@ -32,6 +34,11 @@ Log für Spielmoves, anzeige im Bildschirm irgendwo klein an der Seite mit Butto
 Verschiedene Farben für verschiedene Spielmoves
 Soll neues Spiel während eines laufeneden Spieles gestartet werden, wenn ja, was passiert dann mit dem Spiel
 Einheitlicher Ort für Shortcuts/Sowie vereinheitlichung der Shortcuts
+ColorSelection bei dem Coms funktioniert nicht
+Save of Connections muss besser geschrieben werden da sehr viel Wiederholung drin ist
+
+
+New Ideas:
 
 
 Algorithmus:
@@ -42,7 +49,7 @@ Strecken die belegt sind in Berechnung mit einbeziehen
 Ein Array von Booleans pro "neuem" Graph in dem steht welche Locations schon besucht wordden
 
 Lösungsvorschläge für NullPointer
-Auf Java 11 Ändern (XXX)
+Auf Java 11 ändern (XXX)
 Schauen wie oft die Methoden in der SingleConnectionPath Klasse aufgerufen werden
 Lebenszyklus eines Lambdas rausfinden
 
@@ -55,4 +62,8 @@ Die MissionCards selbst sortieren lassen
 MissionCards schauen nicht gut aus, gridbaglayout anpassen dass am ende noch ein dummy panel hinzugefügt wird wenn nötig
 Finished MissionCards schön anordnen
 Missionskarten ausblenden können, z.B. Wenn diese nicht mehr geschafft werden
+Bei grauen Strecken die kaufkarten so anordnen dass oben die Option mit den meisten Karten ist
+Kauf der Verbindung mit infos über Verbindungstyp
+ScrollPane bei Missionkarten
+
 

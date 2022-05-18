@@ -4,7 +4,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +20,7 @@ import application.Application;
 import application.Property;
 import connection.Connection;
 import connection.SingleConnection;
+import game.Computer.Difficulty;
 import game.board.GameBoard;
 import game.board.Location;
 import game.board.Location.LocationList;
@@ -199,7 +199,7 @@ public class Game {
 			}
 		}
 		System.out.println();
-		System.out.println("Nächster spieler: ");
+		System.out.println("Nï¿½chster spieler: ");
 		System.out.println(this.getCurrentPlayer());
 	}
 
@@ -213,9 +213,17 @@ public class Game {
 		return null;
 	}
 
-	public void addComputer(String computerName, MyColor color, int difficulty) {
+	public boolean addComputer(String computerName, MyColor color, Difficulty difficulty) {
 		Computer computer = new Computer(computerName, color, difficulty);
-		this.players.add(computer);
+		return this.players.add(computer);
+	}
+
+	public void setMap(GameMap map) {
+		this.gameBoard.setMap(map);
+	}
+
+	public GameMap getMap() {
+		return this.gameBoard.getMap();
 	}
 
 	public Location getLocation(String locationName) {
@@ -260,17 +268,6 @@ public class Game {
 
 	public void fireAction(Object source, Property property, Object oldValue, Object newValue) {
 		this.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(source == null ? this : source, property.name(), oldValue, newValue));
-	}
-
-	@SuppressWarnings("unused")
-	private List<MissionCard> getMissionsToLocation(String locationName) {
-		Location location = this.getLocation(locationName);
-		if (location == null) { return Collections.emptyList(); }
-		return this.gameBoard.getMissionCards().values().stream().reduce((t, u) -> {
-			ArrayList<MissionCard> l = new ArrayList<>(t);
-			l.addAll(u);
-			return l;
-		}).get().parallelStream().filter(mission -> mission.getFromLocation().equals(location) || mission.getToLocation().equals(location)).toList();
 	}
 
 }

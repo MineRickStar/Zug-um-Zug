@@ -15,10 +15,9 @@ import javax.swing.WindowConstants;
 
 import game.Game;
 import gui.dialog.ClientSettingsDialog;
-import gui.dialog.ComputerPlayDialog;
-import gui.dialog.CreatePlayerDialog;
 import gui.dialog.OnlinePlayerDialogHostDialog;
 import gui.dialog.OnlinePlayerDialogJoinDialog;
+import gui.gameStart.GameStartDialog;
 
 public class MyFrame extends JFrame {
 
@@ -67,6 +66,7 @@ public class MyFrame extends JFrame {
 
 	public void start() {
 		this.infoPanel.startGame();
+		this.gameBoardPanel.startGame();
 	}
 
 	private void addMenuBar() {
@@ -85,13 +85,7 @@ public class MyFrame extends JFrame {
 		JMenuItem againstComputerMenu = new JMenuItem("Against Computer");
 		againstComputerMenu.addActionListener(e -> {
 			if (!Game.getInstance().isGameStarted()) {
-				CreatePlayerDialog playerDialog = new CreatePlayerDialog();
-				if (!playerDialog.wasCanceled()) {
-					ComputerPlayDialog comDialog = new ComputerPlayDialog();
-					if (!comDialog.wasCanceled()) {
-						Game.getInstance().startGame();
-					}
-				}
+				new GameStartDialog();
 			}
 		});
 		againstComputerMenu.setAccelerator(KeyStroke.getKeyStroke('A', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));

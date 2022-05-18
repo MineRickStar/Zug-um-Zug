@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -11,20 +12,16 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.imageio.ImageIO;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
-import application.StopWatch;
 import connection.Connection;
 import connection.SingleConnection;
 import game.Game;
@@ -37,10 +34,8 @@ public class GameBoardPanel extends JPanel {
 
 	private static final long serialVersionUID = 7437383669142439957L;
 
-	private BufferedImage germany;
-	private Point origin;
-	private int width;
-	private int heigth;
+	private Point origin = new Point(0, 0);
+	private Dimension dimensions;
 
 	private double scaleFactorBase = 1.1;
 	private int scrollDirection = -1;
@@ -53,41 +48,27 @@ public class GameBoardPanel extends JPanel {
 	private Point hoveredPoint;
 	private SingleConnection hoveredConnection;
 
-	private StopWatch w;
-
 	public GameBoardPanel() {
-		this.w = new StopWatch();
 		MouseHelper mouseHelper = new MouseHelper();
 		this.addMouseWheelListener(mouseHelper);
 		this.addMouseListener(mouseHelper);
 		this.addMouseMotionListener(mouseHelper);
 		this.setDoubleBuffered(true);
-		try {
-			this.germany = ImageIO.read(ClassLoader.getSystemResource("Deutschland_Flüsse.png"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		this.origin = new Point(0, 0);
-		this.width = this.germany.getWidth();
-		this.heigth = this.germany.getHeight();
+	}
+
+	public void startGame() {
+		this.dimensions = new Dimension(Game.getInstance().getMap().getDimensions());
 	}
 
 	@Override
 	public void paint(Graphics g) {
-		this.w.newWatch();
 		this.resetScreen(g);
-		this.w.round("Reset");
 		super.paint(g);
-		this.w.round("Super Paint");
-
-		g.drawImage(this.germany, this.origin.x, this.origin.y, this.width, this.heigth, this);
-		this.w.round("DrawImage");
-
-		this.drawConnections(g);
-		this.w.round("Connections");
-		this.drawCities(g);
-		this.w.round("Cities");
-//		System.out.println(this.w.toString());
+		if (Game.getInstance().isGameStarted()) {
+			g.drawImage(Game.getInstance().getMap().getMapImage(), this.origin.x, this.origin.y, this.dimensions.width, this.dimensions.height, this);
+			this.drawConnections(g);
+			this.drawCities(g);
+		}
 	}
 
 	private void resetScreen(Graphics g) {
@@ -221,14 +202,14 @@ public class GameBoardPanel extends JPanel {
 	private void drawGrid(Graphics g) {
 		g.setColor(Color.BLACK);
 		int gridSize = 100;
-		for (int i = 0; i <= this.width; i += gridSize) {
-			g.drawLine(i + this.origin.x, this.origin.y, i + this.origin.x, this.heigth + this.origin.y);
+		for (int i = 0; i <= this.dimensions.width; i += gridSize) {
+			g.drawLine(i + this.origin.x, this.origin.y, i + this.origin.x, this.dimensions.height + this.origin.y);
 		}
-		g.drawLine(this.width + this.origin.x, this.origin.y, this.width + this.origin.x, this.origin.y + this.heigth);
-		for (int j = 0; j <= this.heigth; j += gridSize) {
-			g.drawLine(this.origin.x, j + this.origin.y, this.width + this.origin.x, j + this.origin.y);
+		g.drawLine(this.dimensions.width + this.origin.x, this.origin.y, this.dimensions.width + this.origin.x, this.origin.y + this.dimensions.height);
+		for (int j = 0; j <= this.dimensions.height; j += gridSize) {
+			g.drawLine(this.origin.x, j + this.origin.y, this.dimensions.width + this.origin.x, j + this.origin.y);
 		}
-		g.drawLine(this.origin.x, this.heigth + this.origin.y, this.origin.x + this.width, this.heigth + this.origin.y);
+		g.drawLine(this.origin.x, this.dimensions.height + this.origin.y, this.origin.x + this.dimensions.width, this.dimensions.height + this.origin.y);
 	}
 
 	private void drawCross(Graphics g, Point center, int sideLength) {
@@ -248,8 +229,10 @@ public class GameBoardPanel extends JPanel {
 			GameBoardPanel.this.scrollDirection = -1;
 			GameBoardPanel.this.scaleFactor = Math.pow(GameBoardPanel.this.scaleFactorBase, GameBoardPanel.this.scaleCount);
 
-			GameBoardPanel.this.width = (int) (GameBoardPanel.this.germany.getWidth() * Math.pow(GameBoardPanel.this.scaleFactor, GameBoardPanel.this.scrollDirection));
-			GameBoardPanel.this.heigth = (int) (GameBoardPanel.this.germany.getHeight() * Math.pow(GameBoardPanel.this.scaleFactor, GameBoardPanel.this.scrollDirection));
+			Dimension dim = Game.getInstance().getMap().getDimensions();
+
+			GameBoardPanel.this.dimensions.width = (int) (dim.getWidth() * Math.pow(GameBoardPanel.this.scaleFactor, GameBoardPanel.this.scrollDirection));
+			GameBoardPanel.this.dimensions.height = (int) (dim.getHeight() * Math.pow(GameBoardPanel.this.scaleFactor, GameBoardPanel.this.scrollDirection));
 
 			Point mousePoint = e.getPoint();
 

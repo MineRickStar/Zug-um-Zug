@@ -14,8 +14,6 @@ public class Connection {
 	public final Location fromLocation;
 	public final Location toLocation;
 	public final byte multiplicity;
-//	public final byte[] length;
-//	public final byte[] points;
 	public final SingleConnection[] singleConnections;
 	public final boolean isGray;
 
@@ -23,12 +21,9 @@ public class Connection {
 		this.ID = UUID.randomUUID();
 		this.fromLocation = fromLocation;
 		this.toLocation = toLocation;
-//		this.length = length;
 		this.multiplicity = multiplicity;
-//		this.points = new byte[multiplicity];
 		this.singleConnections = new SingleConnection[multiplicity];
 		for (int i = 0; i < multiplicity; i++) {
-//			this.points[i] = Rules.getInstance().getPointsConnection(transportMode[i])[length[i] - 1];
 			this.singleConnections[i] = new SingleConnection(this, colors[Math.min(colors.length - 1, i)], transportMode[i], length[i]);
 		}
 		this.isGray = colors[0] == MyColor.GRAY;

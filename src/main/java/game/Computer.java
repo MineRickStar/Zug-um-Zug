@@ -2,6 +2,7 @@ package game;
 
 import java.util.EnumMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 import game.cards.ColorCard.MyColor;
 import game.cards.MissionCard;
@@ -9,9 +10,9 @@ import game.cards.MissionCard.Distance;
 
 public class Computer extends Player {
 
-	private final int difficulty;
+	private final Difficulty difficulty;
 
-	public Computer(String name, MyColor color, int difficulty) {
+	public Computer(String name, MyColor color, Difficulty difficulty) {
 		super(name, color);
 		this.difficulty = difficulty;
 	}
@@ -43,4 +44,21 @@ public class Computer extends Player {
 		this.missionCards.addAll(missionCards);
 		System.out.println("Computer Mission Cards");
 	}
+
+	public enum Difficulty {
+		EASY("Easy", 1), MEDIUM("Medium", 2), HARD("Hard", 3), EXTREME("Extreme", 4);
+
+		public final String displayName;
+		public final int index;
+
+		private Difficulty(String displayName, int index) {
+			this.displayName = displayName;
+			this.index = index;
+		}
+
+		public static Difficulty getDifficultyWithIndex(int index) {
+			return Stream.of(Difficulty.values()).filter(d -> d.index == index).findAny().orElse(null);
+		}
+	}
+
 }
