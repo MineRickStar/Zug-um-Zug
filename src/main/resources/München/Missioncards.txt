@@ -1,0 +1,9 @@
+Points,Distance,Locations
+s,4,Hauptbahnhof,Laim
+m,5,Hauptbahnhof,Pasing
+s,1,Pasing,Laim
+s,1,Laim,Hirschgarten
+s,2,Hauptbahnhof,Schwanthalerhöhe
+m,4,Schwanthalerhöhe,Königsplatz
+m,7,Pasing,Schwanthalerhöhe
+m,6,Pasing,Königsplatz

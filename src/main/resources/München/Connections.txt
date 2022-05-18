@@ -1,0 +1,10 @@
+Location1,Location2,Length,Multiplicity,Colors,TransportMode
+Hauptbahnhof,Hackerbrücke,3,1,1,1,Gray,Gray,Gray,t,t,t
+Hackerbrücke,Donnersbergerbrücke,3,2,2,2,Gray,Gray,Gray,t,t,t
+Donnersbergerbrücke,Hirschgarten,3,2,2,2,Gray,Gray,Gray,t,t,t
+Hirschgarten,Laim,3,3,3,3,Gray,Gray,Gray,t,t,t
+Laim,Pasing,3,5,5,5,Gray,Gray,Gray,t,t,t
+Hauptbahnhof,Pasing,2,4,4,Blue,Red,t,t
+Hauptbahnhof,Theresienwiese,2,3,3,Green,Yellow,t,t
+Theresienwiese,Schwanthalerhöhe,2,3,3,Blue,Black,t,t
+Hauptbahnhof,Königsplatz,2,2,2,Gray,Gray,t,t
