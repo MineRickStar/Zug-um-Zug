@@ -58,7 +58,11 @@ public class Player {
 
 	///// Color Cards on Hand /////
 
-	public void addColorCard(ColorCard[] colorCards) {
+	public void addColorCard(ColorCard card) {
+		this.editColorCards(new ColorCard[] { card }, true);
+	}
+
+	public void addColorCards(ColorCard[] colorCards) {
 		this.editColorCards(colorCards, true);
 	}
 
@@ -98,12 +102,12 @@ public class Player {
 	public int getColorCardCount(ColorCard colorCard) {
 		if (colorCard.color() == MyColor.GRAY) { return -1; }
 		return this.playerCards.getOrDefault(colorCard.transportMode(), new TreeMap<>())
-			.entrySet()
-			.stream()
-			.filter(e -> e.getValue().contains(colorCard))
-			.map(Entry::getKey)
-			.findAny()
-			.orElseGet(() -> Integer.valueOf(0));
+				.entrySet()
+				.stream()
+				.filter(e -> e.getValue().contains(colorCard))
+				.map(Entry::getKey)
+				.findAny()
+				.orElseGet(() -> Integer.valueOf(0));
 	}
 
 	///// Connections /////
@@ -167,6 +171,7 @@ public class Player {
 		this.singleConnections.add(singleConnection);
 		this.locationOrganizer.addSingleConnection(singleConnection);
 		this.removeColorCards(buyingCards.toArray(ColorCard[]::new));
+		Game.getInstance().addUsedCards(buyingCards);
 		this.testForFinishedMissionCards();
 	}
 

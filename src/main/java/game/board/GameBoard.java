@@ -18,84 +18,80 @@ public class GameBoard {
 
 	private GameMap map;
 
-	private List<ColorCard> closedCards;
-	private List<ColorCard> openCards;
+	private List<ColorCard> cards;
 	private List<ColorCard> usedCards;
 
 	public GameBoard() {
-		this.closedCards = new ArrayList<>();
-		this.openCards = new ArrayList<>();
+		this.cards = new ArrayList<>();
 		this.usedCards = new ArrayList<>();
 		this.fillCards();
 	}
 
 	public void setMap(GameMap map) {
 		this.map = map;
-		this.map.loadMap();
 
 	}
 
 	public void startGame() {
 		this.map.startGame();
-		this.shuffleCards();
-		for (int i = 0, max = Rules.getInstance().getColorCardsLayingDown(); i < max; i++) {
-			this.openCards.add(this.drawColorCard());
-		}
+		this.shuffleCards(this.cards);
 	}
 
 	private void fillCards() {
+		TransportMode[] transportModes = TransportMode.values();
 		for (MyColor color : MyColor.getNormalMyColors()) {
-			this.fillColor(Rules.getInstance().getTrainColorCardCount(), color, TransportMode.TRAIN);
-			this.fillColor(Rules.getInstance().getShipColorCardCount(), color, TransportMode.SHIP);
-			this.fillColor(Rules.getInstance().getAirplaneColorCardCount(), color, TransportMode.AIRPLANE);
+			for (TransportMode mode : transportModes) {
+				this.fillColor(Rules.getInstance().getColorCardCount(mode), color, mode);
+			}
 		}
-		this.fillColor(Rules.getInstance().getTrainRainbowColorCardCount(), MyColor.RAINBOW, TransportMode.TRAIN);
-		this.fillColor(Rules.getInstance().getShipRainbowColorCardCount(), MyColor.RAINBOW, TransportMode.SHIP);
-		this.fillColor(Rules.getInstance().getAirplaneRainbowColorCardCount(), MyColor.RAINBOW, TransportMode.AIRPLANE);
+		for (TransportMode mode : transportModes) {
+			this.fillColor(Rules.getInstance().getLocomotiveCardCount(mode), MyColor.RAINBOW, mode);
+		}
 	}
 
 	private void fillColor(int max, MyColor color, TransportMode transportMode) {
 		for (int i = 0; i < max; i++) {
-			this.closedCards.add(new ColorCard(color, transportMode));
+			this.cards.add(new ColorCard(color, transportMode));
 		}
 	}
 
 	public ColorCard drawColorCard() {
-		if (this.closedCards.size() == 0) {
-			if (this.usedCards.isEmpty()) { return null; }
-			this.closedCards.addAll(this.usedCards);
-			this.usedCards.clear();
-			this.shuffleCards();
+		if (this.cards.size() == (Rules.getInstance().getColorCardsLayingDown() + 5)) {
+			this.shuffleUsedCardsAndAdd();
 		}
-		return this.closedCards.remove(0);
+		return this.cards.remove(Rules.getInstance().getColorCardsLayingDown());
 	}
 
 	public ColorCard drawCardFromOpenCards(int index) {
-		ColorCard colorCard = this.openCards.remove(index);
-		this.openCards.add(this.drawColorCard());
+		ColorCard colorCard = this.cards.remove(index);
 		if (Rules.getInstance().isShuffleWithMaxOpenLocomotives()
-				&& (this.openCards.stream().filter(c -> c != null).filter(c -> c.color() == MyColor.RAINBOW).count() == Rules.getInstance().getMaxOpenLocomotives())) {
-			this.usedCards.addAll(this.openCards);
-			this.openCards.clear();
-			for (int i = 0; i < Rules.getInstance().getColorCardsLayingDown(); i++) {
-				this.openCards.add(this.drawColorCard());
-			}
+				&& (this.getOpenCards().stream().filter(c -> c != null).filter(c -> c.color() == MyColor.RAINBOW).count() == Rules.getInstance().getMaxOpenLocomotives())) {
+			List<ColorCard> removeCards = this.getOpenCards();
+			this.usedCards.addAll(removeCards);
+			removeCards.clear();
 		}
 		return colorCard;
 	}
 
 	public List<ColorCard> getOpenCards() {
-		return this.openCards;
+		return this.cards.subList(0, Rules.getInstance().getColorCardsLayingDown());
 	}
 
 	public int getClosedCardCount() {
-		return this.closedCards.size();
+		return this.cards.size();
 	}
 
-	public void addUsedCards(ColorCard color, int count) {
-		for (int i = 0; i <= count; i++) {
-			this.usedCards.add(color);
+	public void addUsedCards(List<ColorCard> usedCards) {
+		this.usedCards.addAll(usedCards);
+		if (this.usedCards.size() > (Rules.getInstance().getColorCardsLayingDown() + 5)) {
+			this.shuffleUsedCardsAndAdd();
 		}
+	}
+
+	private void shuffleUsedCardsAndAdd() {
+		this.shuffleCards(this.usedCards);
+		this.cards.addAll(this.usedCards);
+		this.usedCards.clear();
 	}
 
 	public GameMap getMap() {
@@ -126,8 +122,8 @@ public class GameBoard {
 		return this.map.getLocation(locationName);
 	}
 
-	public void shuffleCards() {
-		Collections.shuffle(this.closedCards, Game.getInstance().getRandomGenerator());
+	public void shuffleCards(List<ColorCard> cards) {
+		Collections.shuffle(cards, Game.getInstance().getRandomGenerator());
 	}
 
 }

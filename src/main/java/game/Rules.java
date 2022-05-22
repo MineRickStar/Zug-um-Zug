@@ -15,38 +15,60 @@ public class Rules {
 		return Rules.instance;
 	}
 
-	private int cardsLimit;
-	private int rainbowCardslimit;
+	///// PlayerRules /////
 
-	private int colorCardsLayingDown = 5;
+	private int cardsLimit = 0;
+	private int locomotivCardsLimit = 0;
+
+	private int colorCardsDrawing = 2;
 	private int firstColorCards = 4;
-	private int ColorCardsDrawing = 2;
-	private int LocomotiveWorth = 2;
 	private int missionCardsDrawing = 4;
 	private int firstMissionCardsKeeping = 2;
 	private int defaultMissionCardsKeeping = 1;
 
+	///// CardRules /////
+
+	private int colorCardsLayingDown = 5;
+
+	private int locomotiveWorth = 2;
+
 	private boolean shuffleWithMaxOpenLocomotives = true;
 	private int maxOpenLocomotives = 3;
 
+	///// MapRules (TransportMode Dependent) /////
+
+	// Train //
+
 	private int trainColorCardCount = 12;
-	private int trainRainbowColorCardCount = 14;
+	private int trainLocomotiveColorCardCount = 14;
+
+	private int trainCarrigeCount = 45;
+
+	private int[] pointsTrainConnection = { 1, 2, 4, 7, 10, 15, 18 };
+
+	// Ship //
 
 	private int shipColorCardCount = 6;
-	private int shipRainbowColorCardCount = 6;
+	private int shipLocomotiveColorCardCount = 6;
+
+	private int shipCarrigeCount = 20;
+
+	private int[] pointsShipConnection = { 1, 2, 4, 7, 10, 15, 18 };
+
+	// Airplane //
 
 	private int airplaneColorCardCount = 2;
-	private int airplaneRainbowColorCardCount = 2;
+	private int airplaneLocomotiveColorCardCount = 2;
 
-	private int trainCount = 45;
-	private int shipCount = 20;
-	private int airplaneCount = 10;
+	private int airplaneCarrigeCount = 10;
 
-	private byte[] pointsTrainConnection = { 1, 2, 4, 7, 10, 15, 18 };
-	private byte[] pointsShipConnection = { 1, 2, 4, 7, 10, 15, 18 };
-	private byte[] pointsAirConnection = { 1, 2, 4, 7, 10, 15, 18 };
+	private int[] pointsAirplaneConnection = { 1, 2, 4, 7, 10, 15, 18 };
+
+	///// END /////
 
 	private Rules() {}
+
+	///// PlayerRules /////
 
 	public int getCardsLimit() {
 		return this.cardsLimit;
@@ -56,20 +78,20 @@ public class Rules {
 		this.cardsLimit = cardsLimit;
 	}
 
-	public int getRainbowCardslimit() {
-		return this.rainbowCardslimit;
+	public int getLocomotivCardsLimit() {
+		return this.locomotivCardsLimit;
 	}
 
-	public void setRainbowCardslimit(int rainbowCardslimit) {
-		this.rainbowCardslimit = rainbowCardslimit;
+	public void setLocomotiveCardsLimit(int locomotiveCardsLimit) {
+		this.locomotivCardsLimit = locomotiveCardsLimit;
 	}
 
-	public int getColorCardsLayingDown() {
-		return this.colorCardsLayingDown;
+	public int getColorCardsDrawing() {
+		return this.colorCardsDrawing;
 	}
 
-	public void setColorCardsLayingDown(int colorCardsLayingDown) {
-		this.colorCardsLayingDown = colorCardsLayingDown;
+	public void setColorCardsDrawing(int colorCardsDrawing) {
+		this.colorCardsDrawing = colorCardsDrawing;
 	}
 
 	public int getFirstColorCards() {
@@ -78,22 +100,6 @@ public class Rules {
 
 	public void setFirstColorCards(int firstColorCards) {
 		this.firstColorCards = firstColorCards;
-	}
-
-	public int getColorCardsDrawing() {
-		return this.ColorCardsDrawing;
-	}
-
-	public void setColorCardsDrawing(int colorCardsDrawing) {
-		this.ColorCardsDrawing = colorCardsDrawing;
-	}
-
-	public int getLocomotiveWorth() {
-		return this.LocomotiveWorth;
-	}
-
-	public void setLocomotiveWorth(int locomotiveWorth) {
-		this.LocomotiveWorth = locomotiveWorth;
 	}
 
 	public int getMissionCardsDrawing() {
@@ -120,6 +126,24 @@ public class Rules {
 		this.defaultMissionCardsKeeping = defaultMissionCardsKeeping;
 	}
 
+	///// CardRules /////
+
+	public int getColorCardsLayingDown() {
+		return this.colorCardsLayingDown;
+	}
+
+	public void setColorCardsLayingDown(int colorCardsLayingDown) {
+		this.colorCardsLayingDown = colorCardsLayingDown;
+	}
+
+	public int getLocomotiveWorth() {
+		return this.locomotiveWorth;
+	}
+
+	public void setLocomotiveWorth(int locomotiveWorth) {
+		this.locomotiveWorth = locomotiveWorth;
+	}
+
 	public boolean isShuffleWithMaxOpenLocomotives() {
 		return this.shuffleWithMaxOpenLocomotives;
 	}
@@ -136,112 +160,118 @@ public class Rules {
 		this.maxOpenLocomotives = maxOpenLocomotives;
 	}
 
-	public int getTrainColorCardCount() {
-		return this.trainColorCardCount;
-	}
-
-	public void setTrainColorCardCount(int trainColorCardCount) {
-		this.trainColorCardCount = trainColorCardCount;
-	}
-
-	public int getTrainRainbowColorCardCount() {
-		return this.trainRainbowColorCardCount;
-	}
-
-	public void setTrainRainbowColorCardCount(int trainRainbowColorCardCount) {
-		this.trainRainbowColorCardCount = trainRainbowColorCardCount;
-	}
-
-	public int getShipColorCardCount() {
-		return this.shipColorCardCount;
-	}
-
-	public void setShipColorCardCount(int shipColorCardCount) {
-		this.shipColorCardCount = shipColorCardCount;
-	}
-
-	public int getShipRainbowColorCardCount() {
-		return this.shipRainbowColorCardCount;
-	}
-
-	public void setShipRainbowColorCardCount(int shipRainbowColorCardCount) {
-		this.shipRainbowColorCardCount = shipRainbowColorCardCount;
-	}
-
-	public int getAirplaneColorCardCount() {
-		return this.airplaneColorCardCount;
-	}
-
-	public void setAirplaneColorCardCount(int airplaneColorCardCount) {
-		this.airplaneColorCardCount = airplaneColorCardCount;
-	}
-
-	public int getAirplaneRainbowColorCardCount() {
-		return this.airplaneRainbowColorCardCount;
-	}
-
-	public void setAirplaneRainbowColorCardCount(int airplaneRainbowColorCardCount) {
-		this.airplaneRainbowColorCardCount = airplaneRainbowColorCardCount;
-	}
-
-	public int getTrainCount() {
-		return this.trainCount;
-	}
-
-	public void setTrainCount(int trainCount) {
-		this.trainCount = trainCount;
-	}
-
-	public int getShipCount() {
-		return this.shipCount;
-	}
-
-	public void setShipCount(int shipCount) {
-		this.shipCount = shipCount;
-	}
-
-	public int getAirplaneCount() {
-		return this.airplaneCount;
-	}
-
-	public void setAirplaneCount(int airplaneCount) {
-		this.airplaneCount = airplaneCount;
-	}
-
-	public int getCarrigeCount() {
-		return this.trainCount + this.shipCount + this.airplaneCount;
-	}
+	///// MapRules (TransportMode Dependent) /////
 
 	public EnumMap<TransportMode, Integer> getTransportMap() {
 		EnumMap<TransportMode, Integer> map = new EnumMap<>(TransportMode.class);
-		map.put(TransportMode.TRAIN, this.getTrainCount());
-		map.put(TransportMode.SHIP, this.getShipCount());
-		map.put(TransportMode.AIRPLANE, this.getAirplaneCount());
+		map.put(TransportMode.TRAIN, this.trainCarrigeCount);
+		map.put(TransportMode.SHIP, this.shipCarrigeCount);
+		map.put(TransportMode.AIRPLANE, this.airplaneCarrigeCount);
 		return map;
 	}
 
-	public byte[] getPointsTrainConnection() {
-		return this.pointsTrainConnection;
-	}
-
-	public byte[] getPointsShipConnection() {
-		return this.pointsShipConnection;
-	}
-
-	public byte[] getPointsAirConnection() {
-		return this.pointsAirConnection;
-	}
-
-	public byte[] getPointsConnection(TransportMode transportMode) {
+	public int getLocomotiveCardCount(TransportMode transportMode) {
 		switch (transportMode) {
 		case AIRPLANE:
-			return this.getPointsAirConnection();
+			return this.airplaneLocomotiveColorCardCount;
 		case SHIP:
-			return this.getPointsShipConnection();
+			return this.shipLocomotiveColorCardCount;
 		case TRAIN:
-			return this.getPointsTrainConnection();
+			return this.trainLocomotiveColorCardCount;
 		}
-		return new byte[0];
+		return 0;
+	}
+
+	public void setLocomotiveCardCount(TransportMode transportMode, int locomotiveCardCount) {
+		switch (transportMode) {
+		case AIRPLANE:
+			this.airplaneLocomotiveColorCardCount = locomotiveCardCount;
+			break;
+		case SHIP:
+			this.shipLocomotiveColorCardCount = locomotiveCardCount;
+			break;
+		case TRAIN:
+			this.trainLocomotiveColorCardCount = locomotiveCardCount;
+			break;
+		}
+	}
+
+	public int getColorCardCount(TransportMode transportMode) {
+		switch (transportMode) {
+		case AIRPLANE:
+			return this.airplaneColorCardCount;
+		case SHIP:
+			return this.shipColorCardCount;
+		case TRAIN:
+			return this.trainColorCardCount;
+		}
+		return 0;
+	}
+
+	public void setColorCardCount(TransportMode transportMode, int colorCardCount) {
+		switch (transportMode) {
+		case AIRPLANE:
+			this.airplaneColorCardCount = colorCardCount;
+			break;
+		case SHIP:
+			this.shipColorCardCount = colorCardCount;
+			break;
+		case TRAIN:
+			this.shipColorCardCount = colorCardCount;
+			break;
+		}
+	}
+
+	public int getCarrigeCount(TransportMode transportMode) {
+		switch (transportMode) {
+		case AIRPLANE:
+			return this.airplaneCarrigeCount;
+		case SHIP:
+			return this.shipCarrigeCount;
+		case TRAIN:
+			return this.trainCarrigeCount;
+		}
+		return 0;
+	}
+
+	public void setCarrigeCount(TransportMode transportMode, int carrigeCount) {
+		switch (transportMode) {
+		case AIRPLANE:
+			this.airplaneCarrigeCount = carrigeCount;
+			break;
+		case SHIP:
+			this.shipCarrigeCount = carrigeCount;
+			break;
+		case TRAIN:
+			this.trainCarrigeCount = carrigeCount;
+			break;
+		}
+	}
+
+	public int[] getPointsConnection(TransportMode transportMode) {
+		switch (transportMode) {
+		case AIRPLANE:
+			return this.pointsAirplaneConnection;
+		case SHIP:
+			return this.pointsShipConnection;
+		case TRAIN:
+			return this.pointsTrainConnection;
+		}
+		return new int[0];
+	}
+
+	public void setPointsConnection(TransportMode transportMode, int[] pointsConnection) {
+		switch (transportMode) {
+		case AIRPLANE:
+			this.pointsAirplaneConnection = pointsConnection;
+			break;
+		case SHIP:
+			this.pointsShipConnection = pointsConnection;
+			break;
+		case TRAIN:
+			this.pointsTrainConnection = pointsConnection;
+			break;
+		}
 	}
 
 }

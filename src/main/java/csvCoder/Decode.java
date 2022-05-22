@@ -1,8 +1,9 @@
 package csvCoder;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
@@ -30,18 +31,16 @@ public class Decode implements Iterator<String[]> {
 		}
 	}
 
-	public static Decode decode(String fileName) throws IOException {
-		InputStream stream = ClassLoader.getSystemResourceAsStream(fileName);
-		List<String> lines = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).lines()
-				.collect(Collectors.toList());
+	public static Decode decode(File fileName) throws IOException {
+		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), StandardCharsets.UTF_8));
+		List<String> lines = reader.lines().collect(Collectors.toList());
+		reader.close();
 
-		String[] header = lines.remove(0)
-				.split(",");
+		if (lines.size() == 0) { return new EmptyDecode(); }
+
+		String[] header = lines.remove(0).split(",");
 		Decode decode = new Decode(header, lines.size());
-		lines.stream()
-				.sequential()
-				.map(line -> line.split(","))
-				.forEach(decode::addLine);
+		lines.stream().sequential().map(line -> line.split(",")).forEach(decode::addLine);
 		return decode;
 	}
 
@@ -53,6 +52,24 @@ public class Decode implements Iterator<String[]> {
 	@Override
 	public String[] next() {
 		return (String[]) this.data[this.counter++];
+	}
+
+	private static class EmptyDecode extends Decode {
+
+		private EmptyDecode() {
+			super(null, 0);
+		}
+
+		@Override
+		public boolean hasNext() {
+			return false;
+		}
+
+		@Override
+		public String[] next() {
+			return null;
+		}
+
 	}
 
 }

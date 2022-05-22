@@ -3,9 +3,7 @@ Currently in Process:
 
 Rework der Spielstart Dialoge, in einen, dass auch gleich die Karte und die Regeln festegelgt werden
 Redesign des Karten laden und infos speichern
-Map editor, locations, Connections und Missionskarten erzeugen/bzw. Missionkarten erzeugen lassen/ bearbeiten alter Maps
-Maps müssen somit nicht per Code gespeichert werden sondern in extra Files
-Synchronisieren der Karten (wenn Netzwerkkommunikation möglich ist)
+Color Karten werden nicht neu gemischt wenn sie kurz vor ende sind (Mischen wenn nur noch weniger als x Karten + offene dazu zählen)
 
 
 GUI:
@@ -39,6 +37,10 @@ Save of Connections muss besser geschrieben werden da sehr viel Wiederholung dri
 
 
 New Ideas:
+
+Map editor, locations, Connections und Missionskarten erzeugen/bzw. Missionkarten erzeugen lassen/ bearbeiten alter Maps
+Maps müssen somit nicht per Code gespeichert werden sondern in extra Files
+Synchronisieren der Karten (wenn Netzwerkkommunikation möglich ist)
 
 
 Algorithmus:

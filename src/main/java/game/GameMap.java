@@ -3,7 +3,12 @@ package game;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,11 +17,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
+import javax.swing.JOptionPane;
 
 import application.Application;
 import connection.Connection;
+import connection.SingleConnection;
 import csvCoder.Decode;
 import game.board.Location;
 import game.cards.ColorCard.MyColor;
@@ -27,7 +35,30 @@ import game.cards.MissionCard.MissionCardConstraints;
 
 public class GameMap {
 
-	private final String folder;
+	public static final String LOCATIONSFILE = "Locations.txt";
+	public static final String CONNECTIONFILE = "Connections.txt";
+	public static final String MISSIONCARDSFILE = "Missioncards.txt";
+	public static final String RULESFILE = "Rules.txt";
+	public static final String MAPFILE = "Map.png";
+
+	public static final File SavedGamesFolder = new File(System.getProperty("user.home"), "Saved Games");
+
+	public static final File myGameFolder = new File(GameMap.SavedGamesFolder, Application.NAME);
+
+	public static List<GameMap> getMaps() {
+		List<File> files = new ArrayList<>();
+		try {
+			files.add(Paths.get(ClassLoader.getSystemResource("Germany original").toURI()).toFile());
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+		files.addAll(List.of(GameMap.myGameFolder.listFiles(File::isDirectory)));
+		return files.stream().map(GameMap::new).toList();
+	}
+
+	public final String mapName;
+
+	private final File folder;
 
 	private TreeMap<String, Location> locations;
 	private TreeMap<UUID, Connection> connections;
@@ -38,10 +69,11 @@ public class GameMap {
 
 	protected RuleSet ruleSet;
 
-	public GameMap(String folder) {
+	public GameMap(File folder) {
 		this.folder = folder;
+		this.mapName = folder.getName();
 		try {
-			this.mapImage = ImageIO.read(ClassLoader.getSystemResource(this.folder + "\\map.png"));
+			this.mapImage = ImageIO.read(new File(this.folder, GameMap.MAPFILE));
 			this.mapDimensions = new Dimension(this.mapImage.getWidth(), this.mapImage.getHeight());
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -52,6 +84,7 @@ public class GameMap {
 		for (Distance distance : Distance.values()) {
 			this.missionCards.put(distance, new ArrayList<>());
 		}
+		this.loadMap();
 	}
 
 	public final BufferedImage getMapImage() {
@@ -62,8 +95,16 @@ public class GameMap {
 		return this.mapDimensions;
 	}
 
-	public final void loadMap() {
-		this.loadRuleSet();
+	private final void loadMap() {
+		try {
+			this.ruleSet = RuleSet.load(this.folder);
+			if (this.ruleSet == null) {
+				this.ruleSet = RuleSet.emptyRuleSet();
+			}
+		} catch (ClassNotFoundException | IOException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(Application.frame, "Rules of Map could not be loaded");
+		}
 		this.loadLocations();
 		this.loadConnections();
 		this.loadMissionCards();
@@ -102,9 +143,37 @@ public class GameMap {
 		return this.missionCards.get(distance).size();
 	}
 
+	public int getCarrigeCount(TransportMode transportMode) {
+		return this.connections.values().stream().mapToInt(c -> Stream.of(c.singleConnections).filter(s -> s.transportMode == transportMode).mapToInt(s -> s.length).sum()).sum();
+	}
+
+	public TransportMode[] getTransportModes() {
+		List<TransportMode> transportModes = new ArrayList<>();
+		for (Connection con : this.connections.values()) {
+			for (SingleConnection single : con.singleConnections) {
+				if (!transportModes.contains(single.transportMode)) {
+					transportModes.add(single.transportMode);
+				}
+			}
+		}
+		return transportModes.toArray(TransportMode[]::new);
+	}
+
+	public int[] getLengths(TransportMode transportMode) {
+		List<Integer> distances = new ArrayList<>();
+		for (Connection con : this.connections.values()) {
+			for (SingleConnection single : con.singleConnections) {
+				if (((transportMode == null) || (single.transportMode == transportMode)) && !distances.contains((int) single.length)) {
+					distances.add((int) single.length);
+				}
+			}
+		}
+		return distances.stream().mapToInt(i -> i).sorted().toArray();
+	}
+
 	private void loadLocations() {
 		try {
-			Decode decode = Decode.decode(this.folder + "\\Locations.txt");
+			Decode decode = Decode.decode(new File(this.folder, GameMap.LOCATIONSFILE));
 			while (decode.hasNext()) {
 				String[] line = decode.next();
 				String name = line[0];
@@ -121,7 +190,7 @@ public class GameMap {
 	private void loadConnections() {
 		String[] line = null;
 		try {
-			Decode decode = Decode.decode(this.folder + "\\Connections.txt");
+			Decode decode = Decode.decode(new File(this.folder, GameMap.CONNECTIONFILE));
 			while (decode.hasNext()) {
 				line = decode.next();
 
@@ -142,40 +211,7 @@ public class GameMap {
 				for (byte i = 0; i < multiplicity; i++) {
 					length[i] = Byte.parseByte(line[i + 3]);
 					colors[i] = MyColor.getMyColor(line[i + 3 + multiplicity]);
-					transportMode[i] = TransportMode.getTransportMode(line[i + 3 + 2 * multiplicity]);
-				}
-				List<Integer> removedModes = new ArrayList<>();
-				List<TransportMode> allowedTransportModes = List.of(this.ruleSet.getTransportModes());
-				for (int i = 0; i < transportMode.length; i++) {
-					TransportMode mode = transportMode[i];
-					if (!allowedTransportModes.contains(mode)) {
-						removedModes.add(i);
-					}
-				}
-				if (removedModes.size() == multiplicity) {
-					System.out.println("Connection not in RuleSet [" + fromLocation.name + " - " + toLocation.name + "]");
-					continue;
-				}
-				if (!removedModes.isEmpty()) {
-					for (Integer i : removedModes) {
-						length[i] = 0;
-						colors[i] = null;
-						transportMode[i] = null;
-					}
-					multiplicity -= removedModes.size();
-					byte[] newL = new byte[multiplicity];
-					for (int i = 0, newI = 0; i < length.length; i++) {
-						if (length[i] != 0) {
-							newL[newI++] = length[i];
-						}
-					}
-					length = newL;
-					List<MyColor> colorList = new ArrayList<>(List.of(colors));
-					colorList.removeIf(m -> m == null);
-					colors = colorList.toArray(MyColor[]::new);
-					List<TransportMode> transportList = List.of(transportMode);
-					transportList.removeIf(t -> t == null);
-					transportMode = transportList.toArray(TransportMode[]::new);
+					transportMode[i] = TransportMode.getTransportMode(line[i + 3 + (2 * multiplicity)]);
 				}
 				Connection connection = new Connection(fromLocation, toLocation, multiplicity, length, colors, transportMode);
 				fromLocation.addConnection(connection);
@@ -194,7 +230,7 @@ public class GameMap {
 
 	private void loadMissionCards() {
 		try {
-			Decode decode = Decode.decode(this.folder + "\\Missioncards.txt");
+			Decode decode = Decode.decode(new File(this.folder, GameMap.MISSIONCARDSFILE));
 			while (decode.hasNext()) {
 				String[] line = decode.next();
 				Distance distance = Distance.findByAbbreviation(line[0]);
@@ -224,25 +260,24 @@ public class GameMap {
 		}
 	}
 
-	private void loadRuleSet() {
-		this.ruleSet = new RuleSet();
-		this.ruleSet.transportModes = new TransportMode[] { TransportMode.TRAIN, TransportMode.SHIP };
-	}
-
 	public final RuleSet getRuleSet() {
 		return this.ruleSet;
 	}
 
-	public class RuleSet {
-		private TransportMode[] transportModes;
-
-		private RuleSet() {
-
+	public void store() {
+		try {
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(new File(this.folder, GameMap.RULESFILE)));
+			oos.writeObject(this.ruleSet);
+			oos.close();
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
+		// TODO save other files
+	}
 
-		public TransportMode[] getTransportModes() {
-			return this.transportModes;
-		}
+	@Override
+	public String toString() {
+		return this.mapName;
 	}
 
 }

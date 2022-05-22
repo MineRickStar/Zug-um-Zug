@@ -1,6 +1,5 @@
 package gui.gameStart;
 
-import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -16,6 +15,7 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
+import javax.swing.ToolTipManager;
 
 import application.Application;
 import game.Game;
@@ -28,20 +28,24 @@ public class GameStartDialog extends JDialog {
 
 	private PlayerPanel playerPanel;
 	private ComPanel comPanel;
+	private MapPanel mapPanel;
 	private RulesPanel rulesPanel;
 
 	public GameStartDialog() {
 		super(Application.frame, "New Game", true);
+		ToolTipManager.sharedInstance().setInitialDelay(0);
 		this.setLayout(new GridBagLayout());
 		this.tabbedPane = new JTabbedPane();
 
-		this.playerPanel = new PlayerPanel();
-		this.comPanel = new ComPanel();
-		this.rulesPanel = new RulesPanel();
+		this.playerPanel = new PlayerPanel(this);
+		this.comPanel = new ComPanel(this);
+		this.mapPanel = new MapPanel(this);
+		this.rulesPanel = new RulesPanel(this);
 
-		this.tabbedPane.addTab("Player", this.playerPanel);
-		this.tabbedPane.addTab("Coms", this.comPanel);
-		this.tabbedPane.addTab("Rules", this.rulesPanel);
+		this.addPanel(this.playerPanel);
+		this.addPanel(this.comPanel);
+		this.addPanel(this.mapPanel);
+		this.addPanel(this.rulesPanel);
 
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;
@@ -54,6 +58,10 @@ public class GameStartDialog extends JDialog {
 		this.setResizable(false);
 		this.setLocationRelativeTo(Application.frame);
 		this.setVisible(true);
+	}
+
+	private void addPanel(AbstractTabbedPanel panel) {
+		this.tabbedPane.addTab(panel.getDisplayName(), panel);
 	}
 
 	private JPanel getButtonPanel() {
@@ -84,18 +92,23 @@ public class GameStartDialog extends JDialog {
 		boolean rules = this.confirmDialog(this.rulesPanel);
 		boolean player = this.confirmDialog(this.playerPanel);
 		boolean coms = this.confirmDialog(this.comPanel);
-		if (player && coms && rules) {
+		boolean map = this.confirmDialog(this.mapPanel);
+		if (rules && player && coms && map) {
+			this.rulesPanel.save();
+			this.playerPanel.save();
+			this.comPanel.save();
+			this.mapPanel.save();
 			this.dispose();
 			Game.getInstance().startGame();
 		}
 	}
 
-	private boolean confirmDialog(ITabbedPanel tabbedPanel) {
+	private boolean confirmDialog(AbstractTabbedPanel tabbedPanel) {
 		if (!tabbedPanel.isAllCorrect()) {
-			this.tabbedPane.setSelectedComponent((Component) tabbedPanel);
+			this.tabbedPane.setSelectedComponent(tabbedPanel);
 			return false;
 		}
-		return tabbedPanel.save();
+		return true;
 	}
 
 }

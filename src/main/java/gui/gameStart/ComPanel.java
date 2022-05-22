@@ -25,7 +25,7 @@ import game.Computer.Difficulty;
 import game.Game;
 import game.cards.ColorCard.MyColor;
 
-public class ComPanel extends JPanel implements ITabbedPanel {
+public class ComPanel extends AbstractTabbedPanel {
 
 	private static final long serialVersionUID = 9022206666739844613L;
 
@@ -39,33 +39,42 @@ public class ComPanel extends JPanel implements ITabbedPanel {
 	private List<SingelComPanel> singelComPanels;
 	private JButton addComButton;
 
-	public ComPanel() {
-		super(new GridBagLayout());
+	public ComPanel(GameStartDialog parent) {
+		super(parent);
 		this.comPanel = new JPanel(new GridLayout(this.maxComs, 1, 10, 10));
 		this.singelComPanels = new ArrayList<>();
 		this.addComButton = new JButton("Add");
 		this.addComButton.addActionListener(e -> this.addComPanel());
 		this.addComPanel();
+		this.layoutComponents();
+	}
 
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(10, 10, 10, 10);
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		this.add(this.comPanel, gbc);
+	@Override
+	protected void layoutComponents() {
+		this.gbc.insets = new Insets(10, 10, 10, 10);
+		this.gbc.gridx = 0;
+		this.gbc.gridy = 0;
+		this.add(this.comPanel, this.gbc);
 
-		gbc.anchor = GridBagConstraints.LINE_START;
-		gbc.gridy = 1;
-		this.add(this.addComButton, gbc);
+		this.gbc.anchor = GridBagConstraints.LINE_START;
+		this.gbc.gridy = 1;
+		this.add(this.addComButton, this.gbc);
 	}
 
 	private void addComPanel() {
 		if (this.singelComPanels.size() < this.maxComs) {
 			this.singelComPanels.add(new SingelComPanel());
+			if (this.singelComPanels.size() == this.maxComs) {
+				this.addComButton.setEnabled(false);
+				this.revalidate();
+				this.repaint();
+			}
 			this.updateLayout();
 		}
 	}
 
 	private void removeComPanel(SingelComPanel panel) {
+		this.addComButton.setEnabled(true);
 		if (this.singelComPanels.size() > 1) {
 			this.singelComPanels.remove(panel);
 			MyColor item = (MyColor) panel.colorSelection.getSelectedItem();
@@ -199,6 +208,11 @@ public class ComPanel extends JPanel implements ITabbedPanel {
 	}
 
 	@Override
+	public String getDisplayName() {
+		return "Coms";
+	}
+
+	@Override
 	public boolean isAllCorrect() {
 		for (SingelComPanel panel : this.singelComPanels) {
 			String opponentName = panel.opponentName.getText();
@@ -221,7 +235,7 @@ public class ComPanel extends JPanel implements ITabbedPanel {
 	public boolean save() {
 		for (SingelComPanel panel : this.singelComPanels) {
 			boolean success = Game.getInstance()
-				.addComputer(panel.opponentName.getText(), (MyColor) panel.colorSelection.getSelectedItem(), Difficulty.getDifficultyWithIndex(panel.opponentLevel.getValue()));
+					.addComputer(panel.opponentName.getText(), (MyColor) panel.colorSelection.getSelectedItem(), Difficulty.getDifficultyWithIndex(panel.opponentLevel.getValue()));
 			if (!success) { return false; }
 		}
 		return true;

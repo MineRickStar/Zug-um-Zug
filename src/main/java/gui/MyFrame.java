@@ -2,19 +2,20 @@ package gui;
 
 import java.awt.Frame;
 import java.awt.Toolkit;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
+import java.io.IOException;
 
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 
+import application.Application;
 import game.Game;
 import gui.dialog.ClientSettingsDialog;
+import gui.dialog.MapCreator;
 import gui.dialog.OnlinePlayerDialogHostDialog;
 import gui.dialog.OnlinePlayerDialogJoinDialog;
 import gui.gameStart.GameStartDialog;
@@ -23,57 +24,33 @@ public class MyFrame extends JFrame {
 
 	private static final long serialVersionUID = 4070509246110827584L;
 
-	private JSplitPane panel;
-	private GameBoardPanel gameBoardPanel;
-	private InfoPanel infoPanel;
-
 	public MyFrame() {
-		super("Zug um Zug");
+		super(Application.NAME);
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.setSize(900, 600);
 		this.setExtendedState(Frame.MAXIMIZED_BOTH);
-		this.addComponentListener(new ComponentListener() {
-
-			@Override
-			public void componentShown(ComponentEvent e) {
-				MyFrame.this.panel.setDividerLocation(.7);
-			}
-
-			@Override
-			public void componentResized(ComponentEvent e) {
-				MyFrame.this.panel.setDividerLocation(.7);
-			}
-
-			@Override
-			public void componentMoved(ComponentEvent e) {
-				MyFrame.this.panel.setDividerLocation(.7);
-			}
-
-			@Override
-			public void componentHidden(ComponentEvent e) {}
-		});
-		this.gameBoardPanel = new GameBoardPanel();
-		this.infoPanel = new InfoPanel();
-		this.panel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.gameBoardPanel, this.infoPanel);
-		this.panel.setContinuousLayout(false);
-		this.panel.setDividerSize(0);
-
-		this.getContentPane().add(this.panel);
 		this.addMenuBar();
+		this.setResizable(false);
+		this.setUndecorated(true);
 		this.setVisible(true);
 		this.toFront();
-	}
-
-	public void start() {
-		this.infoPanel.startGame();
-		this.gameBoardPanel.startGame();
 	}
 
 	private void addMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
 
-		JMenu newGameMenu = new JMenu("New Game");
+		menuBar.add(this.gameMenu());
+		menuBar.add(this.settingsMenu());
+		menuBar.add(this.mapCreatorMenu());
+
+		this.setJMenuBar(menuBar);
+	}
+
+	private JMenu gameMenu() {
+		JMenu gameMenu = new JMenu("Game");
+
 		JMenu onlinePlay = new JMenu("Online spielen");
+
 		JMenuItem onlinePlayHost = new JMenuItem("Create new Game");
 		onlinePlayHost.setAccelerator(KeyStroke.getKeyStroke('O', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
 		onlinePlayHost.addActionListener(e -> new OnlinePlayerDialogHostDialog());
@@ -90,19 +67,49 @@ public class MyFrame extends JFrame {
 		});
 		againstComputerMenu.setAccelerator(KeyStroke.getKeyStroke('A', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
 
-		newGameMenu.add(onlinePlay);
-		newGameMenu.add(againstComputerMenu);
+		JMenuItem quitGame = new JMenuItem("Quit Game");
+		quitGame.addActionListener(e -> Application.frame.dispose());
 
-		menuBar.add(newGameMenu);
+		gameMenu.add(onlinePlay);
+		gameMenu.add(againstComputerMenu);
+		gameMenu.add(quitGame);
 
+		return gameMenu;
+	}
+
+	private JMenu settingsMenu() {
 		JMenu settingsMenu = new JMenu("Settings");
-		JMenuItem settingsMenuItem = new JMenuItem("Settings");
-		settingsMenuItem.addActionListener(e -> new ClientSettingsDialog());
-		settingsMenu.add(settingsMenuItem);
 
-		menuBar.add(settingsMenu);
+		settingsMenu.addActionListener(e -> new ClientSettingsDialog());
 
-		this.setJMenuBar(menuBar);
+		return settingsMenu;
+	}
+
+	private JMenu mapCreatorMenu() {
+		JMenu mapCreatorMenu = new JMenu("Map Creator");
+
+		JMenuItem mapCreatorMenuItem = new JMenuItem("Create new Map");
+		mapCreatorMenuItem.setAccelerator(KeyStroke.getKeyStroke('C', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+		mapCreatorMenuItem.addActionListener(e -> {
+			try {
+				MapCreator.createNewMap();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		});
+		JMenuItem editMapMenuItem = new JMenuItem("Edit Map");
+
+		mapCreatorMenu.add(mapCreatorMenuItem);
+		mapCreatorMenu.add(editMapMenuItem);
+
+		return mapCreatorMenu;
+	}
+
+	public void setComponent(JComponent com) {
+		this.getContentPane().removeAll();
+		this.getContentPane().add(com);
+		this.revalidate();
+		this.repaint();
 	}
 
 }

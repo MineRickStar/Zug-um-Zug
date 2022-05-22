@@ -1,9 +1,17 @@
 package game.cards;
 
 import java.awt.Color;
+import java.io.Serializable;
 import java.util.stream.Stream;
 
+import game.cards.ColorCard.MyColor;
+import game.cards.ColorCard.TransportMode;
+
 public record ColorCard(MyColor color, TransportMode transportMode) {
+
+	public String getColorCardString() {
+		return "<html><body>" + this.transportMode().displayName + "<br>" + this.color().colorName + "</body></html>";
+	}
 
 	public enum MyColor {
 
@@ -27,7 +35,7 @@ public record ColorCard(MyColor color, TransportMode transportMode) {
 		}
 
 		public static MyColor[] getNormalMyColors() {
-			return Stream.of(MyColor.values()).filter(c -> c != GRAY && c != RAINBOW).toArray(MyColor[]::new);
+			return Stream.of(MyColor.values()).filter(c -> (c != GRAY) && (c != RAINBOW)).toArray(MyColor[]::new);
 		}
 
 		public static Color getComplementaryColor(MyColor myColor) {
@@ -49,7 +57,7 @@ public record ColorCard(MyColor color, TransportMode transportMode) {
 		}
 	}
 
-	public enum TransportMode {
+	public enum TransportMode implements Serializable {
 		TRAIN("Train", "t"), SHIP("Ship", "s"), AIRPLANE("Airplane", "a");
 
 		public final String displayName;

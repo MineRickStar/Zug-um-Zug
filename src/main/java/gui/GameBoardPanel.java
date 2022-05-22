@@ -49,15 +49,12 @@ public class GameBoardPanel extends JPanel {
 	private SingleConnection hoveredConnection;
 
 	public GameBoardPanel() {
+		this.setDoubleBuffered(true);
+		this.dimensions = new Dimension(Game.getInstance().getMap().getDimensions());
 		MouseHelper mouseHelper = new MouseHelper();
 		this.addMouseWheelListener(mouseHelper);
 		this.addMouseListener(mouseHelper);
 		this.addMouseMotionListener(mouseHelper);
-		this.setDoubleBuffered(true);
-	}
-
-	public void startGame() {
-		this.dimensions = new Dimension(Game.getInstance().getMap().getDimensions());
 	}
 
 	@Override

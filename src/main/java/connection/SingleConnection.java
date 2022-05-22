@@ -16,7 +16,7 @@ public class SingleConnection {
 	public final MyColor color;
 	public final TransportMode transportMode;
 	public final byte length;
-	public final byte points;
+	public final int points;
 
 	private Player owner;
 

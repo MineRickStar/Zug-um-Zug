@@ -28,6 +28,7 @@ import game.cards.ColorCard;
 import game.cards.ColorCard.MyColor;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
+import gui.GamePanel;
 import gui.dialog.DrawMissionCardDialog;
 import gui.dialog.MissionCardHelperDialog;
 
@@ -63,12 +64,12 @@ public class Game {
 
 	public void startGame() {
 		this.gameBoard.startGame();
-		Application.frame.start();
+		Application.frame.setComponent(new GamePanel());
 		this.currentPlayerCounter = this.getRandomGenerator().nextInt(this.players.size());
 		this.distributeCards();
 
 		for (int i = 0; i < this.players.size(); i++) {
-			if (i == this.players.size() - 1) {
+			if (i == (this.players.size() - 1)) {
 				this.gameStarted = true;
 			}
 			if (this.isPlayersTurn()) {
@@ -82,7 +83,7 @@ public class Game {
 	}
 
 	public void distributeCards() {
-		this.players.forEach(p -> p.addColorCard(IntStream.range(0, Rules.getInstance().getFirstColorCards()).mapToObj(i -> this.gameBoard.drawColorCard()).toArray(ColorCard[]::new)));
+		this.players.forEach(p -> p.addColorCards(IntStream.range(0, Rules.getInstance().getFirstColorCards()).mapToObj(i -> this.gameBoard.drawColorCard()).toArray(ColorCard[]::new)));
 	}
 
 	public int getMissionCardCount(Distance distance) {
@@ -132,6 +133,10 @@ public class Game {
 		this.nextPlayer();
 	}
 
+	public void addUsedCards(List<ColorCard> colorCards) {
+		this.gameBoard.addUsedCards(colorCards);
+	}
+
 	public void drawColorCardFromDeck(Player player) {
 		this.colorCardDrawn(player, this.gameBoard.drawColorCard(), false);
 	}
@@ -146,7 +151,7 @@ public class Game {
 		} else {
 			this.currentPlayerColorCardDraws++;
 		}
-		player.addColorCard(new ColorCard[] { colorCard });
+		player.addColorCard(colorCard);
 		if (this.currentPlayerColorCardDraws >= Rules.getInstance().getColorCardsDrawing()) {
 			this.nextPlayer();
 		}

@@ -1,7 +1,5 @@
 package gui.gameStart;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -10,14 +8,13 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import game.Game;
 import game.Player;
 import game.cards.ColorCard.MyColor;
 
-public class PlayerPanel extends JPanel implements ITabbedPanel {
+public class PlayerPanel extends AbstractTabbedPanel {
 
 	private static final long serialVersionUID = 5048988383300820279L;
 
@@ -27,8 +24,8 @@ public class PlayerPanel extends JPanel implements ITabbedPanel {
 	private JTextField playerName;
 	private JComboBox<MyColor> playerColor;
 
-	public PlayerPanel() {
-		super(new GridBagLayout());
+	public PlayerPanel(GameStartDialog parent) {
+		super(parent);
 		this.playerNameLabel = new JLabel("Name:");
 		this.playerName = new JTextField("Patrick", PlayerPanel.PLAYER_NAME_WIDTH);
 		this.playerName.addKeyListener(new KeyAdapter() {
@@ -42,24 +39,25 @@ public class PlayerPanel extends JPanel implements ITabbedPanel {
 		});
 		DefaultComboBoxModel<MyColor> model = new DefaultComboBoxModel<>(MyColor.getNormalMyColors());
 		this.playerColor = new JComboBox<>(model);
+		this.layoutComponents();
+	}
 
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(10, 10, 10, 10);
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		this.add(this.playerNameLabel, gbc);
-		gbc.gridx = 1;
-		this.add(this.playerName, gbc);
-		gbc.gridx = 2;
-		this.add(this.playerColor, gbc);
-		gbc.gridx = 3;
-		gbc.weightx = 1;
-		this.add(new JPanel(), gbc);
-		gbc.gridwidth = 4;
-		gbc.gridx = 0;
-		gbc.gridy = 1;
-		gbc.weighty = 1;
-		this.add(new JPanel(), gbc);
+	@Override
+	protected void layoutComponents() {
+		this.gbc.insets = new Insets(10, 10, 10, 10);
+		this.gbc.gridx = 0;
+		this.gbc.gridy = 0;
+		this.add(this.playerNameLabel, this.gbc);
+		this.gbc.gridx = 1;
+		this.add(this.playerName, this.gbc);
+		this.gbc.gridx = 2;
+		this.add(this.playerColor, this.gbc);
+		super.addTabbing(3);
+	}
+
+	@Override
+	public String getDisplayName() {
+		return "Player";
 	}
 
 	@Override

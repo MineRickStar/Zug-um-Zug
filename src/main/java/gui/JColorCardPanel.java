@@ -84,7 +84,7 @@ public class JColorCardPanel extends JPanel {
 		int height = 0;
 		int width = 0;
 
-		while (width <= padding * 4) {
+		while (width <= (padding * 4)) {
 			int maxPossibleHeight = ((this.getHeight() - 20)
 					/ rankingMap.values().stream().flatMap(t -> Stream.of(t.values().stream().flatMap(List::stream).toList().size())).mapToInt(i -> i).max().getAsInt()) - (2 * padding);
 			int maxPossibleWidth = ((this.getWidth() - 20) / rankingMap.values().stream().flatMap(t -> Stream.of(new ArrayList<>(t.keySet()).get(0))).reduce(0, (t, u) -> t + u)) - (2 * padding);
@@ -155,7 +155,7 @@ public class JColorCardPanel extends JPanel {
 		public final ColorCard colorCard;
 
 		public JColorCardLabel(ColorCard colorCard) {
-			super(InfoPanel.getColorCardString(colorCard));
+			super(colorCard.getColorCardString());
 			this.colorCard = colorCard;
 			this.setForeground(MyColor.getComplementaryColor(colorCard.color()));
 			this.setPreferredSize(new Dimension(60, 20));
