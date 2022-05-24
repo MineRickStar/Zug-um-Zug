@@ -5,12 +5,12 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,10 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
-import javax.swing.JOptionPane;
 
 import application.Application;
 import connection.Connection;
@@ -81,30 +81,35 @@ public class GameMap {
 	}
 
 	private void load(boolean folderExists) {
-		if (folderExists) {
-			try {
-				this.mapImage = ImageIO.read(new File(this.folder, GameMap.MAPFILE));
-				this.loadRuleSet(new FileInputStream(new File(this.folder, GameMap.RULESFILE)));
-				this.loadLocations(new FileInputStream(new File(this.folder, GameMap.LOCATIONSFILE)));
-				this.loadConnections(new FileInputStream(new File(this.folder, GameMap.CONNECTIONFILE)));
-				this.loadMissionCards(new FileInputStream(new File(this.folder, GameMap.MISSIONCARDSFILE)));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} else {
-			try {
-				String t = "Germany original" + FileSystems.getDefault().getSeparator() + GameMap.MAPFILE;
-				InputStream s = ClassLoader.getSystemResourceAsStream(t);
-				JOptionPane.showConfirmDialog(Application.frame, t + " " + s);
-				this.mapImage = ImageIO.read(s);
-				this.loadRuleSet(ClassLoader.getSystemResourceAsStream("Germany original" + FileSystems.getDefault().getSeparator() + GameMap.RULESFILE));
-				this.loadLocations(ClassLoader.getSystemResourceAsStream("Germany original" + FileSystems.getDefault().getSeparator() + GameMap.LOCATIONSFILE));
-				this.loadConnections(ClassLoader.getSystemResourceAsStream("Germany original" + FileSystems.getDefault().getSeparator() + GameMap.CONNECTIONFILE));
-				this.loadMissionCards(ClassLoader.getSystemResourceAsStream("Germany original" + FileSystems.getDefault().getSeparator() + GameMap.MISSIONCARDSFILE));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		try {
+			this.loadStuff(t -> {
+				try {
+					this.mapImage = ImageIO.read(t);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}, GameMap.MAPFILE, folderExists);
+			this.loadStuff(this::loadRuleSet, GameMap.RULESFILE, folderExists);
+			this.loadStuff(this::loadLocations, GameMap.LOCATIONSFILE, folderExists);
+			this.loadStuff(this::loadConnections, GameMap.CONNECTIONFILE, folderExists);
+			this.loadStuff(this::loadMissionCards, GameMap.MISSIONCARDSFILE, folderExists);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
 		}
+	}
+
+	private void loadStuff(Consumer<InputStream> consumer, String file, boolean folderExists) throws FileNotFoundException {
+		InputStream stream;
+		if (folderExists) {
+			stream = new FileInputStream(new File(this.folder, file));
+		} else {
+			stream = ClassLoader.getSystemResourceAsStream(this.getResourceFile(file));
+		}
+		consumer.accept(stream);
+	}
+
+	private String getResourceFile(String location) {
+		return "Germany original/" + location;
 	}
 
 	public final BufferedImage getMapImage() {

@@ -1,10 +1,7 @@
 
 Currently in Process:
 
-Abschaffung der Listener, wenn möglich
-Karten schon früher mischen als wenn keine mehr da sind
-Finished MissionCards auch mit ScrollPane
-Maps müssen somit nicht per Code gespeichert werden sondern in extra Files
+Resource Loading in der Jar Datei und in Eclipse
 
 
 GUI:
@@ -70,6 +67,11 @@ Kauf der Verbindung mit infos über Verbindungstyp
 ScrollPane bei Missionkarten
 Redesign des Karten laden und infos speichern
 Color Karten werden nicht neu gemischt wenn sie kurz vor ende sind (Mischen wenn nur noch weniger als x Karten + offene dazu zählen)
+Abschaffung der Listener, wenn möglich
+Karten schon früher mischen als wenn keine mehr da sind
+Finished MissionCards auch mit ScrollPane
+Maps müssen somit nicht per Code gespeichert werden sondern in extra Files
+
 
 
 
