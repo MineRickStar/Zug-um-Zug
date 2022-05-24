@@ -81,9 +81,21 @@ public abstract class JMissionCardPanel extends JPanel {
 		this.gbc.gridy++;
 		this.missionPanel.add(this.toLocation, this.gbc);
 		this.add(this.missionPanel, BorderLayout.CENTER);
+		this.validate();
 	}
 
 	public abstract boolean isPanelDisplayable();
+
+	/**
+	 * Returns the index on which Sub-Panel of the AllJMissionCardPanel this Panel
+	 * needs to go.<br>
+	 * Is all Indices are equal they are all put on the same Panel
+	 *
+	 * @return The Index of the Panel
+	 */
+	public int getIndex() {
+		return -1;
+	}
 
 	public MissionCard getMissionCard() {
 		return this.missionCard;

@@ -1,8 +1,5 @@
 package game;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -17,7 +14,8 @@ import javax.swing.SwingUtilities;
 import algorithm.Algorithm;
 import algorithm.AlgorithmSettings;
 import application.Application;
-import application.Property;
+import application.PropertyEvent;
+import application.PropertyEvent.Property;
 import connection.Connection;
 import connection.SingleConnection;
 import game.Computer.Difficulty;
@@ -28,7 +26,6 @@ import game.cards.ColorCard;
 import game.cards.ColorCard.MyColor;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
-import gui.GamePanel;
 import gui.dialog.DrawMissionCardDialog;
 import gui.dialog.MissionCardHelperDialog;
 
@@ -53,44 +50,56 @@ public class Game {
 	private int currentPlayerCounter;
 	private int currentPlayerColorCardDraws;
 
-	private PropertyChangeSupport propertyChangeSupport;
-
 	public Game() {
 		this.randomGenerator = new Random(13323334);
 		this.players = new ArrayList<>();
 		this.gameBoard = new GameBoard();
-		this.propertyChangeSupport = new PropertyChangeSupport(this);
 	}
 
 	public void startGame() {
 		this.gameBoard.startGame();
-		Application.frame.setComponent(new GamePanel());
 		this.currentPlayerCounter = this.getRandomGenerator().nextInt(this.players.size());
 		this.distributeCards();
+		Application.frame.startGame();
 
 		for (int i = 0; i < this.players.size(); i++) {
 			if (i == (this.players.size() - 1)) {
+				// Set before the last Player so that next Player in drawMissionCards works
 				this.gameStarted = true;
 			}
 			if (this.isPlayersTurn()) {
-				new DrawMissionCardDialog(true);
+				DrawMissionCardDialog dialog = new DrawMissionCardDialog(true);
+				this.drawMissionCards(this.getInstancePlayer(), dialog.getSelectedMissionCards());
 			} else {
 				this.getCurrentPlayerComputer().drawMissionCards();
 			}
 		}
-		Application.frame.revalidate();
-		Application.frame.repaint();
+		Location l1 = Game.getInstance().getLocation("Hamburg");
+		Location l2 = Game.getInstance().getLocation("Schwerin");
+		Location l3 = Game.getInstance().getLocation("Rostock");
+		SingleConnection c1 = Game.getInstance().getSingleConnectionFromLocations(l1, l2, MyColor.GREEN);
+		SingleConnection c2 = Game.getInstance().getSingleConnectionFromLocations(l2, l3, MyColor.RED);
+		c1.setOwner(this.instancePlayer);
+		c2.setOwner(this.instancePlayer);
+		this.instancePlayer.buySingleConnection(c1, new ArrayList<>());
+		this.instancePlayer.buySingleConnection(c2, new ArrayList<>());
+		Application.frame.update(new PropertyEvent(null, Property.GAMESTART));
 	}
 
 	public void distributeCards() {
-		this.players.forEach(p -> p.addColorCards(IntStream.range(0, Rules.getInstance().getFirstColorCards()).mapToObj(i -> this.gameBoard.drawColorCard()).toArray(ColorCard[]::new)));
+		this.players.stream()
+				.filter(p -> !p.equals(this.instancePlayer))
+				.forEach(p -> p.addColorCards(IntStream.range(0, Rules.getInstance().getFirstColorCards()).mapToObj(i -> this.gameBoard.drawColorCardFromDeck()).toArray(ColorCard[]::new)));
+		this.players.stream()
+				.filter(p -> p.equals(this.instancePlayer))
+				.forEach(p -> p.addColorCards(IntStream.range(0, 50).mapToObj(i -> this.gameBoard.drawColorCardFromDeck()).toArray(ColorCard[]::new)));
 	}
 
 	public int getMissionCardCount(Distance distance) {
 		return this.gameBoard.getMissionCardCount(distance);
 	}
 
-	public void drawMissionCards(Map<Distance, Integer> missionCardDistribution) {
+	public void drawMissionCards(Player player, Map<Distance, Integer> missionCardDistribution) {
 		List<MissionCard> missionCards = new ArrayList<>();
 		Iterator<Entry<Distance, Integer>> it = missionCardDistribution.entrySet().iterator();
 		while (it.hasNext()) {
@@ -99,10 +108,10 @@ public class Game {
 				missionCards.add(this.gameBoard.drawMissionCard(entry.getKey()));
 			}
 		}
-		if (this.isPlayersTurn()) {
+		if (player.equals(this.getInstancePlayer())) {
 			SwingUtilities.invokeLater(() -> new MissionCardHelperDialog(missionCards));
 		} else {
-			this.getCurrentPlayerComputer().decideForMissionCards(missionCards);
+			((Computer) player).decideForMissionCards(missionCards);
 		}
 		this.nextPlayer();
 	}
@@ -138,7 +147,7 @@ public class Game {
 	}
 
 	public void drawColorCardFromDeck(Player player) {
-		this.colorCardDrawn(player, this.gameBoard.drawColorCard(), false);
+		this.colorCardDrawn(player, this.gameBoard.drawColorCardFromDeck(), false);
 	}
 
 	public void drawColorCardsFromOpenDeck(Player player, int index) {
@@ -152,9 +161,16 @@ public class Game {
 			this.currentPlayerColorCardDraws++;
 		}
 		player.addColorCard(colorCard);
+		Application.frame.update(new PropertyEvent(player, Property.COLORCARDDRAWN));
 		if (this.currentPlayerColorCardDraws >= Rules.getInstance().getColorCardsDrawing()) {
 			this.nextPlayer();
 		}
+	}
+
+	public boolean canPlayerDrawOpenCard(Player player, int index) {
+		ColorCard card = this.gameBoard.peekAtIndex(index);
+		if (card.color() == MyColor.RAINBOW) { return this.currentPlayerColorCardDraws <= (Rules.getInstance().getColorCardsDrawing() - Rules.getInstance().getLocomotiveWorth()); }
+		return true;
 	}
 
 	public List<ColorCard> getOpenCards() {
@@ -162,7 +178,7 @@ public class Game {
 	}
 
 	public int getRemainingCards() {
-		return this.gameBoard.getClosedCardCount();
+		return this.gameBoard.getCardCount();
 	}
 
 	public int getCurrentPlayerColorCardDraws() {
@@ -189,23 +205,23 @@ public class Game {
 		return this.getCurrentPlayer().equals(this.instancePlayer);
 	}
 
+	public String getCurrentPlayerName() {
+		return this.getCurrentPlayer().getName();
+	}
+
 	public boolean isColorAvailable(MyColor color) {
 		return this.players.stream().noneMatch(p -> p.playerColor == color);
 	}
 
 	public void nextPlayer() {
-		Player oldValue = this.getCurrentPlayer();
 		this.currentPlayerCounter = (this.currentPlayerCounter + 1) % this.players.size();
 		this.currentPlayerColorCardDraws = 0;
 		if (this.gameStarted) {
-			this.fireAction(this, Property.PLAYERCHANGE, oldValue, this.getCurrentPlayer());
 			if (this.getCurrentPlayer() instanceof Computer com) {
-				new Thread(() -> com.nextMove()).start();
+				com.nextMove();
 			}
 		}
-		System.out.println();
-		System.out.println("Nächster spieler: ");
-		System.out.println(this.getCurrentPlayer());
+		Application.frame.update(new PropertyEvent(this.getCurrentPlayer(), Property.PLAYERCHANGE));
 	}
 
 	public Player addInstancePlayer(String playerName, MyColor color) {
@@ -243,12 +259,20 @@ public class Game {
 		return this.gameBoard.getConnectionFromLocations(this.getLocation(fromLocation), this.getLocation(toLocation));
 	}
 
-	public SingleConnection getConnectionFromLocations(String fromLocation, String toLocation, MyColor color) {
+	public SingleConnection getSingleConnectionFromLocations(String fromLocation, String toLocation, MyColor color) {
 		return this.gameBoard.getConnectionFromLocations(this.getLocation(fromLocation), this.getLocation(toLocation)).getSingleConnectionWithColor(color);
 	}
 
 	public Connection getConnectionFromLocations(Location fromLocation, Location toLocation) {
 		return this.gameBoard.getConnectionFromLocations(fromLocation, toLocation);
+	}
+
+	public SingleConnection getSingleConnectionFromLocations(Location fromLocation, Location toLocation, MyColor color) {
+		return this.gameBoard.getConnectionFromLocations(fromLocation, toLocation).getSingleConnectionWithColor(color);
+	}
+
+	public SingleConnection getSingleConnectionFromLocations(Location fromLocation, Location toLocation) {
+		return this.gameBoard.getConnectionFromLocations(fromLocation, toLocation).getSingleConnectionAt(0);
 	}
 
 	public List<Connection> getConnections() {
@@ -261,18 +285,6 @@ public class Game {
 
 	public boolean isGameStarted() {
 		return this.gameStarted;
-	}
-
-	public void addPropertyChangeListener(PropertyChangeListener listener) {
-		this.propertyChangeSupport.addPropertyChangeListener(listener);
-	}
-
-	public void addPropertyChangeListener(Property property, PropertyChangeListener listener) {
-		this.propertyChangeSupport.addPropertyChangeListener(property.name(), listener);
-	}
-
-	public void fireAction(Object source, Property property, Object oldValue, Object newValue) {
-		this.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(source == null ? this : source, property.name(), oldValue, newValue));
 	}
 
 }

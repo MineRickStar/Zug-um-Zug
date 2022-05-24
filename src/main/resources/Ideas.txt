@@ -1,9 +1,10 @@
 
 Currently in Process:
 
-Rework der Spielstart Dialoge, in einen, dass auch gleich die Karte und die Regeln festegelgt werden
-Redesign des Karten laden und infos speichern
-Color Karten werden nicht neu gemischt wenn sie kurz vor ende sind (Mischen wenn nur noch weniger als x Karten + offene dazu zählen)
+Abschaffung der Listener, wenn möglich
+Karten schon früher mischen als wenn keine mehr da sind
+Finished MissionCards auch mit ScrollPane
+Maps müssen somit nicht per Code gespeichert werden sondern in extra Files
 
 
 GUI:
@@ -13,18 +14,17 @@ Nicht mehr als maxNoOfMissionCards auswählen
 Weiße Linien besser zeichnen
 Button für anzeige der eigenen und freien Strecken (Doppelte Strecken als einfache anzeigen)
 Darstellung der Infos andere Spieler
-Anzahl der carriges anzeigen (auch von anderen Spielern) (zuerst darstellung anderer Spieler ï¿½berlegen)
+Anzahl der carriges anzeigen (auch von anderen Spielern) (zuerst darstellung anderer Spieler überlegen)
 Show Mission highlights den Start und Endbahnhof
 Die Hintergrundkarte sollte nicht aus dem Frame geschoben werden
 Button um die Hintergrundkarte wieder normal darzustellen
-Finished MissionCards auch mit ScrollPane
+Let User decide how far in and out of a Map you can Zoom
 
 
 Gameplay:
 
 Flüge und Schiffe nicht als Karten findbar in einfacher Version
 Karte ohne Flüge und Schiffe
-Karten schon früher mischen als wenn keine mehr da sind
 Verschiedene Karten laden lassen (-> Koordinaten in Locations.txt File entweder erweitern, oder anderes System finden)
 Computer richtig spielen lassen (Zuvor Algorithmus fixen)
 Write Settingsobserver and fireUpdate for changes
@@ -34,13 +34,14 @@ Soll neues Spiel während eines laufeneden Spieles gestartet werden, wenn ja, wa
 Einheitlicher Ort für Shortcuts/Sowie vereinheitlichung der Shortcuts
 ColorSelection bei dem Coms funktioniert nicht
 Save of Connections muss besser geschrieben werden da sehr viel Wiederholung drin ist
+Translator
 
 
 New Ideas:
 
 Map editor, locations, Connections und Missionskarten erzeugen/bzw. Missionkarten erzeugen lassen/ bearbeiten alter Maps
-Maps müssen somit nicht per Code gespeichert werden sondern in extra Files
 Synchronisieren der Karten (wenn Netzwerkkommunikation möglich ist)
+Rework der Spielstart Dialoge, in einen, dass auch gleich die Karte und die Regeln festegelgt werden
 
 
 Algorithmus:
@@ -67,5 +68,8 @@ Missionskarten ausblenden können, z.B. Wenn diese nicht mehr geschafft werden
 Bei grauen Strecken die kaufkarten so anordnen dass oben die Option mit den meisten Karten ist
 Kauf der Verbindung mit infos über Verbindungstyp
 ScrollPane bei Missionkarten
+Redesign des Karten laden und infos speichern
+Color Karten werden nicht neu gemischt wenn sie kurz vor ende sind (Mischen wenn nur noch weniger als x Karten + offene dazu zählen)
+
 
 

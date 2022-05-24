@@ -15,7 +15,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import application.Property;
+import application.Application;
+import application.PropertyEvent;
+import application.PropertyEvent.Property;
 import connection.SingleConnection;
 import game.board.LocationOrganizer;
 import game.cards.ColorCard;
@@ -49,11 +51,6 @@ public class Player {
 		this.finishedMissionCards = new ArrayList<>();
 		this.singleConnections = new ArrayList<>();
 		this.locationOrganizer = new LocationOrganizer();
-//		if (name.equals("Patrick")) {
-//			SingleConnection c = Game.getInstance().getConnectionFromLocations("Kassel", "Frankfurt", MyColor.WHITE);
-//			c.setOwner(this);
-//			this.buySingleConnection(c, new ArrayList<>());
-//		}
 	}
 
 	///// Color Cards on Hand /////
@@ -92,11 +89,7 @@ public class Player {
 			map.put(colorCardCount + (add ? 1 : (-1)), list);
 			this.playerCards.put(colorCard.transportMode(), map);
 		}
-		if (add) {
-			Game.getInstance().fireAction(this, Property.COLORCARDCHANGE, null, colorCards);
-		} else {
-			Game.getInstance().fireAction(this, Property.COLORCARDCHANGE, colorCards, null);
-		}
+		Application.frame.update(new PropertyEvent(this, Property.COLORCARDADDED));
 	}
 
 	public int getColorCardCount(ColorCard colorCard) {
@@ -173,6 +166,8 @@ public class Player {
 		this.removeColorCards(buyingCards.toArray(ColorCard[]::new));
 		Game.getInstance().addUsedCards(buyingCards);
 		this.testForFinishedMissionCards();
+		Application.frame.update(new PropertyEvent(this, Property.COLORCARDREMOVED));
+		Application.frame.update(new PropertyEvent(this, Property.CONNECTIONBOUGHT));
 	}
 
 	public List<SingleConnection> getSingleConnections() {
@@ -186,8 +181,7 @@ public class Player {
 		this.testForFinishedMissionCards();
 		List<MissionCard> cards = new ArrayList<>(List.of(missionCards));
 		cards.removeAll(this.finishedMissionCards);
-		// New Thread because InvokeAndWait cannot be called from EDT
-		new Thread(() -> Game.getInstance().fireAction(this, Property.MISSIONCARDSADDED, null, cards.toArray(MissionCard[]::new))).start();
+		Application.frame.update(new PropertyEvent(this, Property.MISSIONCARDADDED));
 	}
 
 	public List<MissionCard> getMissionCards() {
@@ -195,11 +189,14 @@ public class Player {
 	}
 
 	private void testForFinishedMissionCards() {
+		int oldSize = this.finishedMissionCards.size();
 		this.missionCards.stream().filter(m -> m.isFinished(this.locationOrganizer)).forEach(m -> {
 			this.finishedMissionCards.add(m);
-			Game.getInstance().fireAction(this, Property.MISSIONCARDFINISHED, null, m);
 		});
-		this.missionCards.removeAll(this.finishedMissionCards);
+		if (oldSize < this.finishedMissionCards.size()) {
+			this.missionCards.removeAll(this.finishedMissionCards);
+			Application.frame.update(new PropertyEvent(this, Property.MISSIONCARDFINISHED));
+		}
 	}
 
 	///// Pieces (Trains, Ships, Airplanes) /////
@@ -231,7 +228,7 @@ public class Player {
 		Iterator<Entry<TransportMode, SortedMap<Integer, List<ColorCard>>>> transportIterator = this.playerCards.entrySet().iterator();
 		while (transportIterator.hasNext()) {
 			Entry<TransportMode, SortedMap<Integer, List<ColorCard>>> entry = transportIterator.next();
-			StringJoiner cardJoiner = new StringJoiner(System.lineSeparator());
+			StringJoiner cardJoiner = new StringJoiner(", ");
 			for (Entry<Integer, List<ColorCard>> colorCardEntry : entry.getValue().entrySet()) {
 				cardJoiner.add(colorCardEntry.getKey() + " " + colorCardEntry.getValue().stream().map(c -> c.color().colorName).collect(Collectors.joining(", ")));
 			}

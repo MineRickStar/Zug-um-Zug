@@ -32,7 +32,9 @@ public class DrawMissionCardDialog extends JDialog {
 
 	private static final long serialVersionUID = 3371834066035120352L;
 
-	Map<Distance, JSlider> distanceSlider;
+	private EnumMap<Distance, Integer> missionCards;
+
+	private Map<Distance, JSlider> distanceSlider;
 
 	public DrawMissionCardDialog(boolean start) {
 		super(Application.frame, "Draw Mission Cards", true);
@@ -99,13 +101,12 @@ public class DrawMissionCardDialog extends JDialog {
 	}
 
 	private void testMissionCards() {
-		EnumMap<Distance, Integer> missionCards = new EnumMap<>(Distance.class);
-		this.distanceSlider.entrySet().forEach(entry -> missionCards.put(entry.getKey(), entry.getValue().getValue()));
-		if (missionCards.values().stream().collect(Collectors.summingInt(Integer::intValue)) == Rules.getInstance().getMissionCardsDrawing()) {
-			Game.getInstance().drawMissionCards(missionCards);
+		this.missionCards = new EnumMap<>(Distance.class);
+		this.distanceSlider.entrySet().forEach(entry -> this.missionCards.put(entry.getKey(), entry.getValue().getValue()));
+		if (this.missionCards.values().stream().collect(Collectors.summingInt(Integer::intValue)) == Rules.getInstance().getMissionCardsDrawing()) {
 			this.dispose();
 		} else {
-			JOptionPane.showMessageDialog(this, "The sum of all Mission Cards must be " + Rules.getInstance().getMissionCardsDrawing());
+			JOptionPane.showMessageDialog(this, String.format("The sum of all Mission Cards must be %d", Rules.getInstance().getMissionCardsDrawing()));
 		}
 	}
 
@@ -113,7 +114,7 @@ public class DrawMissionCardDialog extends JDialog {
 		int distanceCards = Game.getInstance().getMissionCardCount(distance);
 		int maxCardAmount = Math.min(distanceCards, Rules.getInstance().getMissionCardsDrawing());
 		int value = Math.min(Math.min(distanceCards, Rules.getInstance().getMissionCardsDrawing()), 2);
-		if (distance == Distance.LONG || distance == Distance.EXTRA_LONG) {
+		if ((distance == Distance.LONG) || (distance == Distance.EXTRA_LONG)) {
 			value = 0;
 		}
 		JSlider slider = new JSlider(SwingConstants.HORIZONTAL, 0, maxCardAmount, value);
@@ -127,6 +128,10 @@ public class DrawMissionCardDialog extends JDialog {
 		slider.setPaintLabels(true);
 		slider.setPaintTrack(true);
 		return slider;
+	}
+
+	public EnumMap<Distance, Integer> getSelectedMissionCards() {
+		return this.missionCards;
 	}
 
 }

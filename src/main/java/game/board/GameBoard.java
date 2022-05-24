@@ -24,7 +24,6 @@ public class GameBoard {
 	public GameBoard() {
 		this.cards = new ArrayList<>();
 		this.usedCards = new ArrayList<>();
-		this.fillCards();
 	}
 
 	public void setMap(GameMap map) {
@@ -34,11 +33,12 @@ public class GameBoard {
 
 	public void startGame() {
 		this.map.startGame();
+		this.fillCards();
 		this.shuffleCards(this.cards);
 	}
 
 	private void fillCards() {
-		TransportMode[] transportModes = TransportMode.values();
+		TransportMode[] transportModes = this.map.getTransportModes();
 		for (MyColor color : MyColor.getNormalMyColors()) {
 			for (TransportMode mode : transportModes) {
 				this.fillColor(Rules.getInstance().getColorCardCount(mode), color, mode);
@@ -55,15 +55,12 @@ public class GameBoard {
 		}
 	}
 
-	public ColorCard drawColorCard() {
-		if (this.cards.size() == (Rules.getInstance().getColorCardsLayingDown() + 5)) {
-			this.shuffleUsedCardsAndAdd();
-		}
-		return this.cards.remove(Rules.getInstance().getColorCardsLayingDown());
+	public ColorCard drawColorCardFromDeck() {
+		return this.drawColorCard(Rules.getInstance().getOpenColorCards());
 	}
 
 	public ColorCard drawCardFromOpenCards(int index) {
-		ColorCard colorCard = this.cards.remove(index);
+		ColorCard colorCard = this.drawColorCard(index);
 		if (Rules.getInstance().isShuffleWithMaxOpenLocomotives()
 				&& (this.getOpenCards().stream().filter(c -> c != null).filter(c -> c.color() == MyColor.RAINBOW).count() == Rules.getInstance().getMaxOpenLocomotives())) {
 			List<ColorCard> removeCards = this.getOpenCards();
@@ -73,19 +70,27 @@ public class GameBoard {
 		return colorCard;
 	}
 
-	public List<ColorCard> getOpenCards() {
-		return this.cards.subList(0, Rules.getInstance().getColorCardsLayingDown());
+	private ColorCard drawColorCard(int index) {
+		if (this.cards.size() <= (Rules.getInstance().getOpenColorCards() + 5)) {
+			this.shuffleUsedCardsAndAdd();
+		}
+		return this.cards.remove(index);
 	}
 
-	public int getClosedCardCount() {
+	public ColorCard peekAtIndex(int index) {
+		return this.cards.get(index);
+	}
+
+	public List<ColorCard> getOpenCards() {
+		return this.cards.subList(0, Rules.getInstance().getOpenColorCards());
+	}
+
+	public int getCardCount() {
 		return this.cards.size();
 	}
 
 	public void addUsedCards(List<ColorCard> usedCards) {
 		this.usedCards.addAll(usedCards);
-		if (this.usedCards.size() > (Rules.getInstance().getColorCardsLayingDown() + 5)) {
-			this.shuffleUsedCardsAndAdd();
-		}
 	}
 
 	private void shuffleUsedCardsAndAdd() {

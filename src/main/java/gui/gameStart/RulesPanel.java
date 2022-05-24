@@ -182,13 +182,13 @@ public class RulesPanel extends AbstractTabbedPanel {
 	private class CardRulesPanel extends JPanel {
 		private static final long serialVersionUID = 2823816375176339742L;
 
-		private JLabel colorCardsLayingDownLabel;
+		private JLabel openColorCardsLabel;
 		private JLabel locomotiveWorthLabel;
 		private JLabel shuffleCardsWhenMaxLocomotivesLabel;
 		private JPanel maxOpenLocomotivesLabelPanel;
 		private JLabel maxOpenLocomotivesLabel;
 
-		private MySpinner colorCardsLayingDown;
+		private MySpinner openColorCards;
 		private MySpinner locomotiveWorth;
 		private JCheckBox shuffleCardsWhenMaxLocomotives;
 		private JPanel maxOpenLocomotivesSpinnerPanel;
@@ -197,7 +197,7 @@ public class RulesPanel extends AbstractTabbedPanel {
 		private CardRulesPanel() {
 			super(new GridBagLayout());
 			this.setBorder(RulesPanel.this.getTitleBorder("Cardrules"));
-			this.colorCardsLayingDownLabel = new JLabel("Open Cards Laying Down:");
+			this.openColorCardsLabel = new JLabel("Open Cards Laying Down:");
 			this.locomotiveWorthLabel = new JLabel("Locomotive Worth:");
 			this.locomotiveWorthLabel.setToolTipText("Test");
 			this.shuffleCardsWhenMaxLocomotivesLabel = new JLabel("Shuffle With Locomotives:");
@@ -205,19 +205,19 @@ public class RulesPanel extends AbstractTabbedPanel {
 			this.maxOpenLocomotivesLabel = new JLabel("Max Locomotives:");
 
 			Rules rules = Rules.getInstance();
-			this.colorCardsLayingDown = new MySpinner(rules.getColorCardsLayingDown(), 1, 10);
+			this.openColorCards = new MySpinner(rules.getOpenColorCards(), 1, 10);
 			this.locomotiveWorth = new MySpinner(rules.getLocomotiveWorth(), 1, rules.getColorCardsDrawing());
 			this.shuffleCardsWhenMaxLocomotives = new JCheckBox("", rules.isShuffleWithMaxOpenLocomotives());
 			this.maxOpenLocomotivesSpinnerPanel = new JPanel(new GridLayout(1, 1));
-			this.maxOpenLocomotives = new MySpinner(rules.getMaxOpenLocomotives(), 1, rules.getColorCardsLayingDown());
+			this.maxOpenLocomotives = new MySpinner(rules.getMaxOpenLocomotives(), 1, rules.getOpenColorCards());
 
 			this.addConstraints();
 			this.layoutComponents();
 		}
 
 		private void addConstraints() {
-			this.colorCardsLayingDown.addChangeListener(e -> {
-				int value = (int) this.colorCardsLayingDown.getValue();
+			this.openColorCards.addChangeListener(e -> {
+				int value = (int) this.openColorCards.getValue();
 				SpinnerNumberModel model1 = (SpinnerNumberModel) this.maxOpenLocomotives.getModel();
 				model1.setMaximum(value);
 				model1.setValue(Math.min((int) model1.getValue(), value));
@@ -241,14 +241,14 @@ public class RulesPanel extends AbstractTabbedPanel {
 			gbc.anchor = GridBagConstraints.LINE_START;
 			this.maxOpenLocomotivesSpinnerPanel.add(this.maxOpenLocomotivesLabel);
 			this.maxOpenLocomotivesLabelPanel.add(this.maxOpenLocomotives);
-			RulesPanel.this.nextColumn(this, gbc, this.colorCardsLayingDownLabel, this.locomotiveWorthLabel, this.shuffleCardsWhenMaxLocomotivesLabel);
-			RulesPanel.this.nextColumn(this, gbc, this.colorCardsLayingDown, this.locomotiveWorth, this.shuffleCardsWhenMaxLocomotives);
+			RulesPanel.this.nextColumn(this, gbc, this.openColorCardsLabel, this.locomotiveWorthLabel, this.shuffleCardsWhenMaxLocomotivesLabel);
+			RulesPanel.this.nextColumn(this, gbc, this.openColorCards, this.locomotiveWorth, this.shuffleCardsWhenMaxLocomotives);
 			RulesPanel.this.nextColumn(this, gbc, null, null, this.maxOpenLocomotivesSpinnerPanel);
 			RulesPanel.this.nextColumn(this, gbc, null, null, this.maxOpenLocomotivesLabelPanel);
 		}
 
 		private void reset() {
-			this.colorCardsLayingDown.reset();
+			this.openColorCards.reset();
 			this.locomotiveWorth.reset();
 			if (this.shuffleCardsWhenMaxLocomotives.isSelected() != Rules.getInstance().isShuffleWithMaxOpenLocomotives()) {
 				this.shuffleCardsWhenMaxLocomotives.doClick();
@@ -258,7 +258,7 @@ public class RulesPanel extends AbstractTabbedPanel {
 
 		private boolean save() {
 			Rules rules = Rules.getInstance();
-			rules.setColorCardsLayingDown(this.colorCardsLayingDown.getIntValue());
+			rules.setOpenColorCards(this.openColorCards.getIntValue());
 			rules.setLocomotiveWorth(this.locomotiveWorth.getIntValue());
 			rules.setShuffleWithMaxOpenLocomotives(this.shuffleCardsWhenMaxLocomotives.isSelected());
 			rules.setMaxOpenLocomotives(this.maxOpenLocomotives.getIntValue());

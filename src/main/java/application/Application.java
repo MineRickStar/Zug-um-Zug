@@ -26,8 +26,8 @@ public class Application {
 		SwingUtilities.invokeLater(() -> Application.frame = new MyFrame());
 	}
 
-	public static void createNewMssionCardEditor() {
-		EditMissionCardDialog.create();
+	public static EditMissionCardDialog createNewMssionCardEditor() {
+		return EditMissionCardDialog.create();
 	}
 
 	public static void createNewFinishedMissionCardDialog() {

@@ -28,7 +28,7 @@ public class Rules {
 
 	///// CardRules /////
 
-	private int colorCardsLayingDown = 5;
+	private int openColorCards = 5;
 
 	private int locomotiveWorth = 2;
 
@@ -128,12 +128,12 @@ public class Rules {
 
 	///// CardRules /////
 
-	public int getColorCardsLayingDown() {
-		return this.colorCardsLayingDown;
+	public int getOpenColorCards() {
+		return this.openColorCards;
 	}
 
-	public void setColorCardsLayingDown(int colorCardsLayingDown) {
-		this.colorCardsLayingDown = colorCardsLayingDown;
+	public void setOpenColorCards(int openColorCards) {
+		this.openColorCards = openColorCards;
 	}
 
 	public int getLocomotiveWorth() {

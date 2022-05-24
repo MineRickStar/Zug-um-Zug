@@ -1,10 +1,10 @@
 package gui;
 
+import java.awt.Component;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.IOException;
 
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -13,6 +13,7 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 
 import application.Application;
+import application.PropertyEvent;
 import game.Game;
 import gui.dialog.ClientSettingsDialog;
 import gui.dialog.MapCreator;
@@ -23,6 +24,8 @@ import gui.gameStart.GameStartDialog;
 public class MyFrame extends JFrame {
 
 	private static final long serialVersionUID = 4070509246110827584L;
+
+	private IUpdatePanel currentPanel;
 
 	public MyFrame() {
 		super(Application.NAME);
@@ -105,9 +108,26 @@ public class MyFrame extends JFrame {
 		return mapCreatorMenu;
 	}
 
-	public void setComponent(JComponent com) {
+	public void startGame() {
+		this.setComponent(new GamePanel());
+	}
+
+	public void mapEditor() {
+		// TODO MapEditor
+	}
+
+	private void setComponent(IUpdatePanel com) {
 		this.getContentPane().removeAll();
-		this.getContentPane().add(com);
+		this.getContentPane().add((Component) com);
+		this.currentPanel = com;
+		this.revalidate();
+		this.repaint();
+	}
+
+	public void update(PropertyEvent propertyEvent) {
+		if (this.currentPanel != null) {
+			this.currentPanel.update(propertyEvent);
+		}
 		this.revalidate();
 		this.repaint();
 	}

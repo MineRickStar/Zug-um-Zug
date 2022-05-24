@@ -1,7 +1,6 @@
 package gui;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
@@ -11,11 +10,10 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.lang.reflect.InvocationTargetException;
+import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -23,26 +21,28 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingUtilities;
 
 import application.Application;
-import application.Property;
+import application.PropertyEvent;
+import application.PropertyEvent.Property;
 import game.Game;
-import game.Player;
 import game.cards.ColorCard;
 import game.cards.ColorCard.MyColor;
 import game.cards.MissionCard;
+import gui.dialog.EditMissionCardDialog;
 
-public class PlayerPanel extends JPanel implements PropertyChangeListener {
+public class PlayerPanel extends JPanel implements IUpdatePanel {
 
 	private static final long serialVersionUID = -5734164742630869042L;
+
+	private final int padding = 10;
 
 	private JPanel missionCardsSettingsPanel;
 	private JLabel finishedMissionCardLabel;
 	private JButton showFinishedMissionCardsButton;
 	private JButton editMissionCards;
 
-	private MyJScrollPane allJMissionCardsScrollPane;
+	private JScrollPane allJMissionCardsScrollPane;
 	private AllJMissionCardsPanel missionCardsPanel;
 
 	private JColorCardPanel colorCardPanel;
@@ -52,15 +52,14 @@ public class PlayerPanel extends JPanel implements PropertyChangeListener {
 
 		this.missionCardsSettingsPanel = this.setUpMissionCardPanel();
 		this.missionCardsPanel = new AllJMissionCardsPanel("Active Mission Cards");
-		this.allJMissionCardsScrollPane = new MyJScrollPane(this.missionCardsPanel);
-		this.allJMissionCardsScrollPane.setMaximumSize(new Dimension(0, (int) (Application.frame.getHeight() * .25)));
+		this.allJMissionCardsScrollPane = new JScrollPane(this.missionCardsPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
 		this.allJMissionCardsScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 		this.colorCardPanel = new JColorCardPanel();
 
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(10, 10, 10, 10);
-		gbc.anchor = GridBagConstraints.NORTH;
+		gbc.insets = new Insets(this.padding, this.padding, this.padding, this.padding);
+		gbc.anchor = GridBagConstraints.FIRST_LINE_START;
 		gbc.fill = GridBagConstraints.BOTH;
 		this.add(this.missionCardsSettingsPanel, gbc);
 
@@ -71,11 +70,6 @@ public class PlayerPanel extends JPanel implements PropertyChangeListener {
 		gbc.weighty = 1;
 		gbc.gridy = 2;
 		this.add(this.colorCardPanel, gbc);
-		Game.getInstance().addPropertyChangeListener(Property.COLORCARDCHANGE, this);
-		Game.getInstance().addPropertyChangeListener(Property.MISSIONCARDSADDED, this);
-		Game.getInstance().addPropertyChangeListener(Property.MISSIONCARDHIDDEN, this);
-		Game.getInstance().addPropertyChangeListener(Property.MISSIONCARDFINISHED, this);
-		Game.getInstance().addPropertyChangeListener(Property.MISSIONCARDINDEXCHANGE, this);
 	}
 
 	private JPanel setUpMissionCardPanel() {
@@ -84,13 +78,15 @@ public class PlayerPanel extends JPanel implements PropertyChangeListener {
 		this.finishedMissionCardLabel = new JLabel("Finished Missioncards: 0, Points: 0");
 		this.showFinishedMissionCardsButton = new JButton("Show Finished Mission Cards");
 		this.showFinishedMissionCardsButton.setEnabled(false);
+		this.showFinishedMissionCardsButton.setFocusable(false);
 		this.showFinishedMissionCardsButton.addActionListener(e -> Application.createNewFinishedMissionCardDialog());
 		this.editMissionCards = new JButton("Edit Missioncards");
-		Application.addCTRLShortcut(this.editMissionCards, KeyEvent.VK_E, e -> Application.createNewMssionCardEditor());
-		this.editMissionCards.addActionListener(e -> Application.createNewMssionCardEditor());
+		this.editMissionCards.setFocusable(false);
+		Application.addCTRLShortcut(this.editMissionCards, KeyEvent.VK_E, e -> this.editMissionCards());
+		this.editMissionCards.addActionListener(e -> this.editMissionCards());
 
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(10, 10, 10, 10);
+		gbc.insets = new Insets(this.padding, this.padding, this.padding, this.padding);
 		gbc.anchor = GridBagConstraints.WEST;
 		gbc.gridx = 0;
 		missionCards.add(this.finishedMissionCardLabel, gbc);
@@ -106,30 +102,26 @@ public class PlayerPanel extends JPanel implements PropertyChangeListener {
 		return missionCards;
 	}
 
-	private void updateFinishedMissionCardPanel(MissionCard finishedMissionCard) {
-		List<MissionCard> finishedMissionCards = Game.getInstance().getInstancePlayer().getFinishedMissionCards();
-		this.finishedMissionCardLabel.setText("Finished Missioncards: " + finishedMissionCards.size() + ", Points: " + finishedMissionCards.stream().mapToInt(m -> m.points).sum());
-		this.showFinishedMissionCardsButton.setEnabled(true);
-		this.missionCardsPanel.getMissionCardPanelList().stream().filter(j -> j.missionCard.equals(finishedMissionCard)).map(j -> (InfoPanelMissionCardPanel) j).forEach(i -> i.finished = true);
-		this.missionCardsPanel.update();
-		this.allJMissionCardsScrollPane.revalidate();
-		this.allJMissionCardsScrollPane.repaint();
-	}
-
-	private class MyJScrollPane extends JScrollPane {
-		private static final long serialVersionUID = 6489961897887902367L;
-
-		private MyJScrollPane(Component view) {
-			super(view, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+	private void editMissionCards() {
+		EditMissionCardDialog dialog = Application.createNewMssionCardEditor();
+		Map<JMissionCardPanel, Boolean> missionCardPanelVisibility = dialog.getMissionCardPanelVisibility();
+		if (missionCardPanelVisibility != null) {
+			Iterator<Entry<JMissionCardPanel, Boolean>> iterator = missionCardPanelVisibility.entrySet().iterator();
+			while (iterator.hasNext()) {
+				Entry<JMissionCardPanel, Boolean> entry = iterator.next();
+				this.missionCardsPanel.getMissionCardPanelList()
+						.stream()
+						.filter(j -> j.missionCard.equals(entry.getKey().missionCard))
+						.map(j -> (InfoPanelMissionCardPanel) j)
+						.forEach(i -> i.visible = !entry.getValue());
+			}
 		}
-
-		@Override
-		public Dimension getPreferredSize() {
-			Dimension supPref = super.getPreferredSize();
-			Dimension max = super.getMaximumSize();
-			return new Dimension(supPref.width, Math.min(supPref.height, max.height));
+		Map<int[], int[]> indexes = dialog.getMissionCardPanelIndexes();
+		if (indexes != null) {
+			Entry<int[], int[]> entry = indexes.entrySet().iterator().next();
+			this.missionCardsPanel.sortMissionCardPanels(entry.getKey(), entry.getValue());
 		}
-
+		Application.frame.update(new PropertyEvent(Game.getInstance().getInstancePlayer(), Property.MISSIONCARDEDITED));
 	}
 
 	private class InfoPanelMissionCardPanel extends JMissionCardPanel {
@@ -195,56 +187,45 @@ public class PlayerPanel extends JPanel implements PropertyChangeListener {
 		}
 	}
 
+	private void updateFinishedMissionCardPanel() {
+		List<MissionCard> finishedMissionCards = Game.getInstance().getInstancePlayer().getFinishedMissionCards();
+		this.finishedMissionCardLabel.setText("Finished Missioncards: " + finishedMissionCards.size() + ", Points: " + finishedMissionCards.stream().mapToInt(m -> m.points).sum());
+		this.showFinishedMissionCardsButton.setEnabled(finishedMissionCards.size() > 0);
+		this.missionCardsPanel.getMissionCardPanelList()
+				.stream()
+				.filter(j -> finishedMissionCards.stream().anyMatch(m -> j.missionCard.equals(m)))
+				.map(j -> (InfoPanelMissionCardPanel) j)
+				.forEach(i -> i.finished = true);
+	}
+
+	private void updateMissionCards() {
+		List<MissionCard> missionCards = Game.getInstance().getInstancePlayer().getMissionCards();
+		missionCards.stream().map(InfoPanelMissionCardPanel::new).forEach(i -> this.missionCardsPanel.addMissionCard(i, false));
+		this.missionCardsPanel.update();
+		int maxHeight = this.getHeight() - this.allJMissionCardsScrollPane.getPreferredSize().height - this.missionCardsSettingsPanel.getHeight() - (5 * this.padding);
+		this.colorCardPanel.updateColorCardPanel(maxHeight);
+	}
+
 	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-		if (Property.COLORCARDCHANGE.name().equals(evt.getPropertyName())) {
-			if (Game.getInstance().getInstancePlayer().equals(evt.getSource())) {
-				ColorCard[] card = evt.getNewValue() == null ? (ColorCard[]) evt.getOldValue() : (ColorCard[]) evt.getNewValue();
-				SwingUtilities.invokeLater(() -> this.colorCardPanel.editCardAndUpdatePanel(card, evt.getNewValue() == null));
+	public void update(PropertyEvent propertyEvent) {
+		switch (propertyEvent.property) {
+		case COLORCARDADDED:
+		case COLORCARDREMOVED:
+		case MISSIONCARDADDED:
+		case MISSIONCARDEDITED:
+		case MISSIONCARDFINISHED:
+			if (Game.getInstance().getInstancePlayer().equals(propertyEvent.player)) {
+				this.updateMissionCards();
+				this.updateFinishedMissionCardPanel();
 			}
-		} else if (Property.MISSIONCARDSADDED.name().equals(evt.getPropertyName())) {
-			try {
-				SwingUtilities.invokeAndWait(() -> {
-					Stream.of((MissionCard[]) evt.getNewValue()).map(InfoPanelMissionCardPanel::new).forEach(i -> this.missionCardsPanel.addMissionCard(i));
-					this.colorCardPanel.updateColorCardPanel();
-					this.revalidate();
-					this.repaint();
-					System.out.println(this.allJMissionCardsScrollPane.getMinimumSize());
-					System.out.println(this.allJMissionCardsScrollPane.getMaximumSize());
-					System.out.println(this.allJMissionCardsScrollPane.getPreferredSize());
-					System.out.println(this.allJMissionCardsScrollPane.getSize());
-				});
-				this.allJMissionCardsScrollPane.revalidate();
-				this.allJMissionCardsScrollPane.repaint();
-				this.revalidate();
-				this.repaint();
-			} catch (InvocationTargetException | InterruptedException e) {
-				e.printStackTrace();
-			}
-			SwingUtilities.invokeLater(() -> this.colorCardPanel.updateColorCardPanel());
-		} else if (Property.MISSIONCARDHIDDEN.name().equals(evt.getPropertyName())) {
-			this.missionCardsPanel.getMissionCardPanelList()
-					.stream()
-					.filter(j -> j.missionCard.equals(evt.getSource()))
-					.map(j -> (InfoPanelMissionCardPanel) j)
-					.forEach(i -> i.visible = !(boolean) evt.getNewValue());
-			this.missionCardsPanel.update();
-			this.colorCardPanel.updateColorCardPanel();
-			this.revalidate();
-			this.repaint();
-		} else if (Property.MISSIONCARDFINISHED.name().equals(evt.getPropertyName())) {
-			if (evt.getSource() instanceof Player player) {
-				this.updateFinishedMissionCardPanel((MissionCard) evt.getNewValue());
-				this.missionCardsPanel.getMissionCardPanelList().removeIf(j -> j.missionCard.equals(evt.getNewValue()));
-				this.missionCardsPanel.update();
-			}
-		} else if (Property.MISSIONCARDINDEXCHANGE.name().equals(evt.getPropertyName())) {
-			int[] oldLocations = (int[]) evt.getOldValue();
-			int[] newLocations = (int[]) evt.getNewValue();
-			this.missionCardsPanel.sortMissionCardPanels(newLocations, oldLocations);
+			break;
+		case MISSIONCARDDRAWN:
+		case COLORCARDDRAWN:
+		case GAMESTART:
+		case PLAYERCHANGE:
+		case CONNECTIONBOUGHT:
+			break;
 		}
-		this.revalidate();
-		this.repaint();
 	}
 
 }

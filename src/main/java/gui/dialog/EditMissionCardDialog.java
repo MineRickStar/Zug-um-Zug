@@ -13,14 +13,15 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -33,63 +34,51 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 
 import application.Application;
-import application.Property;
 import game.Game;
 import game.cards.MissionCard;
 import gui.AllJMissionCardsPanel;
 import gui.JMissionCardPanel;
 
-public class EditMissionCardDialog extends JDialog implements PropertyChangeListener {
+public class EditMissionCardDialog extends JDialog {
 
 	private static final long serialVersionUID = -957166312584855702L;
 
 	private static EditMissionCardDialog instance;
 
-	public static void create() {
+	public static EditMissionCardDialog create() {
 		if (EditMissionCardDialog.instance == null) {
-			EditMissionCardDialog.instance = new EditMissionCardDialog(Game.getInstance().getInstancePlayer().getMissionCards());
+			EditMissionCardDialog.instance = new EditMissionCardDialog();
 		}
-		EditMissionCardDialog.instance.oldMissionCards = new ArrayList<>(EditMissionCardDialog.instance.missionCardPanel.getMissionCardPanelList().stream().map(j -> {
-			EditableMissionCardPanel panel = new EditableMissionCardPanel(j.missionCard);
-			panel.checkBox.setSelected(((EditableMissionCardPanel) j).checkBox.isSelected());
-			return panel;
-		}).toList());
+		EditMissionCardDialog.instance.update();
 		EditMissionCardDialog.instance.setVisible(true);
+		return EditMissionCardDialog.instance;
 	}
 
 	private List<JMissionCardPanel> oldMissionCards = Collections.emptyList();
 
 	private AllJMissionCardsPanel missionCardPanel;
 
-	private EditableMissionCardPanel selectedMissionCard;
-
 	private EditorPanel editorPanel;
 
-	private EditMissionCardDialog(List<MissionCard> missionCards) {
+	private Map<JMissionCardPanel, Boolean> missionCardPanelVisibility;
+	private Map<int[], int[]> missionCardPanelIndexes;
+
+	private EditMissionCardDialog() {
 		super(Application.frame, "Edit Mission Cards", true);
 		this.setLayout(new GridBagLayout());
-		this.addListeners();
+		this.addListenersToDialog();
 
 		this.missionCardPanel = new AllJMissionCardsPanel();
-		missionCards.stream().map(m -> {
-			EditableMissionCardPanel panel = new EditableMissionCardPanel(m);
-			panel.addMouseListener(new MouseHighlighter());
-			return panel;
-		}).forEach(this.missionCardPanel::addMissionCard);
 		this.missionCardPanel.addMouseListener(new MouseConsumer());
 
 		this.editorPanel = new EditorPanel();
 
 		this.addComponents();
 		this.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-		this.pack();
 		this.setResizable(false);
-		this.setLocationRelativeTo(Application.frame);
 	}
 
-	private void addListeners() {
-		Game.getInstance().addPropertyChangeListener(Property.MISSIONCARDSADDED, this);
-		Game.getInstance().addPropertyChangeListener(Property.MISSIONCARDFINISHED, this);
+	private void addListenersToDialog() {
 		this.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowDeactivated(WindowEvent e) {
@@ -137,6 +126,30 @@ public class EditMissionCardDialog extends JDialog implements PropertyChangeList
 		this.add(this.getButtonPanel(), gbc);
 	}
 
+	private void update() {
+		// Add all new MIssionCards
+		List<MissionCard> missionCards = Game.getInstance().getInstancePlayer().getMissionCards();
+		List<JMissionCardPanel> panels = this.missionCardPanel.getMissionCardPanelList();
+		missionCards.stream().filter(m -> panels.stream().noneMatch(j -> j.missionCard.equals(m))).map(m -> {
+			EditableMissionCardPanel panel = new EditableMissionCardPanel(m);
+			panel.addMouseListener(new MouseHighlighter());
+			return panel;
+		}).forEach(e -> this.missionCardPanel.addMissionCard(e, false));
+		// Remove all Finished Missioncards
+		List<MissionCard> finishedCards = Game.getInstance().getInstancePlayer().getFinishedMissionCards();
+		this.missionCardPanel.getMissionCardPanelList().removeIf(j -> finishedCards.contains(j.missionCard));
+		// Create new Objects for Old Cards
+		this.oldMissionCards = new ArrayList<>(this.missionCardPanel.getMissionCardPanelList().stream().map(j -> {
+			EditableMissionCardPanel panel = new EditableMissionCardPanel(j.missionCard);
+			panel.checkBox.setSelected(((EditableMissionCardPanel) j).checkBox.isSelected());
+			return panel;
+		}).toList());
+		this.missionCardPanelVisibility = null;
+		this.missionCardPanelIndexes = null;
+		this.pack();
+		this.setLocationRelativeTo(Application.frame);
+	}
+
 	private JPanel getButtonPanel() {
 		JPanel panel = new JPanel(new GridLayout(1, 2, 10, 10));
 
@@ -158,29 +171,43 @@ public class EditMissionCardDialog extends JDialog implements PropertyChangeList
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				EditMissionCardDialog.this.missionCardPanel.getMissionCardPanelList().stream().map(j -> (EditableMissionCardPanel) j).filter(j -> {
-					Optional<JMissionCardPanel> optional = EditMissionCardDialog.this.oldMissionCards.stream().filter(o -> o.missionCard.equals(j.missionCard)).findAny();
-					if (optional.isPresent()) {
-						EditableMissionCardPanel oldPanel = (EditableMissionCardPanel) optional.get();
-						return j.checkBox.isSelected() != oldPanel.checkBox.isSelected();
-					}
-					return j.checkBox.isSelected();
-				}).forEach(missionCard -> Game.getInstance().fireAction(missionCard.missionCard, Property.MISSIONCARDHIDDEN, !missionCard.checkBox.isSelected(), missionCard.checkBox.isSelected()));
+				EditMissionCardDialog.this.missionCardPanelVisibility = EditMissionCardDialog.this.missionCardPanel.getMissionCardPanelList()
+						.stream()
+						.map(j -> (EditableMissionCardPanel) j)
+						.filter(j -> {
+							Optional<JMissionCardPanel> optional = EditMissionCardDialog.this.oldMissionCards.stream().filter(o -> o.missionCard.equals(j.missionCard)).findAny();
+							if (optional.isPresent()) {
+								EditableMissionCardPanel oldPanel = (EditableMissionCardPanel) optional.get();
+								return j.checkBox.isSelected() != oldPanel.checkBox.isSelected();
+							}
+							return j.checkBox.isSelected();
+						})
+						.collect(Collectors.toMap(j -> j, j -> j.checkBox.isSelected()));
 				List<JMissionCardPanel> allPanels = EditMissionCardDialog.this.missionCardPanel.getMissionCardPanelList();
-				List<Integer> oldLocations = new ArrayList<>(allPanels.size());
-				List<Integer> newLocations = new ArrayList<>(allPanels.size());
+				int[] old = new int[EditMissionCardDialog.this.oldMissionCards.size()];
+				int[] newIndex = new int[EditMissionCardDialog.this.oldMissionCards.size()];
 				for (int i = 0, max = EditMissionCardDialog.this.oldMissionCards.size(); i < max; i++) {
-					oldLocations.add(i);
-					newLocations.add(allPanels.indexOf(EditMissionCardDialog.this.oldMissionCards.get(i)));
+					old[i] = i;
+					newIndex[i] = allPanels.indexOf(EditMissionCardDialog.this.oldMissionCards.get(i));
 				}
-				Game.getInstance()
-					.fireAction(EditMissionCardDialog.this, Property.MISSIONCARDINDEXCHANGE, oldLocations.stream().mapToInt(i -> i).toArray(), newLocations.stream().mapToInt(i -> i).toArray());
+				if (!Arrays.equals(old, newIndex)) {
+					EditMissionCardDialog.this.missionCardPanelIndexes = new HashMap<>();
+					EditMissionCardDialog.this.missionCardPanelIndexes.put(old, newIndex);
+				}
 				EditMissionCardDialog.this.setVisible(false);
-				Application.frame.revalidate();
-				Application.frame.repaint();
 			}
 		};
 	}
+
+	public Map<JMissionCardPanel, Boolean> getMissionCardPanelVisibility() {
+		return this.missionCardPanelVisibility;
+	}
+
+	public Map<int[], int[]> getMissionCardPanelIndexes() {
+		return this.missionCardPanelIndexes;
+	}
+
+	private EditableMissionCardPanel selectedMissionCard;
 
 	private void setSelectedMissionPanel(EditableMissionCardPanel newPanel) {
 		if (this.selectedMissionCard != null) {
@@ -348,23 +375,6 @@ public class EditMissionCardDialog extends JDialog implements PropertyChangeList
 		@Override
 		public void mousePressed(MouseEvent e) {
 			e.consume();
-		}
-	}
-
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-		if (Property.MISSIONCARDSADDED.name().equals(evt.getPropertyName())) {
-			Stream.of((MissionCard[]) evt.getNewValue()).map(m -> {
-				EditableMissionCardPanel panel = new EditableMissionCardPanel(m);
-				panel.addMouseListener(new MouseHighlighter());
-				return panel;
-			}).forEach(this.missionCardPanel::addMissionCard);
-			this.pack();
-			this.setLocationRelativeTo(Application.frame);
-		} else if (Property.MISSIONCARDFINISHED.name().equals(evt.getPropertyName())) {
-			this.oldMissionCards.removeIf(j -> j.missionCard.equals(evt.getNewValue()));
-			this.missionCardPanel.getMissionCardPanelList().removeIf(j -> j.missionCard.equals(evt.getNewValue()));
-			this.missionCardPanel.update();
 		}
 	}
 

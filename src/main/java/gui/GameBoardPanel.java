@@ -22,6 +22,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
+import application.PropertyEvent;
 import connection.Connection;
 import connection.SingleConnection;
 import game.Game;
@@ -30,7 +31,7 @@ import game.board.Location;
 import game.cards.ColorCard;
 import gui.dialog.BuyingDialog;
 
-public class GameBoardPanel extends JPanel {
+public class GameBoardPanel extends JPanel implements IUpdatePanel {
 
 	private static final long serialVersionUID = 7437383669142439957L;
 
@@ -218,12 +219,12 @@ public class GameBoardPanel extends JPanel {
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
+			// If the Mouse is Pressed no Scrolling
 			if (GameBoardPanel.this.pressed) { return; }
+			// If Player wants to Zoom to far out or in
 			if (((GameBoardPanel.this.scaleCount < -10) && (e.getWheelRotation() < 0)) || ((GameBoardPanel.this.scaleCount > 10) && (e.getWheelRotation() > 0))) { return; }
 
 			GameBoardPanel.this.scaleCount += e.getWheelRotation();
-			GameBoardPanel.this.scaleFactorBase = 1.1;
-			GameBoardPanel.this.scrollDirection = -1;
 			GameBoardPanel.this.scaleFactor = Math.pow(GameBoardPanel.this.scaleFactorBase, GameBoardPanel.this.scaleCount);
 
 			Dimension dim = Game.getInstance().getMap().getDimensions();
@@ -308,6 +309,11 @@ public class GameBoardPanel extends JPanel {
 		ColorCard[] colors = dialog.getSelectedBuyingOption();
 		if ((colors == null) || (colors.length == 0)) { return Collections.emptyList(); }
 		return Arrays.asList(colors);
+	}
+
+	@Override
+	public void update(PropertyEvent propertyEvent) {
+		// TODO nothing to Update until now
 	}
 
 }

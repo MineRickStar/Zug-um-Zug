@@ -2,15 +2,48 @@ package game.cards;
 
 import java.awt.Color;
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.stream.Stream;
 
-import game.cards.ColorCard.MyColor;
-import game.cards.ColorCard.TransportMode;
+public class ColorCard {
 
-public record ColorCard(MyColor color, TransportMode transportMode) {
+	private final MyColor color;
+	private final TransportMode transportMode;
+
+	public ColorCard(MyColor color, TransportMode transportMode) {
+		this.color = color;
+		this.transportMode = transportMode;
+	}
+
+	public MyColor color() {
+		return this.color;
+	}
+
+	public TransportMode transportMode() {
+		return this.transportMode;
+	}
 
 	public String getColorCardString() {
 		return "<html><body>" + this.transportMode().displayName + "<br>" + this.color().colorName + "</body></html>";
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.color, this.transportMode);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) { return true; }
+		if (obj == null) { return false; }
+		if (this.getClass() != obj.getClass()) { return false; }
+		ColorCard other = (ColorCard) obj;
+		return (this.color == other.color) && (this.transportMode == other.transportMode);
+	}
+
+	@Override
+	public String toString() {
+		return "[" + this.color + ", " + this.transportMode + "]";
 	}
 
 	public enum MyColor {

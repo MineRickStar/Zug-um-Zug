@@ -5,7 +5,9 @@ import java.awt.event.ComponentListener;
 
 import javax.swing.JSplitPane;
 
-public class InfoPanel extends JSplitPane {
+import application.PropertyEvent;
+
+public class InfoPanel extends JSplitPane implements IUpdatePanel {
 
 	private static final long serialVersionUID = -6143438348516086903L;
 
@@ -42,6 +44,12 @@ public class InfoPanel extends JSplitPane {
 
 		this.setTopComponent(this.publicPanel);
 		this.setBottomComponent(this.playerPanel);
+	}
+
+	@Override
+	public void update(PropertyEvent propertyEvent) {
+		this.playerPanel.update(propertyEvent);
+		this.publicPanel.update(propertyEvent);
 	}
 
 }

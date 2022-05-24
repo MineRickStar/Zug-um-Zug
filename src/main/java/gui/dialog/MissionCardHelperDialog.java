@@ -58,7 +58,7 @@ public class MissionCardHelperDialog extends JDialog {
 
 		for (MissionCard element : missionCardList) {
 			MissionPanel missionPanel = new MissionPanel(element);
-			this.missionCardPanel.addMissionCard(missionPanel);
+			this.missionCardPanel.addMissionCard(missionPanel, false);
 		}
 
 		JButton okButton = new JButton("OK");
@@ -96,8 +96,6 @@ public class MissionCardHelperDialog extends JDialog {
 		}
 		MissionCard[] missionCards = this.selectedCards.stream().map(m -> m.missionCard).toArray(MissionCard[]::new);
 		Game.getInstance().getInstancePlayer().addMissionCards(missionCards);
-		Application.frame.revalidate();
-		Application.frame.repaint();
 		this.dispose();
 	}
 

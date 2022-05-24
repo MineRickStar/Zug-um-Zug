@@ -108,7 +108,6 @@ public class GameMap {
 		this.loadLocations();
 		this.loadConnections();
 		this.loadMissionCards();
-		Application.frame.repaint();
 	}
 
 	public void startGame() {
