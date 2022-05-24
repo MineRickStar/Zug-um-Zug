@@ -34,7 +34,7 @@ public class MyFrame extends JFrame {
 		this.setExtendedState(Frame.MAXIMIZED_BOTH);
 		this.addMenuBar();
 		this.setResizable(false);
-		this.setUndecorated(true);
+//		this.setUndecorated(true);
 		this.setVisible(true);
 		this.toFront();
 	}

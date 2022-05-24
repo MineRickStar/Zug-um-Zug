@@ -44,7 +44,9 @@ public class MapPanel extends AbstractTabbedPanel {
 			this.mapRulesPanel = new MapRulesPanel((GameMap) this.mapComboBox.getSelectedItem());
 			this.mapRulesPanelWrapper.removeAll();
 			this.mapRulesPanelWrapper.add(this.mapRulesPanel);
+			this.revalidate();
 			this.repaint();
+			parent.pack();
 		});
 		this.mapComboBox.setSelectedItem(gameMaps[0]);
 		this.reset = new JButton("Reset");

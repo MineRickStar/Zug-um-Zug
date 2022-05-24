@@ -28,7 +28,6 @@ public class GameBoard {
 
 	public void setMap(GameMap map) {
 		this.map = map;
-
 	}
 
 	public void startGame() {

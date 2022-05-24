@@ -62,11 +62,9 @@ public class GameBoardPanel extends JPanel implements IUpdatePanel {
 	public void paint(Graphics g) {
 		this.resetScreen(g);
 		super.paint(g);
-		if (Game.getInstance().isGameStarted()) {
-			g.drawImage(Game.getInstance().getMap().getMapImage(), this.origin.x, this.origin.y, this.dimensions.width, this.dimensions.height, this);
-			this.drawConnections(g);
-			this.drawCities(g);
-		}
+		g.drawImage(Game.getInstance().getMap().getMapImage(), this.origin.x, this.origin.y, this.dimensions.width, this.dimensions.height, this);
+		this.drawConnections(g);
+		this.drawCities(g);
 	}
 
 	private void resetScreen(Graphics g) {

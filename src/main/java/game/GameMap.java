@@ -4,11 +4,13 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.URISyntaxException;
-import java.nio.file.Paths;
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,25 +37,21 @@ import game.cards.MissionCard.MissionCardConstraints;
 
 public class GameMap {
 
+	public static final String MAPFILE = "Map.png";
+	public static final String RULESFILE = "Rules.txt";
 	public static final String LOCATIONSFILE = "Locations.txt";
 	public static final String CONNECTIONFILE = "Connections.txt";
 	public static final String MISSIONCARDSFILE = "Missioncards.txt";
-	public static final String RULESFILE = "Rules.txt";
-	public static final String MAPFILE = "Map.png";
 
 	public static final File SavedGamesFolder = new File(System.getProperty("user.home"), "Saved Games");
 
 	public static final File myGameFolder = new File(GameMap.SavedGamesFolder, Application.NAME);
 
 	public static List<GameMap> getMaps() {
-		List<File> files = new ArrayList<>();
-		try {
-			files.add(Paths.get(ClassLoader.getSystemResource("Germany original").toURI()).toFile());
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-		files.addAll(List.of(GameMap.myGameFolder.listFiles(File::isDirectory)));
-		return files.stream().map(GameMap::new).toList();
+		List<GameMap> maps = new ArrayList<>();
+		maps.add(new GameMap(null));
+		maps.addAll(new ArrayList<>(List.of(GameMap.myGameFolder.listFiles(File::isDirectory)).stream().map(GameMap::new).toList()));
+		return maps;
 	}
 
 	public final String mapName;
@@ -69,22 +67,44 @@ public class GameMap {
 
 	protected RuleSet ruleSet;
 
-	public GameMap(File folder) {
+	private GameMap(File folder) {
 		this.folder = folder;
-		this.mapName = folder.getName();
-		try {
-			this.mapImage = ImageIO.read(new File(this.folder, GameMap.MAPFILE));
-			this.mapDimensions = new Dimension(this.mapImage.getWidth(), this.mapImage.getHeight());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		this.mapName = folder == null ? "Germany original" : folder.getName();
 		this.locations = new TreeMap<>();
 		this.connections = new TreeMap<>();
 		this.missionCards = new EnumMap<>(Distance.class);
 		for (Distance distance : Distance.values()) {
 			this.missionCards.put(distance, new ArrayList<>());
 		}
-		this.loadMap();
+		this.load(folder != null);
+		this.mapDimensions = new Dimension(this.mapImage.getWidth(), this.mapImage.getHeight());
+	}
+
+	private void load(boolean folderExists) {
+		if (folderExists) {
+			try {
+				this.mapImage = ImageIO.read(new File(this.folder, GameMap.MAPFILE));
+				this.loadRuleSet(new FileInputStream(new File(this.folder, GameMap.RULESFILE)));
+				this.loadLocations(new FileInputStream(new File(this.folder, GameMap.LOCATIONSFILE)));
+				this.loadConnections(new FileInputStream(new File(this.folder, GameMap.CONNECTIONFILE)));
+				this.loadMissionCards(new FileInputStream(new File(this.folder, GameMap.MISSIONCARDSFILE)));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				String t = "Germany original" + FileSystems.getDefault().getSeparator() + GameMap.MAPFILE;
+				InputStream s = ClassLoader.getSystemResourceAsStream(t);
+				JOptionPane.showConfirmDialog(Application.frame, t + " " + s);
+				this.mapImage = ImageIO.read(s);
+				this.loadRuleSet(ClassLoader.getSystemResourceAsStream("Germany original" + FileSystems.getDefault().getSeparator() + GameMap.RULESFILE));
+				this.loadLocations(ClassLoader.getSystemResourceAsStream("Germany original" + FileSystems.getDefault().getSeparator() + GameMap.LOCATIONSFILE));
+				this.loadConnections(ClassLoader.getSystemResourceAsStream("Germany original" + FileSystems.getDefault().getSeparator() + GameMap.CONNECTIONFILE));
+				this.loadMissionCards(ClassLoader.getSystemResourceAsStream("Germany original" + FileSystems.getDefault().getSeparator() + GameMap.MISSIONCARDSFILE));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public final BufferedImage getMapImage() {
@@ -95,24 +115,10 @@ public class GameMap {
 		return this.mapDimensions;
 	}
 
-	private final void loadMap() {
-		try {
-			this.ruleSet = RuleSet.load(this.folder);
-			if (this.ruleSet == null) {
-				this.ruleSet = RuleSet.emptyRuleSet();
-			}
-		} catch (ClassNotFoundException | IOException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(Application.frame, "Rules of Map could not be loaded");
-		}
-		this.loadLocations();
-		this.loadConnections();
-		this.loadMissionCards();
-	}
-
 	public void startGame() {
-		Collections.shuffle(this.missionCards.get(Distance.SHORT), Game.getInstance().getRandomGenerator());
-		Collections.shuffle(this.missionCards.get(Distance.LONG), Game.getInstance().getRandomGenerator());
+		for (Distance distance : Distance.values()) {
+			Collections.shuffle(this.missionCards.get(distance), Game.getInstance().getRandomGenerator());
+		}
 	}
 
 	public final Location getLocation(String locationName) {
@@ -170,9 +176,9 @@ public class GameMap {
 		return distances.stream().mapToInt(i -> i).sorted().toArray();
 	}
 
-	private void loadLocations() {
+	private void loadLocations(InputStream input) {
 		try {
-			Decode decode = Decode.decode(new File(this.folder, GameMap.LOCATIONSFILE));
+			Decode decode = Decode.decode(input);
 			while (decode.hasNext()) {
 				String[] line = decode.next();
 				String name = line[0];
@@ -186,10 +192,10 @@ public class GameMap {
 		}
 	}
 
-	private void loadConnections() {
+	private void loadConnections(InputStream input) {
 		String[] line = null;
 		try {
-			Decode decode = Decode.decode(new File(this.folder, GameMap.CONNECTIONFILE));
+			Decode decode = Decode.decode(input);
 			while (decode.hasNext()) {
 				line = decode.next();
 
@@ -227,9 +233,9 @@ public class GameMap {
 		}
 	}
 
-	private void loadMissionCards() {
+	private void loadMissionCards(InputStream input) {
 		try {
-			Decode decode = Decode.decode(new File(this.folder, GameMap.MISSIONCARDSFILE));
+			Decode decode = Decode.decode(input);
 			while (decode.hasNext()) {
 				String[] line = decode.next();
 				Distance distance = Distance.findByAbbreviation(line[0]);
@@ -255,6 +261,16 @@ public class GameMap {
 				}
 			}
 		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void loadRuleSet(InputStream input) {
+		try {
+			ObjectInputStream ois = new ObjectInputStream(input);
+			this.ruleSet = (RuleSet) ois.readObject();
+			ois.close();
+		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 	}

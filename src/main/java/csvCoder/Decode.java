@@ -1,11 +1,9 @@
 package csvCoder;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,8 +29,8 @@ public class Decode implements Iterator<String[]> {
 		}
 	}
 
-	public static Decode decode(File fileName) throws IOException {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), StandardCharsets.UTF_8));
+	public static Decode decode(InputStream input) throws IOException {
+		BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 		List<String> lines = reader.lines().collect(Collectors.toList());
 		reader.close();
 
