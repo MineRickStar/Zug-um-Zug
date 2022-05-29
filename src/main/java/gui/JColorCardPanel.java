@@ -33,7 +33,7 @@ public class JColorCardPanel extends JPanel {
 
 	public JColorCardPanel() {
 		super(new GridBagLayout());
-		this.setBackground(Color.LIGHT_GRAY);
+//		this.setBackground(Color.LIGHT_GRAY);
 	}
 
 	public void updateColorCardPanel(int maxPanelHeight) {
@@ -47,12 +47,11 @@ public class JColorCardPanel extends JPanel {
 		int maxWidth = (int) (maxHeight * ratio);
 		int height = 0;
 		int width = 0;
-
 		while (width <= (padding * 4)) {
 			int maxColumnCount = rankingMap.values().stream().flatMap(t -> Stream.of(t.values().stream().flatMap(List::stream).toList().size())).mapToInt(i -> i).max().getAsInt();
 			int maxPossibleHeight = ((maxPanelHeight - 20) / maxColumnCount) - (2 * padding);
 			int maxRowCount = rankingMap.values().stream().flatMap(t -> Stream.of(new ArrayList<>(t.keySet()).get(0))).reduce(0, (t, u) -> t + u);
-			int maxPossibleWidth = ((this.getWidth() - 10) / maxRowCount) - (2 * padding);
+			int maxPossibleWidth = ((this.getWidth() - 20) / maxRowCount) - (2 * padding);
 			height = maxPossibleHeight > maxHeight ? maxHeight : maxPossibleHeight;
 			width = maxPossibleWidth > maxWidth ? maxWidth : maxPossibleWidth;
 			double proportion = width / (double) height;
@@ -63,17 +62,14 @@ public class JColorCardPanel extends JPanel {
 			}
 			padding--;
 		}
-
 		Dimension prefederredDimension = new Dimension(width, height);
 		GridBagConstraints gbcTransport = new GridBagConstraints();
 		gbcTransport.anchor = GridBagConstraints.NORTH;
-		JPanel transportPanel;
-		GridBagConstraints gbc = new GridBagConstraints();
 		Iterator<Entry<TransportMode, SortedMap<Integer, List<ColorCard>>>> iteratorMap = rankingMap.entrySet().iterator();
 		while (iteratorMap.hasNext()) {
-			transportPanel = new JPanel(new GridBagLayout());
-			transportPanel.setBackground(Color.LIGHT_GRAY);
-			gbcTransport.gridx++;
+			JPanel transportPanel = new JPanel(new GridBagLayout());
+//			transportPanel.setBackground(Color.LIGHT_GRAY);
+			GridBagConstraints gbc = new GridBagConstraints();
 			gbc.insets = new Insets(padding, padding, padding, padding);
 			gbc.gridy = 0;
 			gbc.gridx = 0;
@@ -103,6 +99,7 @@ public class JColorCardPanel extends JPanel {
 				}
 			}
 			transportPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createRaisedBevelBorder(), entryTransportMode.getKey().displayName));
+			gbcTransport.gridx++;
 			this.add(transportPanel, gbcTransport);
 		}
 		gbcTransport.weightx = 1;
@@ -120,7 +117,7 @@ public class JColorCardPanel extends JPanel {
 		public JColorCardLabel(ColorCard colorCard) {
 			super(colorCard.getColorCardString());
 			this.colorCard = colorCard;
-			this.setForeground(MyColor.getComplementaryColor(colorCard.color()));
+			this.setForeground(colorCard.color().getComplementaryColor());
 			this.setPreferredSize(new Dimension(60, 20));
 			this.setBorder(BorderFactory.createLineBorder(Color.BLACK, 4));
 			this.setBackground(colorCard.color().realColor);

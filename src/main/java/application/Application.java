@@ -1,5 +1,6 @@
 package application;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -48,6 +49,12 @@ public class Application {
 				listener.actionPerformed(e);
 			}
 		});
+	}
+
+	public static Dimension scaleDimension(Dimension dim, double scale) {
+		dim.width *= scale;
+		dim.height *= scale;
+		return dim;
 	}
 
 	@SuppressWarnings("unused")

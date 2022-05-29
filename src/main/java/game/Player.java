@@ -86,7 +86,9 @@ public class Player {
 			}
 			list = map.getOrDefault(colorCardCount + (add ? 1 : (-1)), new ArrayList<>());
 			list.add(colorCard);
-			map.put(colorCardCount + (add ? 1 : (-1)), list);
+			if ((colorCardCount + (add ? 1 : (-1))) > 0) {
+				map.put(colorCardCount + (add ? 1 : (-1)), list);
+			}
 			this.playerCards.put(colorCard.transportMode(), map);
 		}
 		Application.frame.update(new PropertyEvent(this, Property.COLORCARDADDED));
@@ -163,6 +165,7 @@ public class Player {
 	public void buySingleConnection(SingleConnection singleConnection, List<ColorCard> buyingCards) {
 		this.singleConnections.add(singleConnection);
 		this.locationOrganizer.addSingleConnection(singleConnection);
+		this.removeCarriges(singleConnection);
 		this.removeColorCards(buyingCards.toArray(ColorCard[]::new));
 		Game.getInstance().addUsedCards(buyingCards);
 		this.testForFinishedMissionCards();
@@ -210,8 +213,8 @@ public class Player {
 		return i == null ? 0 : i;
 	}
 
-	public void setPieceCount(EnumMap<TransportMode, Integer> pieceCount) {
-		this.pieceCount = pieceCount;
+	public void removeCarriges(SingleConnection single) {
+		this.pieceCount.put(single.transportMode, this.pieceCount.get(single.transportMode) - single.length);
 	}
 
 	///// Player Info /////

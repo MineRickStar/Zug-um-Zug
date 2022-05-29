@@ -63,10 +63,6 @@ public class Game {
 		Application.frame.startGame();
 
 		for (int i = 0; i < this.players.size(); i++) {
-			if (i == (this.players.size() - 1)) {
-				// Set before the last Player so that next Player in drawMissionCards works
-				this.gameStarted = true;
-			}
 			if (this.isPlayersTurn()) {
 				DrawMissionCardDialog dialog = new DrawMissionCardDialog(true);
 				this.drawMissionCards(this.getInstancePlayer(), dialog.getSelectedMissionCards());
@@ -74,16 +70,13 @@ public class Game {
 				this.getCurrentPlayerComputer().drawMissionCards();
 			}
 		}
-		Location l1 = Game.getInstance().getLocation("Hamburg");
-		Location l2 = Game.getInstance().getLocation("Schwerin");
-		Location l3 = Game.getInstance().getLocation("Rostock");
-		SingleConnection c1 = Game.getInstance().getSingleConnectionFromLocations(l1, l2, MyColor.GREEN);
-		SingleConnection c2 = Game.getInstance().getSingleConnectionFromLocations(l2, l3, MyColor.RED);
-		c1.setOwner(this.instancePlayer);
-		c2.setOwner(this.instancePlayer);
-		this.instancePlayer.buySingleConnection(c1, new ArrayList<>());
-		this.instancePlayer.buySingleConnection(c2, new ArrayList<>());
+		// Two times so that all Layouts are correct
 		Application.frame.update(new PropertyEvent(null, Property.GAMESTART));
+		Application.frame.update(new PropertyEvent(null, Property.GAMESTART));
+		this.gameStarted = true;
+		if (this.getCurrentPlayer() instanceof Computer com) {
+			com.nextMove();
+		}
 	}
 
 	public void distributeCards() {
@@ -220,8 +213,8 @@ public class Game {
 			if (this.getCurrentPlayer() instanceof Computer com) {
 				com.nextMove();
 			}
+			Application.frame.update(new PropertyEvent(this.getCurrentPlayer(), Property.PLAYERCHANGE));
 		}
-		Application.frame.update(new PropertyEvent(this.getCurrentPlayer(), Property.PLAYERCHANGE));
 	}
 
 	public Player addInstancePlayer(String playerName, MyColor color) {

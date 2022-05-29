@@ -14,9 +14,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -30,13 +28,15 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.WindowConstants;
 
 import application.Application;
 import game.Game;
 import game.cards.MissionCard;
-import gui.AllJMissionCardsPanel;
+import gui.DefaultAllJMissionCardsScrollPanel;
 import gui.JMissionCardPanel;
 
 public class EditMissionCardDialog extends JDialog {
@@ -56,30 +56,41 @@ public class EditMissionCardDialog extends JDialog {
 
 	private List<JMissionCardPanel> oldMissionCards = Collections.emptyList();
 
-	private AllJMissionCardsPanel missionCardPanel;
+	private EditAllJMissionCardsPanel missionCardPanel;
+	private JScrollPane editAllJMissionCardsPanelScrollPane;
 
 	private EditorPanel editorPanel;
 
 	private Map<JMissionCardPanel, Boolean> missionCardPanelVisibility;
-	private Map<int[], int[]> missionCardPanelIndexes;
+	private Map<Integer, MissionCard> missionCardPanelIndexes;
+
+	private boolean edited;
 
 	private EditMissionCardDialog() {
 		super(Application.frame, "Edit Mission Cards", true);
 		this.setLayout(new GridBagLayout());
 		this.addListenersToDialog();
 
-		this.missionCardPanel = new AllJMissionCardsPanel();
+		this.missionCardPanel = new EditAllJMissionCardsPanel(-1, 4);
 		this.missionCardPanel.addMouseListener(new MouseConsumer());
+
+		this.editAllJMissionCardsPanelScrollPane = new JScrollPane(this.missionCardPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
 		this.editorPanel = new EditorPanel();
 
 		this.addComponents();
-		this.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		this.setResizable(false);
 	}
 
 	private void addListenersToDialog() {
 		this.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				EditMissionCardDialog.this.reset();
+				EditMissionCardDialog.this.setVisible(false);
+			}
+
 			@Override
 			public void windowDeactivated(WindowEvent e) {
 				EditMissionCardDialog.this.setSelectedMissionPanel(null);
@@ -118,7 +129,7 @@ public class EditMissionCardDialog extends JDialog {
 		gbc.insets = new Insets(10, 10, 10, 10);
 		gbc.gridy = 0;
 		gbc.gridx = 0;
-		this.add(this.missionCardPanel, gbc);
+		this.add(this.editAllJMissionCardsPanelScrollPane, gbc);
 		gbc.gridy = 1;
 		this.add(this.editorPanel, gbc);
 		gbc.gridy = 2;
@@ -127,25 +138,30 @@ public class EditMissionCardDialog extends JDialog {
 	}
 
 	private void update() {
-		// Add all new MIssionCards
+		this.edited = true;
+		// Add all new MissionCards
 		List<MissionCard> missionCards = Game.getInstance().getInstancePlayer().getMissionCards();
 		List<JMissionCardPanel> panels = this.missionCardPanel.getMissionCardPanelList();
-		missionCards.stream().filter(m -> panels.stream().noneMatch(j -> j.missionCard.equals(m))).map(m -> {
+		this.missionCardPanel.addMissionCards(missionCards.stream().filter(m -> panels.stream().noneMatch(j -> j.missionCard.equals(m))).map(m -> {
 			EditableMissionCardPanel panel = new EditableMissionCardPanel(m);
 			panel.addMouseListener(new MouseHighlighter());
 			return panel;
-		}).forEach(e -> this.missionCardPanel.addMissionCard(e, false));
+		}).toList());
 		// Remove all Finished Missioncards
 		List<MissionCard> finishedCards = Game.getInstance().getInstancePlayer().getFinishedMissionCards();
 		this.missionCardPanel.getMissionCardPanelList().removeIf(j -> finishedCards.contains(j.missionCard));
 		// Create new Objects for Old Cards
 		this.oldMissionCards = new ArrayList<>(this.missionCardPanel.getMissionCardPanelList().stream().map(j -> {
 			EditableMissionCardPanel panel = new EditableMissionCardPanel(j.missionCard);
-			panel.checkBox.setSelected(((EditableMissionCardPanel) j).checkBox.isSelected());
+			if (((EditableMissionCardPanel) j).checkBox.isSelected()) {
+				panel.checkBox.doClick();
+			}
+			panel.addMouseListener(new MouseHighlighter());
 			return panel;
 		}).toList());
 		this.missionCardPanelVisibility = null;
 		this.missionCardPanelIndexes = null;
+		this.missionCardPanel.update();
 		this.pack();
 		this.setLocationRelativeTo(Application.frame);
 	}
@@ -158,8 +174,11 @@ public class EditMissionCardDialog extends JDialog {
 		okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "OK");
 		okButton.getActionMap().put("OK", this.getOKAction());
 
-		JButton cancelButton = new JButton("Cancle");
-		cancelButton.addActionListener(e -> this.setVisible(false));
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(e -> {
+			this.reset();
+			this.setVisible(false);
+		});
 		panel.add(okButton);
 		panel.add(cancelButton);
 		return panel;
@@ -184,27 +203,28 @@ public class EditMissionCardDialog extends JDialog {
 						})
 						.collect(Collectors.toMap(j -> j, j -> j.checkBox.isSelected()));
 				List<JMissionCardPanel> allPanels = EditMissionCardDialog.this.missionCardPanel.getMissionCardPanelList();
-				int[] old = new int[EditMissionCardDialog.this.oldMissionCards.size()];
-				int[] newIndex = new int[EditMissionCardDialog.this.oldMissionCards.size()];
-				for (int i = 0, max = EditMissionCardDialog.this.oldMissionCards.size(); i < max; i++) {
-					old[i] = i;
-					newIndex[i] = allPanels.indexOf(EditMissionCardDialog.this.oldMissionCards.get(i));
-				}
-				if (!Arrays.equals(old, newIndex)) {
-					EditMissionCardDialog.this.missionCardPanelIndexes = new HashMap<>();
-					EditMissionCardDialog.this.missionCardPanelIndexes.put(old, newIndex);
-				}
+				EditMissionCardDialog.this.missionCardPanelIndexes = allPanels.stream().collect(Collectors.toMap(t -> allPanels.indexOf(t), t -> t.missionCard));
 				EditMissionCardDialog.this.setVisible(false);
 			}
 		};
+	}
+
+	private void reset() {
+		this.edited = false;
+		this.setSelectedMissionPanel(null);
+		this.missionCardPanel.setMissionCardPanelList(this.oldMissionCards);
 	}
 
 	public Map<JMissionCardPanel, Boolean> getMissionCardPanelVisibility() {
 		return this.missionCardPanelVisibility;
 	}
 
-	public Map<int[], int[]> getMissionCardPanelIndexes() {
+	public Map<Integer, MissionCard> getMissionCardPanelIndexes() {
 		return this.missionCardPanelIndexes;
+	}
+
+	public boolean isEdited() {
+		return this.edited;
 	}
 
 	private EditableMissionCardPanel selectedMissionCard;
@@ -225,7 +245,7 @@ public class EditMissionCardDialog extends JDialog {
 		private JCheckBox checkBox;
 
 		private EditableMissionCardPanel(MissionCard missioncard) {
-			super(missioncard);
+			super(missioncard, true);
 			this.checkBox = new JCheckBox("Hide");
 			this.checkBox.setFocusable(false);
 			this.checkBox.addActionListener(e -> {
@@ -371,10 +391,73 @@ public class EditMissionCardDialog extends JDialog {
 		}
 	}
 
-	private class MouseConsumer extends MouseAdapter {
+	private static class MouseConsumer extends MouseAdapter {
 		@Override
 		public void mousePressed(MouseEvent e) {
 			e.consume();
+		}
+	}
+
+	private static class EditAllJMissionCardsPanel extends DefaultAllJMissionCardsScrollPanel {
+
+		private static final long serialVersionUID = 2793926444890417556L;
+
+		public EditAllJMissionCardsPanel(int rowCount, int columnCount) {
+			super(rowCount, columnCount);
+			this.setMaxWidth(0);
+		}
+
+		public int indexOf(JMissionCardPanel panel) {
+			return this.missionCardPanelList.indexOf(panel);
+		}
+
+		public void movePanel(int currentIndex, int direction) {
+			if ((currentIndex != -1) && this.testAction(currentIndex, direction)) {
+				int newIndex = this.newIndex(currentIndex, direction);
+				JMissionCardPanel missionCards = this.missionCardPanelList.remove(currentIndex);
+				this.missionCardPanelList.add(newIndex, missionCards);
+				this.update();
+				this.revalidate();
+				this.repaint();
+			}
+		}
+
+		public int newIndex(int currentIndex, int direction) {
+			if (!this.testAction(currentIndex, direction)) { return currentIndex; }
+			switch (direction) {
+			case GridBagConstraints.FIRST_LINE_START:
+				return 0;
+			case GridBagConstraints.NORTH:
+				return currentIndex - this.getColumnCount();
+			case GridBagConstraints.EAST:
+				return currentIndex + 1;
+			case GridBagConstraints.SOUTH:
+				return Math.min(currentIndex + this.getColumnCount(), this.missionCardPanelList.size() - 1);
+			case GridBagConstraints.WEST:
+				return currentIndex - 1;
+			case GridBagConstraints.LAST_LINE_END:
+				return this.missionCardPanelList.size() - 1;
+			default:
+				return currentIndex;
+			}
+		}
+
+		public boolean testAction(int index, int direction) {
+			if (index == -1) { return false; }
+			switch (direction) {
+			case GridBagConstraints.NORTH:
+				return index >= this.getColumnCount();
+			case GridBagConstraints.LAST_LINE_END:
+			case GridBagConstraints.EAST:
+				return index < (this.missionCardPanelList.size() - 1);
+			case GridBagConstraints.SOUTH:
+				return index < (this.getColumnCount() * (this.getRowCount() - 1));
+			case GridBagConstraints.FIRST_LINE_START:
+			case GridBagConstraints.WEST:
+				return index > 0;
+			default:
+				return false;
+			}
 		}
 	}
 

@@ -14,7 +14,7 @@ import application.Application;
 import game.Game;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
-import gui.AllJMissionCardsPanel;
+import gui.DefaultAllJMissionCardsScrollPanel;
 import gui.JMissionCardPanel;
 
 public class FinishedMissionCardDialog extends JDialog {
@@ -33,12 +33,12 @@ public class FinishedMissionCardDialog extends JDialog {
 
 	private JScrollPane missioCardScrollPane;
 
-	private AllJMissionCardsPanel allMissionCardsPanel;
+	private DefaultAllJMissionCardsScrollPanel allMissionCardsPanel;
 
 	private FinishedMissionCardDialog() {
 		super(Application.frame, "Finished Missioncards", false);
 		this.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-		this.allMissionCardsPanel = new AllJMissionCardsPanel(8, "");
+		this.allMissionCardsPanel = new DefaultAllJMissionCardsScrollPanel(-1, 4);
 		this.missioCardScrollPane = new JScrollPane(this.allMissionCardsPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		this.missioCardScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 		this.add(this.missioCardScrollPane);
@@ -46,7 +46,7 @@ public class FinishedMissionCardDialog extends JDialog {
 	}
 
 	private void update() {
-		Game.getInstance().getInstancePlayer().getFinishedMissionCards().stream().map(FinishedJMissionCardPanel::new).forEach(j -> this.allMissionCardsPanel.addMissionCard(j, false));
+		this.allMissionCardsPanel.addMissionCards(Game.getInstance().getInstancePlayer().getFinishedMissionCards().stream().map(FinishedJMissionCardPanel::new).toList());
 		this.allMissionCardsPanel
 				.setMapper(Game.getInstance().getInstancePlayer().getFinishedMissionCards().stream().map(m -> m.distance).distinct().collect(Collectors.toMap(Distance::ordinal, i -> i.cardLength)));
 		this.allMissionCardsPanel.update();
@@ -55,13 +55,13 @@ public class FinishedMissionCardDialog extends JDialog {
 		this.setLocationRelativeTo(Application.frame);
 	}
 
-	private class FinishedJMissionCardPanel extends JMissionCardPanel {
+	private static class FinishedJMissionCardPanel extends JMissionCardPanel {
 
 		private static final long serialVersionUID = -5902959026679675859L;
 		private JCheckBox box;
 
 		public FinishedJMissionCardPanel(MissionCard missionCard) {
-			super(missionCard);
+			super(missionCard, true);
 			this.box = new JCheckBox("Show Mission");
 			this.box.setBackground(Color.WHITE);
 			this.box.setFocusable(false);

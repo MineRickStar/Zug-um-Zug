@@ -71,6 +71,10 @@ public class ColorCard {
 			return Stream.of(MyColor.values()).filter(c -> (c != GRAY) && (c != RAINBOW)).toArray(MyColor[]::new);
 		}
 
+		public Color getComplementaryColor() {
+			return MyColor.getComplementaryColor(this);
+		}
+
 		public static Color getComplementaryColor(MyColor myColor) {
 			Color color = myColor.realColor;
 			if (color == Color.WHITE) { return Color.BLACK; }

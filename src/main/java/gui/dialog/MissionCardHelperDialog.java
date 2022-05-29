@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -18,21 +19,20 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
-import javax.swing.WindowConstants;
 
 import application.Application;
 import connection.SingleConnection;
 import game.Game;
 import game.Rules;
 import game.cards.MissionCard;
-import gui.AllJMissionCardsPanel;
+import gui.DefaultAllJMissionCardsPanel;
 import gui.JMissionCardPanel;
 
 public class MissionCardHelperDialog extends JDialog {
 
 	private static final long serialVersionUID = 1028232963445078845L;
 
-	private AllJMissionCardsPanel missionCardPanel;
+	private DefaultAllJMissionCardsPanel missionCardPanel;
 
 	private List<MissionPanel> selectedCards;
 
@@ -41,9 +41,11 @@ public class MissionCardHelperDialog extends JDialog {
 	public MissionCardHelperDialog(List<MissionCard> missionCardList) {
 		super(Application.frame, "Missioncard selection");
 		this.setLayout(new GridBagLayout());
-		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-		((JPanel) this.getContentPane()).getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('A', InputEvent.CTRL_DOWN_MASK), "ALL");
-		((JPanel) this.getContentPane()).getActionMap().put("ALL", new AbstractAction() {
+		this.setUndecorated(true);
+		JPanel contentPane = (JPanel) this.getContentPane();
+		contentPane.setBorder(BorderFactory.createRaisedBevelBorder());
+		contentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('A', InputEvent.CTRL_DOWN_MASK), "ALL");
+		contentPane.getActionMap().put("ALL", new AbstractAction() {
 
 			private static final long serialVersionUID = 1251851433534082983L;
 
@@ -53,13 +55,10 @@ public class MissionCardHelperDialog extends JDialog {
 				MissionCardHelperDialog.this.selectedCards.forEach(m -> m.selectMission.setSelected(true));
 			}
 		});
-		this.missionCardPanel = new AllJMissionCardsPanel(-1, 1, "");
+		this.missionCardPanel = new DefaultAllJMissionCardsPanel(-1, 1);
 		this.selectedCards = new ArrayList<>(Rules.getInstance().getMissionCardsDrawing());
 
-		for (MissionCard element : missionCardList) {
-			MissionPanel missionPanel = new MissionPanel(element);
-			this.missionCardPanel.addMissionCard(missionPanel, false);
-		}
+		this.missionCardPanel.addMissionCards(missionCardList.stream().map(MissionPanel::new).toList());
 
 		JButton okButton = new JButton("OK");
 		okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "OK");
@@ -78,7 +77,7 @@ public class MissionCardHelperDialog extends JDialog {
 		gbc.gridx = 0;
 		gbc.gridy = 0;
 		this.add(this.missionCardPanel, gbc);
-		gbc.insets = new Insets(0, 0, 10, 0);
+		gbc.insets = new Insets(10, 0, 10, 0);
 		gbc.gridy = 1;
 		this.add(okButton, gbc);
 

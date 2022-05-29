@@ -3,17 +3,23 @@ package gui;
 import java.awt.Component;
 import java.awt.Frame;
 import java.awt.Toolkit;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import application.Application;
 import application.PropertyEvent;
+import application.PropertyEvent.Property;
 import game.Game;
 import gui.dialog.ClientSettingsDialog;
 import gui.dialog.MapCreator;
@@ -26,17 +32,37 @@ public class MyFrame extends JFrame {
 	private static final long serialVersionUID = 4070509246110827584L;
 
 	private IUpdatePanel currentPanel;
+	private Timer timer;
 
 	public MyFrame() {
 		super(Application.NAME);
+		this.addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentResized(ComponentEvent e) {
+				MyFrame.this.resizeFrame();
+			}
+		});
+		this.timer = new Timer("Frame Resizer");
 		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		this.setSize(900, 600);
+		this.setMinimumSize(Application.scaleDimension(Toolkit.getDefaultToolkit().getScreenSize(), .5));
+		this.setSize(Application.scaleDimension(Toolkit.getDefaultToolkit().getScreenSize(), .5));
 		this.setExtendedState(Frame.MAXIMIZED_BOTH);
 		this.addMenuBar();
-		this.setResizable(false);
-//		this.setUndecorated(true);
 		this.setVisible(true);
 		this.toFront();
+	}
+
+	private void resizeFrame() {
+		this.timer.cancel();
+		this.timer = new Timer("Frame Resizer");
+		this.timer.schedule(new TimerTask() {
+
+			@Override
+			public void run() {
+				SwingUtilities.invokeLater(() -> MyFrame.this.update(new PropertyEvent(null, Property.FRAMESIZECHANGED)));
+				SwingUtilities.invokeLater(() -> MyFrame.this.update(new PropertyEvent(null, Property.FRAMESIZECHANGED)));
+			}
+		}, 100);
 	}
 
 	private void addMenuBar() {

@@ -95,9 +95,9 @@ public class GameStartDialog extends JDialog {
 		boolean map = this.confirmDialog(this.mapPanel);
 		if (rules && player && coms && map) {
 			this.rulesPanel.save();
+			this.mapPanel.save();
 			this.playerPanel.save();
 			this.comPanel.save();
-			this.mapPanel.save();
 			this.dispose();
 			Game.getInstance().startGame();
 		}

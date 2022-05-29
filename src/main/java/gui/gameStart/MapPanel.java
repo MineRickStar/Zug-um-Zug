@@ -5,6 +5,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -224,9 +225,19 @@ public class MapPanel extends AbstractTabbedPanel {
 
 	@Override
 	public boolean save() {
+		TransportMode[] transportModes = this.mapRulesPanel.transportModes;
 		for (TransportModePanel panel : this.mapRulesPanel.transportModePanels) {
 			panel.save();
 		}
+		List<TransportMode> modes = new ArrayList<>(List.of(TransportMode.values()));
+		modes.removeAll(List.of(transportModes));
+		Rules rules = Rules.getInstance();
+		modes.forEach(t -> {
+			rules.setCarrigeCount(t, 0);
+			rules.setColorCardCount(t, 0);
+			rules.setLocomotiveCardCount(t, 0);
+			rules.setPointsConnection(t, new int[0]);
+		});
 		Game.getInstance().setMap((GameMap) this.mapComboBox.getSelectedItem());
 		return true;
 	}

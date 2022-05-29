@@ -23,14 +23,16 @@ public class Location implements Comparable<Location> {
 
 	public final UUID ID;
 	public final String name;
+	public final String abbreviation;
 	public final Point point;
 
 	private final List<Connection> connectionsFromHere;
 
-	public Location(String name, Point point) {
+	public Location(String name, Point point, String abbreviation) {
 		this.ID = UUID.randomUUID();
 		this.name = name;
 		this.point = point;
+		this.abbreviation = abbreviation;
 		this.connectionsFromHere = new ArrayList<>();
 	}
 

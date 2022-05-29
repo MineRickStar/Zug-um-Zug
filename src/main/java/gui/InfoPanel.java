@@ -1,13 +1,13 @@
 package gui;
 
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 
-import javax.swing.JSplitPane;
+import javax.swing.JPanel;
 
 import application.PropertyEvent;
 
-public class InfoPanel extends JSplitPane implements IUpdatePanel {
+public class InfoPanel extends JPanel implements IUpdatePanel {
 
 	private static final long serialVersionUID = -6143438348516086903L;
 
@@ -15,41 +15,29 @@ public class InfoPanel extends JSplitPane implements IUpdatePanel {
 	private PlayerPanel playerPanel;
 
 	public InfoPanel() {
-		super(JSplitPane.VERTICAL_SPLIT);
-		this.setContinuousLayout(false);
-		this.setDividerSize(0);
+		super(new GridBagLayout());
 
-		this.addComponentListener(new ComponentListener() {
-
-			@Override
-			public void componentShown(ComponentEvent e) {
-				InfoPanel.this.setDividerLocation(.2);
-			}
-
-			@Override
-			public void componentResized(ComponentEvent e) {
-				InfoPanel.this.setDividerLocation(.2);
-			}
-
-			@Override
-			public void componentMoved(ComponentEvent e) {
-				InfoPanel.this.setDividerLocation(.2);
-			}
-
-			@Override
-			public void componentHidden(ComponentEvent e) {}
-		});
 		this.publicPanel = new PublicPanel();
 		this.playerPanel = new PlayerPanel();
 
-		this.setTopComponent(this.publicPanel);
-		this.setBottomComponent(this.playerPanel);
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.weightx = 1;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+
+		this.add(this.publicPanel, gbc);
+
+		gbc.weighty = 1;
+		gbc.gridy = 1;
+		this.add(this.playerPanel, gbc);
+
 	}
 
 	@Override
 	public void update(PropertyEvent propertyEvent) {
-		this.playerPanel.update(propertyEvent);
 		this.publicPanel.update(propertyEvent);
+		this.playerPanel.update(propertyEvent);
 	}
 
 }

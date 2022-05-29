@@ -1,9 +1,15 @@
 package gui;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -22,8 +28,6 @@ import game.Rules;
 import game.cards.ColorCard;
 import game.cards.ColorCard.MyColor;
 import game.cards.MissionCard.Distance;
-import gui.PlayerPanel.JColorCardButton;
-import gui.PlayerPanel.JGradientButton;
 import gui.dialog.DrawMissionCardDialog;
 
 public class PublicPanel extends JPanel implements IUpdatePanel {
@@ -43,7 +47,7 @@ public class PublicPanel extends JPanel implements IUpdatePanel {
 	public PublicPanel() {
 		super(new GridBagLayout());
 		this.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-		this.colorCardsBorder = BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), this.getTitleString());
+		this.colorCardsBorder = BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), "");
 		this.colorCardButtons = new ArrayList<>(Rules.getInstance().getOpenColorCards());
 
 		this.colorCardButtonPanel = new JPanel(new GridBagLayout());
@@ -59,7 +63,7 @@ public class PublicPanel extends JPanel implements IUpdatePanel {
 
 		gbc.weighty = 0;
 		gbc.gridy = 1;
-		gbc.insets = new Insets(10, 20, 10, 20);
+		gbc.insets = new Insets(10, 10, 10, 10);
 		this.add(this.createCardButtonPanel(), gbc);
 
 		this.currentPlayerLabel = new JLabel("Current Player: ");
@@ -73,34 +77,78 @@ public class PublicPanel extends JPanel implements IUpdatePanel {
 		this.colorCardButtons.clear();
 		GridBagConstraints colorCardConstraints = new GridBagConstraints();
 		colorCardConstraints.insets = new Insets(10, 10, 10, 10);
-		colorCardConstraints.fill = GridBagConstraints.BOTH;
-		colorCardConstraints.weighty = 1;
-		colorCardConstraints.weightx = 1;
-
+		if (this.getWidth() == 0) { return; }
+		int width = ((this.getWidth() - 20) / Rules.getInstance().getOpenColorCards()) - 20;
 		List<ColorCard> colorCards = new ArrayList<>(Game.getInstance().getOpenCards());
 		for (int i = 0; i < Math.min(Rules.getInstance().getOpenColorCards(), Game.getInstance().getRemainingCards()); i++) {
 			ColorCard colorCard = colorCards.get(i);
 			JColorCardButton colorCardButton;
 			if (colorCard.color() == MyColor.RAINBOW) {
-				colorCardButton = new JGradientButton(colorCard, i);
+				colorCardButton = new JGradientButton(colorCard, i, width);
 				if ((Rules.getInstance().getColorCardsDrawing() - Game.getInstance().getCurrentPlayerColorCardDraws()) < Rules.getInstance().getLocomotiveWorth()) {
 					colorCardButton.setEnabled(false);
 				}
 			} else {
-				colorCardButton = new JColorCardButton(colorCard, i);
+				colorCardButton = new JColorCardButton(colorCard, i, width);
 			}
 			colorCardButton.addActionListener(e -> {
 				if (e.getSource() instanceof JColorCardButton button) {
 					Game.getInstance().drawColorCardsFromOpenDeck(Game.getInstance().getInstancePlayer(), button.index);
 				}
 			});
-			colorCardButton.setEnabled(Game.getInstance().isPlayersTurn());
+			colorCardButton.setEnabled(colorCardButton.isEnabled() && Game.getInstance().isPlayersTurn());
 			this.colorCardButtons.add(colorCardButton);
 
 			colorCardConstraints.gridx = i;
 			this.colorCardButtonPanel.add(colorCardButton, colorCardConstraints);
 		}
+		this.colorCardButtonPanel.revalidate();
+		this.colorCardButtonPanel.repaint();
+	}
 
+	public static class JColorCardButton extends JButton {
+		private static final long serialVersionUID = -4035891459387013101L;
+
+		public final ColorCard colorCard;
+		public final int index;
+
+		public JColorCardButton(ColorCard colorCard, int index, int width) {
+			super(colorCard.getColorCardString());
+			this.colorCard = colorCard;
+			this.index = index;
+			this.setForeground(MyColor.getComplementaryColor(colorCard.color()));
+			this.setPreferredSize(new Dimension(width, (int) (width * 1.5)));
+			this.setMinimumSize(new Dimension(width, (int) (width * 1.5)));
+			this.setBorder(BorderFactory.createLineBorder(Color.BLACK, 4));
+			this.setBackground(colorCard.color().realColor);
+			this.setSelected(false);
+			this.setDoubleBuffered(true);
+			this.setFocusable(false);
+		}
+
+	}
+
+	public static class JGradientButton extends JColorCardButton {
+		private static final long serialVersionUID = 5469665614084730926L;
+
+		public JGradientButton(ColorCard colorCard, int index, int width) {
+			super(colorCard, index, width);
+			this.setForeground(Color.BLACK);
+			this.setContentAreaFilled(false);
+		}
+
+		@Override
+		protected void paintComponent(Graphics g) {
+			Graphics2D g2 = (Graphics2D) g.create();
+			MyColor[] colors = MyColor.getNormalMyColors();
+			int stripHeigth = this.getHeight() / (colors.length - 1);
+			for (int i = 0; i < (colors.length - 1); i++) {
+				g2.setPaint(new GradientPaint(new Point(0, i * stripHeigth), colors[i].realColor, new Point(0, (i + 1) * stripHeigth), colors[i + 1].realColor));
+				g2.fillRect(0, i * stripHeigth, this.getWidth(), (i + 1) * stripHeigth);
+			}
+			g2.dispose();
+			super.paintComponent(g);
+		}
 	}
 
 	private JPanel createCardButtonPanel() {
@@ -129,6 +177,11 @@ public class PublicPanel extends JPanel implements IUpdatePanel {
 		}
 	}
 
+	private void updateLabelsAndTitle() {
+		this.currentPlayerLabel.setText("Current Player: " + Game.getInstance().getCurrentPlayerName());
+		this.colorCardsBorder.setTitle(this.getTitleString());
+	}
+
 	private String getTitleString() {
 		String drawCards = "Drawcards (" + Game.getInstance().getRemainingCards() + ")";
 		if (Game.getInstance().isPlayersTurn() && Game.getInstance().isCardAlreadyDrawn()) {
@@ -152,13 +205,12 @@ public class PublicPanel extends JPanel implements IUpdatePanel {
 			} else {
 				this.drawMissionCardsButton.setEnabled(false);
 			}
-			this.colorCardsBorder.setTitle(this.getTitleString());
+			this.updateLabelsAndTitle();
 			this.drawColorCardButtonPanel();
 			break;
 		case PLAYERCHANGE:
-			this.currentPlayerLabel.setText("Current Player: " + Game.getInstance().getCurrentPlayerName());
+			this.updateLabelsAndTitle();
 			this.setComponentsEnabled(Game.getInstance().isPlayersTurn());
-			this.colorCardsBorder.setTitle(this.getTitleString());
 			break;
 		case COLORCARDADDED:
 		case COLORCARDREMOVED:
@@ -169,10 +221,13 @@ public class PublicPanel extends JPanel implements IUpdatePanel {
 		case CONNECTIONBOUGHT:
 			break;
 		case GAMESTART:
-			this.currentPlayerLabel.setText("Current Player: " + Game.getInstance().getCurrentPlayerName());
+			this.updateLabelsAndTitle();
 			this.setComponentsEnabled(Game.getInstance().isPlayersTurn());
-			this.colorCardsBorder.setTitle(this.getTitleString());
 			this.drawColorCardButtonPanel();
+			break;
+		case FRAMESIZECHANGED:
+			this.drawColorCardButtonPanel();
+			break;
 		}
 	}
 

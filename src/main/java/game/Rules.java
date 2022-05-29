@@ -39,17 +39,17 @@ public class Rules {
 
 	// Train //
 
-	private int trainColorCardCount = 12;
-	private int trainLocomotiveColorCardCount = 14;
+	private int trainColorCardCount = 20; // 12
+	private int trainLocomotiveColorCardCount = 24; // 14
 
-	private int trainCarrigeCount = 45;
+	private int trainCarrigeCount = 100;// 45
 
 	private int[] pointsTrainConnection = { 1, 2, 4, 7, 10, 15, 18 };
 
 	// Ship //
 
-	private int shipColorCardCount = 6;
-	private int shipLocomotiveColorCardCount = 6;
+	private int shipColorCardCount = 2;
+	private int shipLocomotiveColorCardCount = 2;
 
 	private int shipCarrigeCount = 20;
 

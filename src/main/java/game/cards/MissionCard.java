@@ -66,7 +66,7 @@ public class MissionCard implements Comparable<MissionCard> {
 	}
 
 	public enum Distance {
-		SHORT("Short Card", "s"), MIDDLE("Middle Card", "m"), LONG("Long Card", "l"), EXTRA_LONG("Extra Long Card", "e");
+		SHORT("Short", "s"), MIDDLE("Middle", "m"), LONG("Long", "l"), EXTRA_LONG("Extra Long", "e");
 
 		public final String cardLength;
 		public final String abbreviation;

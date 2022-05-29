@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
@@ -182,18 +183,20 @@ public class GameMap {
 	}
 
 	private void loadLocations(InputStream input) {
+		String[] line = null;
 		try {
 			Decode decode = Decode.decode(input);
 			while (decode.hasNext()) {
-				String[] line = decode.next();
+				line = decode.next();
 				String name = line[0];
 				int x = Integer.parseInt(line[1]);
 				int y = Integer.parseInt(line[2]);
 				Point p = new Point(x, y);
-				this.locations.put(name, new Location(name, p));
+				String abbreviation = line[3];
+				this.locations.put(name, new Location(name, p, abbreviation));
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			System.err.println(e.getMessage() + " in Line: " + Stream.of(line).collect(Collectors.joining(", ")));
 		}
 	}
 

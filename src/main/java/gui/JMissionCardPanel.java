@@ -2,13 +2,13 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
@@ -19,6 +19,8 @@ public abstract class JMissionCardPanel extends JPanel {
 
 	private static final long serialVersionUID = 2579072798714564454L;
 
+	public static final Dimension preferredSize = new Dimension(160, 100);
+
 	public final MissionCard missionCard;
 
 	private final JPanel missionPanel;
@@ -28,27 +30,24 @@ public abstract class JMissionCardPanel extends JPanel {
 	protected JLabel points;
 
 	protected JLabel fromLocation;
-	protected List<JLabel> overLocations;
+	protected JLabel overLocations;
 	protected JLabel toLocation;
 
-	protected JMissionCardPanel(MissionCard missionCard) {
-		this(missionCard, false);
-	}
+	protected boolean withName;
 
-	protected JMissionCardPanel(MissionCard missionCard, boolean withBorder) {
+	protected JMissionCardPanel(MissionCard missionCard, boolean withName) {
 		super(new BorderLayout());
 		this.missionPanel = new JPanel(new GridBagLayout(), true);
 		this.gbc = new GridBagConstraints();
-		if (withBorder) {
-			this.missionPanel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
-		}
 		this.missionCard = missionCard;
+		this.withName = withName;
 
 		this.distance = new JLabel(missionCard.distance.cardLength);
 		this.points = new JLabel(missionCard.points + " Points", SwingConstants.TRAILING);
-		this.fromLocation = new JLabel(missionCard.getFromLocation().name, SwingConstants.LEADING);
-		this.toLocation = new JLabel(missionCard.getToLocation().name, SwingConstants.TRAILING);
-		this.overLocations = missionCard.getMidLocations().stream().map(l -> new JLabel(l.name, SwingConstants.CENTER)).toList();
+		this.fromLocation = new JLabel(withName ? missionCard.getFromLocation().name : missionCard.getFromLocation().abbreviation, SwingConstants.LEADING);
+		this.toLocation = new JLabel(withName ? missionCard.getToLocation().name : missionCard.getToLocation().abbreviation, SwingConstants.TRAILING);
+		this.overLocations = new JLabel(missionCard.getMidLocations().stream().map(l -> withName ? l.name : l.abbreviation).collect(Collectors.joining(", ", "Via: ", "")), SwingConstants.CENTER);
+		this.missionPanel.setPreferredSize(JMissionCardPanel.preferredSize);
 		this.display();
 	}
 
@@ -71,11 +70,11 @@ public abstract class JMissionCardPanel extends JPanel {
 		this.gbc.gridy = 1;
 		this.missionPanel.add(this.fromLocation, this.gbc);
 
-		this.gbc.insets = new Insets(5, 0, 5, 0);
-		this.overLocations.forEach(l -> {
+		if (!this.missionCard.getMidLocations().isEmpty()) {
+			this.gbc.insets = new Insets(5, 0, 5, 0);
 			this.gbc.gridy++;
-			this.missionPanel.add(l, this.gbc);
-		});
+			this.missionPanel.add(this.overLocations, this.gbc);
+		}
 
 		this.gbc.insets = new Insets(5, 0, 5, 5);
 		this.gbc.gridy++;
@@ -102,13 +101,20 @@ public abstract class JMissionCardPanel extends JPanel {
 	}
 
 	@Override
+	public Dimension getPreferredSize() {
+		Dimension sup = super.getPreferredSize();
+		if ((sup.height == 0) || (sup.width == 0)) { return this.missionPanel.getPreferredSize(); }
+		return sup;
+	}
+
+	@Override
 	public void setForeground(Color color) {
 		super.setForeground(color);
 		if (this.distance != null) {
 			this.distance.setForeground(color);
 			this.points.setForeground(color);
 			this.fromLocation.setForeground(color);
-			this.overLocations.forEach(j -> j.setForeground(color));
+			this.overLocations.setForeground(color);
 			this.toLocation.setForeground(color);
 		}
 	}
@@ -123,7 +129,7 @@ public abstract class JMissionCardPanel extends JPanel {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.missionCard);
+		return this.missionCard.hashCode();
 	}
 
 	@Override
