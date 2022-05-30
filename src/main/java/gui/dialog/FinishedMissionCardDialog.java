@@ -16,6 +16,7 @@ import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
 import gui.DefaultAllJMissionCardsScrollPanel;
 import gui.JMissionCardPanel;
+import language.MyResourceBundle.LanguageKey;
 
 public class FinishedMissionCardDialog extends JDialog {
 
@@ -36,7 +37,7 @@ public class FinishedMissionCardDialog extends JDialog {
 	private DefaultAllJMissionCardsScrollPanel allMissionCardsPanel;
 
 	private FinishedMissionCardDialog() {
-		super(Application.frame, "Finished Missioncards", false);
+		super(Application.frame, Application.resources.getString(LanguageKey.FINISHEDMISSIONCARDS), false);
 		this.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		this.allMissionCardsPanel = new DefaultAllJMissionCardsScrollPanel(-1, 4);
 		this.missioCardScrollPane = new JScrollPane(this.allMissionCardsPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -47,8 +48,8 @@ public class FinishedMissionCardDialog extends JDialog {
 
 	private void update() {
 		this.allMissionCardsPanel.addMissionCards(Game.getInstance().getInstancePlayer().getFinishedMissionCards().stream().map(FinishedJMissionCardPanel::new).toList());
-		this.allMissionCardsPanel
-				.setMapper(Game.getInstance().getInstancePlayer().getFinishedMissionCards().stream().map(m -> m.distance).distinct().collect(Collectors.toMap(Distance::ordinal, i -> i.cardLength)));
+		this.allMissionCardsPanel.setMapper(
+				Game.getInstance().getInstancePlayer().getFinishedMissionCards().stream().map(m -> m.distance).distinct().collect(Collectors.toMap(Distance::ordinal, Distance::getCardLength)));
 		this.allMissionCardsPanel.update();
 		this.missioCardScrollPane.revalidate();
 		this.pack();
@@ -62,7 +63,7 @@ public class FinishedMissionCardDialog extends JDialog {
 
 		public FinishedJMissionCardPanel(MissionCard missionCard) {
 			super(missionCard, true);
-			this.box = new JCheckBox("Show Mission");
+			this.box = new JCheckBox(Application.resources.getString(LanguageKey.SHOWMISSION));
 			this.box.setBackground(Color.WHITE);
 			this.box.setFocusable(false);
 			this.box.addActionListener(e -> {

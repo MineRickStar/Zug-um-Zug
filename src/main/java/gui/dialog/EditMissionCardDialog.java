@@ -24,12 +24,10 @@ import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.WindowConstants;
 
@@ -38,6 +36,7 @@ import game.Game;
 import game.cards.MissionCard;
 import gui.DefaultAllJMissionCardsScrollPanel;
 import gui.JMissionCardPanel;
+import language.MyResourceBundle.LanguageKey;
 
 public class EditMissionCardDialog extends JDialog {
 
@@ -67,7 +66,7 @@ public class EditMissionCardDialog extends JDialog {
 	private boolean edited;
 
 	private EditMissionCardDialog() {
-		super(Application.frame, "Edit Mission Cards", true);
+		super(Application.frame, Application.resources.getString(LanguageKey.EDITMISSIONCARDS), true);
 		this.setLayout(new GridBagLayout());
 		this.addListenersToDialog();
 
@@ -104,24 +103,9 @@ public class EditMissionCardDialog extends JDialog {
 				}
 			}
 		});
-		((JPanel) this.getContentPane()).getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "Escape");
-		((JPanel) this.getContentPane()).getActionMap().put("Escape", new AbstractAction() {
-			private static final long serialVersionUID = 5126913784742276734L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				EditMissionCardDialog.this.setSelectedMissionPanel(null);
-			}
-		});
-		((JPanel) this.getContentPane()).getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "Close");
-		((JPanel) this.getContentPane()).getActionMap().put("Close", new AbstractAction() {
-			private static final long serialVersionUID = 5126913784742276734L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				EditMissionCardDialog.this.dispose();
-			}
-		});
+		JPanel contentPane = (JPanel) this.getContentPane();
+		Application.addShortcut(contentPane, KeyEvent.VK_ESCAPE, e -> EditMissionCardDialog.this.setSelectedMissionPanel(null));
+		Application.addCTRLShortcut(contentPane, KeyEvent.VK_C, e -> EditMissionCardDialog.this.dispose());
 	}
 
 	private void addComponents() {
@@ -169,12 +153,11 @@ public class EditMissionCardDialog extends JDialog {
 	private JPanel getButtonPanel() {
 		JPanel panel = new JPanel(new GridLayout(1, 2, 10, 10));
 
-		JButton okButton = new JButton("OK");
+		JButton okButton = new JButton(Application.resources.getString(LanguageKey.OK));
 		okButton.addActionListener(e -> this.getOKAction().actionPerformed(e));
-		okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "OK");
-		okButton.getActionMap().put("OK", this.getOKAction());
+		Application.addCTRLEnterShortcut(okButton, this.getOKAction());
 
-		JButton cancelButton = new JButton("Cancel");
+		JButton cancelButton = new JButton(Application.resources.getString(LanguageKey.CANCEL));
 		cancelButton.addActionListener(e -> {
 			this.reset();
 			this.setVisible(false);
@@ -246,7 +229,7 @@ public class EditMissionCardDialog extends JDialog {
 
 		private EditableMissionCardPanel(MissionCard missioncard) {
 			super(missioncard, true);
-			this.checkBox = new JCheckBox("Hide");
+			this.checkBox = new JCheckBox(Application.resources.getString(LanguageKey.HIDE));
 			this.checkBox.setFocusable(false);
 			this.checkBox.addActionListener(e -> {
 				if (this.checkBox.isSelected()) {
@@ -312,12 +295,12 @@ public class EditMissionCardDialog extends JDialog {
 
 		private static final long serialVersionUID = -8788756576662888192L;
 
-		JButton moveFirst = new JButton("<< Move First <<");
-		JButton moveUp = new JButton("^ Move Up ^");
-		JButton moveDown = new JButton("v Move Down v");
-		JButton moveRigth = new JButton("> Move Rigth >");
-		JButton moveLeft = new JButton("< Move Left <");
-		JButton moveLast = new JButton(">> Move Last >>");
+		JButton moveFirst = new JButton("<< " + Application.resources.getString(LanguageKey.MOVEFIRST) + " <<");
+		JButton moveUp = new JButton("^ " + Application.resources.getString(LanguageKey.MOVEUP) + " ^");
+		JButton moveDown = new JButton("v " + Application.resources.getString(LanguageKey.MOVEDOWN) + " v");
+		JButton moveRigth = new JButton("> " + Application.resources.getString(LanguageKey.MOVERIGHT) + " >");
+		JButton moveLeft = new JButton("< " + Application.resources.getString(LanguageKey.MOVELEFT) + " <");
+		JButton moveLast = new JButton(">> " + Application.resources.getString(LanguageKey.MOVELAST) + " >>");
 
 		private EditorPanel() {
 			super(new BorderLayout(10, 10));

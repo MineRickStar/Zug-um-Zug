@@ -16,10 +16,12 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import application.Application;
 import game.Game;
 import game.GameMap;
 import game.Rules;
 import game.cards.ColorCard.TransportMode;
+import language.MyResourceBundle.LanguageKey;
 
 public class MapPanel extends AbstractTabbedPanel {
 
@@ -37,7 +39,7 @@ public class MapPanel extends AbstractTabbedPanel {
 	public MapPanel(GameStartDialog parent) {
 		super(parent);
 		this.infoPanel = new JPanel();
-		this.mapLabel = new JLabel("Map: ");
+		this.mapLabel = new JLabel(Application.resources.getString(LanguageKey.MAP) + ": ");
 		GameMap[] gameMaps = GameMap.getMaps().toArray(GameMap[]::new);
 		this.mapRulesPanelWrapper = new JPanel(new GridLayout(1, 1));
 		this.mapComboBox = new JComboBox<>(new DefaultComboBoxModel<>(gameMaps));
@@ -50,7 +52,7 @@ public class MapPanel extends AbstractTabbedPanel {
 			parent.pack();
 		});
 		this.mapComboBox.setSelectedItem(gameMaps[0]);
-		this.reset = new JButton("Reset");
+		this.reset = new JButton(Application.resources.getString(LanguageKey.RESET));
 		this.reset.addActionListener(e -> this.mapRulesPanel.reset());
 		this.layoutComponents();
 	}
@@ -91,7 +93,6 @@ public class MapPanel extends AbstractTabbedPanel {
 
 		private MapRulesPanel(GameMap gameMap) {
 			super(new GridBagLayout());
-			this.setBorder(MapPanel.this.getTitleBorder("Maprules " + gameMap.mapName));
 			this.transportModes = gameMap.getTransportModes();
 			this.transportModePanels = new TransportModePanel[this.transportModes.length];
 
@@ -134,15 +135,15 @@ public class MapPanel extends AbstractTabbedPanel {
 		private TransportModePanel(GameMap gameMap, TransportMode transportMode) {
 			super(new GridBagLayout());
 			this.transportMode = transportMode;
-			this.setBorder(MapPanel.this.getTitleBorder(transportMode.displayName));
+			this.setBorder(MapPanel.this.getTitleBorder(transportMode.getDisplayNameSingular()));
 			int[] allLengths = gameMap.getLengths(null);
 			int[] lengths = gameMap.getLengths(transportMode);
 
-			this.carrigeCountLabel = new JLabel("Carrige Count:");
-			this.colorCardCountLabel = new JLabel("Colorcard Count:");
-			this.locomotiveCardCountLabel = new JLabel("Locomotivcard Count:");
+			this.carrigeCountLabel = new JLabel(Application.resources.getString(LanguageKey.CARRIGECOUNT));
+			this.colorCardCountLabel = new JLabel(Application.resources.getString(LanguageKey.COLORCARDCOUNT));
+			this.locomotiveCardCountLabel = new JLabel(Application.resources.getString(LanguageKey.LOCOMOTIVCARDCOUNT));
 			this.pointsLabelList = IntStream.of(allLengths).mapToObj(length -> {
-				JLabel label = new JLabel("Points for length " + length + ":");
+				JLabel label = new JLabel(String.format(Application.resources.getString(LanguageKey.POINTSFORLENGTH), length));
 				label.setForeground(Color.LIGHT_GRAY);
 				for (int i = 0; i < lengths.length; i++) {
 					if (lengths[i] == length) {
@@ -215,7 +216,7 @@ public class MapPanel extends AbstractTabbedPanel {
 
 	@Override
 	public String getDisplayName() {
-		return "Map";
+		return Application.resources.getString(LanguageKey.MAP);
 	}
 
 	@Override

@@ -10,9 +10,11 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
+import application.Application;
 import game.Game;
 import game.Player;
 import game.cards.ColorCard.MyColor;
+import language.MyResourceBundle.LanguageKey;
 
 public class PlayerPanel extends AbstractTabbedPanel {
 
@@ -26,7 +28,7 @@ public class PlayerPanel extends AbstractTabbedPanel {
 
 	public PlayerPanel(GameStartDialog parent) {
 		super(parent);
-		this.playerNameLabel = new JLabel("Name:");
+		this.playerNameLabel = new JLabel(Application.resources.getString(LanguageKey.NAME));
 		this.playerName = new JTextField("Patrick", PlayerPanel.PLAYER_NAME_WIDTH);
 		this.playerName.addKeyListener(new KeyAdapter() {
 
@@ -57,20 +59,20 @@ public class PlayerPanel extends AbstractTabbedPanel {
 
 	@Override
 	public String getDisplayName() {
-		return "Player";
+		return Application.resources.getString(LanguageKey.PLAYER);
 	}
 
 	@Override
 	public boolean isAllCorrect() {
 		if (this.playerName.getText().isEmpty()) {
-			JOptionPane.showMessageDialog(this, "Playername must not be empty");
+			JOptionPane.showMessageDialog(this, Application.resources.getString(LanguageKey.PLAYERNAMENOTEMPTY));
 			return false;
 		} else if (this.playerName.getText().isBlank()) {
-			JOptionPane.showMessageDialog(this, "Playername must not be blank");
+			JOptionPane.showMessageDialog(this, Application.resources.getString(LanguageKey.PLAYERNAMENOTBLANK));
 			return false;
 		}
 		if (this.playerColor.getSelectedIndex() == -1) {
-			JOptionPane.showMessageDialog(this, "Please choose a Color for you");
+			JOptionPane.showMessageDialog(this, Application.resources.getString(LanguageKey.CHOOSECOLORFORYOU));
 			return false;
 		}
 		return true;

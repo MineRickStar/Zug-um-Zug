@@ -29,6 +29,7 @@ import game.cards.ColorCard;
 import game.cards.ColorCard.MyColor;
 import game.cards.MissionCard.Distance;
 import gui.dialog.DrawMissionCardDialog;
+import language.MyResourceBundle.LanguageKey;
 
 public class PublicPanel extends JPanel implements IUpdatePanel {
 
@@ -66,7 +67,7 @@ public class PublicPanel extends JPanel implements IUpdatePanel {
 		gbc.insets = new Insets(10, 10, 10, 10);
 		this.add(this.createCardButtonPanel(), gbc);
 
-		this.currentPlayerLabel = new JLabel("Current Player: ");
+		this.currentPlayerLabel = new JLabel();
 		gbc.gridy = 2;
 		gbc.insets = new Insets(0, 10, 0, 0);
 		this.add(this.currentPlayerLabel, gbc);
@@ -153,14 +154,14 @@ public class PublicPanel extends JPanel implements IUpdatePanel {
 
 	private JPanel createCardButtonPanel() {
 		JPanel cardButtonPanel = new JPanel(new GridLayout(1, 2, 20, 20));
-		this.drawColorCardsButton = new JButton("Draw Card");
+		this.drawColorCardsButton = new JButton(Application.resources.getString(LanguageKey.DRAWCARD));
 
 		this.drawColorCardsButton.addActionListener(e -> {
 			Game.getInstance().drawColorCardFromDeck(Game.getInstance().getInstancePlayer());
 			this.colorCardsBorder.setTitle(this.getTitleString());
 			this.drawColorCardButtonPanel();
 		});
-		this.drawMissionCardsButton = new JButton("Draw Mission Cards");
+		this.drawMissionCardsButton = new JButton(Application.resources.getString(LanguageKey.DRAWMISSIONCARDS));
 		Application.addCTRLShortcut(this.drawMissionCardsButton, KeyEvent.VK_D, e -> this.drawMissionCards());
 		this.drawMissionCardsButton.addActionListener(e -> this.drawMissionCards());
 
@@ -178,14 +179,15 @@ public class PublicPanel extends JPanel implements IUpdatePanel {
 	}
 
 	private void updateLabelsAndTitle() {
-		this.currentPlayerLabel.setText("Current Player: " + Game.getInstance().getCurrentPlayerName());
+		this.currentPlayerLabel.setText(Application.resources.getString(LanguageKey.CURRENTPLAYER) + ": " + Game.getInstance().getCurrentPlayerName());
 		this.colorCardsBorder.setTitle(this.getTitleString());
 	}
 
 	private String getTitleString() {
-		String drawCards = "Drawcards (" + Game.getInstance().getRemainingCards() + ")";
+		String drawCards = Application.resources.getString(LanguageKey.CARDSLEFT) + " (" + Game.getInstance().getRemainingCards() + ")";
 		if (Game.getInstance().isPlayersTurn() && Game.getInstance().isCardAlreadyDrawn()) {
-			drawCards += " Cards left to draw (" + (Rules.getInstance().getColorCardsDrawing() - Game.getInstance().getCurrentPlayerColorCardDraws()) + ")";
+			drawCards += String.format(" %s (%d)", Application.resources.getString(LanguageKey.CARDSLEFTTODRAW),
+					(Rules.getInstance().getColorCardsDrawing() - Game.getInstance().getCurrentPlayerColorCardDraws()));
 		}
 		return drawCards;
 	}

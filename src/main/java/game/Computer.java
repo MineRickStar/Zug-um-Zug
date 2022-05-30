@@ -4,10 +4,12 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.stream.Stream;
 
+import application.Application;
 import game.cards.ColorCard;
 import game.cards.ColorCard.MyColor;
 import game.cards.MissionCard;
 import game.cards.MissionCard.Distance;
+import language.MyResourceBundle.LanguageKey;
 
 public class Computer extends Player {
 
@@ -53,14 +55,22 @@ public class Computer extends Player {
 	}
 
 	public enum Difficulty {
-		EASY("Easy", 1), MEDIUM("Medium", 2), HARD("Hard", 3), EXTREME("Extreme", 4);
 
-		public final String displayName;
+		EASY(LanguageKey.EASY, 1),
+		MEDIUM(LanguageKey.MEDIUM, 2),
+		HARD(LanguageKey.HARD, 3),
+		EXTREME(LanguageKey.EXTREME, 4);
+
+		private final LanguageKey displayName;
 		public final int index;
 
-		private Difficulty(String displayName, int index) {
+		Difficulty(LanguageKey displayName, int index) {
 			this.displayName = displayName;
 			this.index = index;
+		}
+
+		public String getDisplayName() {
+			return Application.resources.getString(this.displayName);
 		}
 
 		public static Difficulty getDifficultyWithIndex(int index) {

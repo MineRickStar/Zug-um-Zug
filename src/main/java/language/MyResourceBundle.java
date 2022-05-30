@@ -1,0 +1,169 @@
+package language;
+
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.ResourceBundle;
+
+public abstract class MyResourceBundle extends ResourceBundle {
+
+	@Override
+	public final Enumeration<String> getKeys() {
+		return Collections.enumeration(List.of(LanguageKey.values()).stream().map(LanguageKey::name).toList());
+	}
+
+	public final String getString(LanguageKey languageKey) {
+		return this.getString(languageKey.name());
+	}
+
+	protected abstract Object handleGetObject(LanguageKey languageKey);
+
+	@Override
+	protected final Object handleGetObject(String key) {
+		return this.handleGetObject(LanguageKey.valueOf(key));
+	}
+
+	public enum LanguageKey {
+
+		// A
+		ADD,
+		AGAINSTCOMPUTER,
+		AIRPLANE,
+		AIRPLANES,
+		ATLEASTONECOMPONENT,
+		// B
+		BLACK,
+		BLACKPLURAL,
+		BLUE,
+		BLUEPLURAL,
+		BUY,
+		BUYCONNECTION,
+		// C
+		CANCEL,
+		CARDRULES,
+		CARDSLEFT,
+		CARDSLEFTTODRAW,
+		CARRIGECOUNT,
+		CHOOSECOLORFORYOU,
+		CLIENTSETTINGS,
+		COLORCARDCOUNT,
+		COLORMUSTBESELECTED,
+		COMNAMENOTBLANK,
+		COMNAMENOTEMPTY,
+		CONNECTIONDESCRIPTION,
+		COMS,
+		CREATENEWGAME,
+		CREATENEWMAP,
+		CURRENTPLAYER,
+		// D
+		DEFAULTMISSIONCARDKEEPING,
+		DEFAULTCOLOCARDDRAWING,
+		DRAWCARD,
+		DRAWMISSIONCARDS,
+		// E
+		EASY,
+		EDITMAP,
+		EDITMISSIONCARDS,
+		EXTRALONG,
+		EXTREME,
+		// F
+		FINISHEDMISSIONCARDS,
+		FINISHEDMISSIONS,
+		FIRSTCOLORCARDDRAWING,
+		FIRSTMISSIONCARDKEEPING,
+		FOLDERNOTCREATED,
+		// G
+		GAME,
+		GAMESETTINGS,
+		GRAY,
+		GREEN,
+		GREENPLURAL,
+		// H
+		HARD,
+		HIDE,
+		// I
+		// J
+		JOINGAME,
+		// K
+		// L
+		LOCOMOTIVCARDCOUNT,
+		LOCOMOTIVCARDLIMIT,
+		LOCOMOTIVEWORTH,
+		LONG,
+		// M
+		MAP,
+		MAPCREATOR,
+		MAPFOLDERNOTCREATED,
+		MAPTOOSMALL,
+		MAXLOCOMOTIVES,
+		MEDIUM,
+		MIDDLE,
+		MISSIONCARDDRAWING,
+		MISSIONCARDSELECTION,
+		MOVEDOWN,
+		MOVEFIRST,
+		MOVELAST,
+		MOVELEFT,
+		MOVERIGHT,
+		MOVEUP,
+		// N
+		NAME,
+		NEWGAME,
+		NEWMAP,
+		NORMALCARDLIMIT,
+		NOTALLFILESCREATED,
+		// O
+		OK,
+		OPENCARDSLAYINGDOWN,
+		ORANGE,
+		ORANGEPLURAL,
+		// P
+		PLAYER,
+		PLAYERNAMENOTBLANK,
+		PLAYERNAMENOTEMPTY,
+		PLAYERRULES,
+		PLAYONLINE,
+		POINTS,
+		POINTSFORLENGTH,
+		PURPLE,
+		PURPLEPLURAL,
+		// Q
+		QUITGAME,
+		// R
+		RAINBOW,
+		RED,
+		REDPLURAL,
+		REMOVE,
+		RESET,
+		RULES,
+		// S
+		SAVEFOLDERNOTCREATED,
+		SELECTATLEASTMISSION,
+		SELECTMISSION,
+		SELECTORCANCEL,
+		SETTINGS,
+		SHIP,
+		SHIPS,
+		SHORT,
+		SHOWFINISHEDMISSIONCARDS,
+		SHOWMISSION,
+		SHUFFLEWITHLOCOMOTIV,
+		SUMOFMISSIONCARDS,
+		// T
+		TRAIN,
+		TRAINS,
+		// U
+		// V
+		VIA,
+		// W
+		WHITE,
+		WHITEPLURAL,
+		// X
+		// Y
+		YELLOW,
+		YELLOWPLURAL,
+		// Z
+
+	}
+
+}

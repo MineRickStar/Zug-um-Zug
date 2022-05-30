@@ -233,7 +233,11 @@ public class Player {
 			Entry<TransportMode, SortedMap<Integer, List<ColorCard>>> entry = transportIterator.next();
 			StringJoiner cardJoiner = new StringJoiner(", ");
 			for (Entry<Integer, List<ColorCard>> colorCardEntry : entry.getValue().entrySet()) {
-				cardJoiner.add(colorCardEntry.getKey() + " " + colorCardEntry.getValue().stream().map(c -> c.color().colorName).collect(Collectors.joining(", ")));
+				cardJoiner.add(colorCardEntry.getKey() + " "
+						+ colorCardEntry.getValue()
+								.stream()
+								.map(c -> colorCardEntry.getKey() == 1 ? c.color().getColorNameSingular() : c.color().getColorNamePlural())
+								.collect(Collectors.joining(", ")));
 			}
 			transportModeJoiner.add(entry.getKey() + ":");
 			transportModeJoiner.add(cardJoiner.toString());

@@ -31,6 +31,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import application.Application;
 import game.GameMap;
+import language.MyResourceBundle.LanguageKey;
 
 public class MapCreator extends JDialog {
 
@@ -46,7 +47,7 @@ public class MapCreator extends JDialog {
 	private File folder;
 
 	private MapCreator() throws IOException {
-		super(Application.frame, "New Map", true);
+		super(Application.frame, Application.resources.getString(LanguageKey.NEWMAP), true);
 		this.setLayout(new BorderLayout());
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -93,7 +94,7 @@ public class MapCreator extends JDialog {
 			gbc.insets = new Insets(10, 10, 10, 10);
 
 			if ((image.getWidth() < MapCreator.minDimension.getWidth()) || (image.getHeight() < MapCreator.minDimension.getHeight())) {
-				JLabel warning = new JLabel("Map is smaller than the recommended 2000 x 2000 Pixels.");
+				JLabel warning = new JLabel(Application.resources.getString(LanguageKey.MAPTOOSMALL));
 				gbc.gridy = 0;
 				gbc.gridx = 0;
 				gbc.gridwidth = 3;
@@ -111,7 +112,7 @@ public class MapCreator extends JDialog {
 			gbc.gridx = 1;
 			infoPanel.add(new JLabel(), gbc);
 
-			JButton okButton = new JButton("OK");
+			JButton okButton = new JButton(Application.resources.getString(LanguageKey.OK));
 			okButton.addActionListener(e -> this.testOK(nameField.getText(), imageFile));
 
 			gbc.weightx = 0;
@@ -138,13 +139,13 @@ public class MapCreator extends JDialog {
 	private boolean testName(String name) {
 		if (!GameMap.SavedGamesFolder.exists()) {
 			if (!GameMap.SavedGamesFolder.mkdirs()) {
-				JOptionPane.showMessageDialog(this, "Saved Game Folder could not be created");
+				JOptionPane.showMessageDialog(this, Application.resources.getString(LanguageKey.SAVEFOLDERNOTCREATED));
 				return false;
 			}
 		}
 		if (!GameMap.myGameFolder.exists()) {
 			if (!GameMap.myGameFolder.mkdirs()) {
-				JOptionPane.showMessageDialog(this, Application.NAME + " Folder could not be created");
+				JOptionPane.showMessageDialog(this, Application.resources.getString(LanguageKey.FOLDERNOTCREATED));
 				return false;
 			}
 		}
@@ -159,7 +160,7 @@ public class MapCreator extends JDialog {
 	private void createMapFolder(String name, File imageFile) {
 		File mapFolder = new File(GameMap.myGameFolder, name);
 		if (!mapFolder.mkdir()) {
-			JOptionPane.showMessageDialog(this, "MapFolder could not be created");
+			JOptionPane.showMessageDialog(this, Application.resources.getString(LanguageKey.MAPFOLDERNOTCREATED));
 			return;
 		}
 		try {
@@ -181,7 +182,7 @@ public class MapCreator extends JDialog {
 			e.printStackTrace();
 		}
 		if (!createdAll) {
-			JOptionPane.showMessageDialog(this, "Not all Files could be created");
+			JOptionPane.showMessageDialog(this, Application.resources.getString(LanguageKey.NOTALLFILESCREATED));
 		}
 		// Folder could be created
 		this.folder = mapFolder;

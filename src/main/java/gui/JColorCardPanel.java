@@ -98,7 +98,7 @@ public class JColorCardPanel extends JPanel {
 					gbc.gridy++;
 				}
 			}
-			transportPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createRaisedBevelBorder(), entryTransportMode.getKey().displayName));
+			transportPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createRaisedBevelBorder(), entryTransportMode.getKey().getDisplayNameSingular()));
 			gbcTransport.gridx++;
 			this.add(transportPanel, gbcTransport);
 		}

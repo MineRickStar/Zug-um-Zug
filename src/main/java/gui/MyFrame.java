@@ -26,6 +26,7 @@ import gui.dialog.MapCreator;
 import gui.dialog.OnlinePlayerDialogHostDialog;
 import gui.dialog.OnlinePlayerDialogJoinDialog;
 import gui.gameStart.GameStartDialog;
+import language.MyResourceBundle.LanguageKey;
 
 public class MyFrame extends JFrame {
 
@@ -76,19 +77,19 @@ public class MyFrame extends JFrame {
 	}
 
 	private JMenu gameMenu() {
-		JMenu gameMenu = new JMenu("Game");
+		JMenu gameMenu = new JMenu(Application.resources.getString(LanguageKey.GAME));
 
-		JMenu onlinePlay = new JMenu("Online spielen");
+		JMenu onlinePlay = new JMenu(Application.resources.getString(LanguageKey.PLAYONLINE));
 
-		JMenuItem onlinePlayHost = new JMenuItem("Create new Game");
+		JMenuItem onlinePlayHost = new JMenuItem(Application.resources.getString(LanguageKey.CREATENEWGAME));
 		onlinePlayHost.setAccelerator(KeyStroke.getKeyStroke('O', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
 		onlinePlayHost.addActionListener(e -> new OnlinePlayerDialogHostDialog());
-		JMenuItem onlinePlayJoin = new JMenuItem("Join Game");
+		JMenuItem onlinePlayJoin = new JMenuItem(Application.resources.getString(LanguageKey.JOINGAME));
 		onlinePlayJoin.addActionListener(e -> new OnlinePlayerDialogJoinDialog());
 		onlinePlay.add(onlinePlayHost);
 		onlinePlay.add(onlinePlayJoin);
 
-		JMenuItem againstComputerMenu = new JMenuItem("Against Computer");
+		JMenuItem againstComputerMenu = new JMenuItem(Application.resources.getString(LanguageKey.AGAINSTCOMPUTER));
 		againstComputerMenu.addActionListener(e -> {
 			if (!Game.getInstance().isGameStarted()) {
 				new GameStartDialog();
@@ -96,7 +97,7 @@ public class MyFrame extends JFrame {
 		});
 		againstComputerMenu.setAccelerator(KeyStroke.getKeyStroke('A', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
 
-		JMenuItem quitGame = new JMenuItem("Quit Game");
+		JMenuItem quitGame = new JMenuItem(Application.resources.getString(LanguageKey.QUITGAME));
 		quitGame.addActionListener(e -> Application.frame.dispose());
 
 		gameMenu.add(onlinePlay);
@@ -107,7 +108,7 @@ public class MyFrame extends JFrame {
 	}
 
 	private JMenu settingsMenu() {
-		JMenu settingsMenu = new JMenu("Settings");
+		JMenu settingsMenu = new JMenu(Application.resources.getString(LanguageKey.SETTINGS));
 
 		settingsMenu.addActionListener(e -> new ClientSettingsDialog());
 
@@ -115,9 +116,9 @@ public class MyFrame extends JFrame {
 	}
 
 	private JMenu mapCreatorMenu() {
-		JMenu mapCreatorMenu = new JMenu("Map Creator");
+		JMenu mapCreatorMenu = new JMenu(Application.resources.getString(LanguageKey.MAPCREATOR));
 
-		JMenuItem mapCreatorMenuItem = new JMenuItem("Create new Map");
+		JMenuItem mapCreatorMenuItem = new JMenuItem(Application.resources.getString(LanguageKey.CREATENEWMAP));
 		mapCreatorMenuItem.setAccelerator(KeyStroke.getKeyStroke('C', Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
 		mapCreatorMenuItem.addActionListener(e -> {
 			try {
@@ -126,7 +127,7 @@ public class MyFrame extends JFrame {
 				e1.printStackTrace();
 			}
 		});
-		JMenuItem editMapMenuItem = new JMenuItem("Edit Map");
+		JMenuItem editMapMenuItem = new JMenuItem(Application.resources.getString(LanguageKey.EDITMAP));
 
 		mapCreatorMenu.add(mapCreatorMenuItem);
 		mapCreatorMenu.add(editMapMenuItem);

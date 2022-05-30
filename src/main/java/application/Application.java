@@ -4,9 +4,11 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.ResourceBundle;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -16,12 +18,15 @@ import javax.swing.SwingUtilities;
 import gui.MyFrame;
 import gui.dialog.EditMissionCardDialog;
 import gui.dialog.FinishedMissionCardDialog;
+import language.MyResourceBundle;
 
 public class Application {
 
 	public static final String NAME = "Zug um Zug";
 
 	public static MyFrame frame;
+
+	public static MyResourceBundle resources = (MyResourceBundle) ResourceBundle.getBundle("language.MyResources");
 
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> Application.frame = new MyFrame());
@@ -35,8 +40,16 @@ public class Application {
 		FinishedMissionCardDialog.create();
 	}
 
+	public static void addCTRLEnterShortcut(JComponent component, ActionListener listener) {
+		Application.addCTRLShortcut(component, KeyEvent.VK_ENTER, listener);
+	}
+
 	public static void addCTRLShortcut(JComponent component, int keyCode, ActionListener listener) {
 		Application.addShortcut(component, KeyStroke.getKeyStroke(keyCode, InputEvent.CTRL_DOWN_MASK), listener);
+	}
+
+	public static void addShortcut(JComponent component, int keyCode, ActionListener listener) {
+		Application.addShortcut(component, KeyStroke.getKeyStroke(keyCode, 0), listener);
 	}
 
 	public static void addShortcut(JComponent component, KeyStroke stroke, ActionListener listener) {

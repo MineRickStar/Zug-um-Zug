@@ -11,7 +11,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 
+import application.Application;
 import game.Rules;
+import language.MyResourceBundle.LanguageKey;
 
 public class RulesPanel extends AbstractTabbedPanel {
 
@@ -26,7 +28,7 @@ public class RulesPanel extends AbstractTabbedPanel {
 		super(parent);
 		this.playerRulesPanel = new PlayerRulesPanel();
 		this.cardRulesPanel = new CardRulesPanel();
-		this.resetButton = new JButton("Reset");
+		this.resetButton = new JButton(Application.resources.getString(LanguageKey.RESET));
 		this.resetButton.addActionListener(e -> {
 			this.playerRulesPanel.reset();
 			this.cardRulesPanel.reset();
@@ -56,7 +58,7 @@ public class RulesPanel extends AbstractTabbedPanel {
 
 	@Override
 	public String getDisplayName() {
-		return "Rules";
+		return Application.resources.getString(LanguageKey.RULES);
 	}
 
 	@Override
@@ -96,16 +98,16 @@ public class RulesPanel extends AbstractTabbedPanel {
 
 		private PlayerRulesPanel() {
 			super(new GridBagLayout());
-			this.setBorder(RulesPanel.this.getTitleBorder("Playerrules"));
-			this.playerCardLimitLabel = new JLabel("Normal Card Limit:");
-			this.playerMissioncardDrawingLabel = new JLabel("Missioncard Drawing:");
-			this.firstMissionCardKeepingLabel = new JLabel("First Missioncard Keeping:");
-			this.firstColorCardsLabel = new JLabel("First Color Cards Drawing:");
+			this.setBorder(RulesPanel.this.getTitleBorder(Application.resources.getString(LanguageKey.PLAYERRULES)));
+			this.playerCardLimitLabel = new JLabel(Application.resources.getString(LanguageKey.NORMALCARDLIMIT));
+			this.playerMissioncardDrawingLabel = new JLabel(Application.resources.getString(LanguageKey.MISSIONCARDDRAWING));
+			this.firstMissionCardKeepingLabel = new JLabel(Application.resources.getString(LanguageKey.FIRSTMISSIONCARDKEEPING));
+			this.firstColorCardsLabel = new JLabel(Application.resources.getString(LanguageKey.FIRSTCOLORCARDDRAWING));
 
-			this.locomotivCardLimitLabel = new JLabel("Locomotiv Card Limit:");
+			this.locomotivCardLimitLabel = new JLabel(Application.resources.getString(LanguageKey.LOCOMOTIVCARDLIMIT));
 			// Nothing here in the Second Column
-			this.defaultMissionCardKeepingLabel = new JLabel("Default Missioncard Keeping:");
-			this.drawColorCardsLabel = new JLabel("Default Color Cards Drawing:");
+			this.defaultMissionCardKeepingLabel = new JLabel(Application.resources.getString(LanguageKey.DEFAULTMISSIONCARDKEEPING));
+			this.drawColorCardsLabel = new JLabel(Application.resources.getString(LanguageKey.DEFAULTCOLOCARDDRAWING));
 
 			Rules rules = Rules.getInstance();
 			this.normalCardLimit = new MySpinner(rules.getCardsLimit(), 0, 100);
@@ -196,13 +198,13 @@ public class RulesPanel extends AbstractTabbedPanel {
 
 		private CardRulesPanel() {
 			super(new GridBagLayout());
-			this.setBorder(RulesPanel.this.getTitleBorder("Cardrules"));
-			this.openColorCardsLabel = new JLabel("Open Cards Laying Down:");
-			this.locomotiveWorthLabel = new JLabel("Locomotive Worth:");
+			this.setBorder(RulesPanel.this.getTitleBorder(Application.resources.getString(LanguageKey.CARDRULES)));
+			this.openColorCardsLabel = new JLabel(Application.resources.getString(LanguageKey.OPENCARDSLAYINGDOWN));
+			this.locomotiveWorthLabel = new JLabel(Application.resources.getString(LanguageKey.LOCOMOTIVEWORTH));
 			this.locomotiveWorthLabel.setToolTipText("Test");
-			this.shuffleCardsWhenMaxLocomotivesLabel = new JLabel("Shuffle With Locomotives:");
+			this.shuffleCardsWhenMaxLocomotivesLabel = new JLabel(Application.resources.getString(LanguageKey.SHUFFLEWITHLOCOMOTIV));
 			this.maxOpenLocomotivesLabelPanel = new JPanel(new GridLayout(1, 1));
-			this.maxOpenLocomotivesLabel = new JLabel("Max Locomotives:");
+			this.maxOpenLocomotivesLabel = new JLabel(Application.resources.getString(LanguageKey.MAXLOCOMOTIVES));
 
 			Rules rules = Rules.getInstance();
 			this.openColorCards = new MySpinner(rules.getOpenColorCards(), 1, 10);

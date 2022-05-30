@@ -5,6 +5,9 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import application.Application;
+import language.MyResourceBundle.LanguageKey;
+
 public class ColorCard {
 
 	private final MyColor color;
@@ -24,7 +27,7 @@ public class ColorCard {
 	}
 
 	public String getColorCardString() {
-		return "<html><body>" + this.transportMode().displayName + "<br>" + this.color().colorName + "</body></html>";
+		return "<html><body>" + this.transportMode().getDisplayNameSingular() + "<br>" + this.color().getColorNameSingular() + "</body></html>";
 	}
 
 	@Override
@@ -48,15 +51,33 @@ public class ColorCard {
 
 	public enum MyColor {
 
-		BLACK("Black", Color.BLACK), BLUE("Blue", Color.BLUE), RED("Red", Color.RED), GREEN("Green", Color.GREEN), YELLOW("Yellow", Color.YELLOW), PURPLE("Purple", Color.MAGENTA),
-		WHITE("White", Color.WHITE), ORANGE("Orange", Color.ORANGE), GRAY("Gray", Color.GRAY), RAINBOW("Rainbow", Color.MAGENTA);
+		BLACK(LanguageKey.BLACK, LanguageKey.BLACKPLURAL, Color.BLACK),
+		BLUE(LanguageKey.BLUE, LanguageKey.BLUEPLURAL, Color.BLUE),
+		RED(LanguageKey.RED, LanguageKey.REDPLURAL, Color.RED),
+		GREEN(LanguageKey.GREEN, LanguageKey.GREENPLURAL, Color.GREEN),
+		YELLOW(LanguageKey.YELLOW, LanguageKey.YELLOWPLURAL, Color.YELLOW),
+		PURPLE(LanguageKey.PURPLE, LanguageKey.PURPLEPLURAL, Color.MAGENTA),
+		WHITE(LanguageKey.WHITE, LanguageKey.WHITEPLURAL, Color.WHITE),
+		ORANGE(LanguageKey.ORANGE, LanguageKey.ORANGEPLURAL, Color.ORANGE),
+		GRAY(LanguageKey.GRAY, LanguageKey.GRAY, Color.GRAY),
+		RAINBOW(LanguageKey.RAINBOW, LanguageKey.RAINBOW, Color.MAGENTA);
 
-		public final String colorName;
+		private final LanguageKey colorNameSingular;
+		private final LanguageKey colorNamePlural;
 		public final Color realColor;
 
-		MyColor(String colorName, Color realColor) {
-			this.colorName = colorName;
+		MyColor(LanguageKey colorNameSingular, LanguageKey colorNamePlural, Color realColor) {
+			this.colorNameSingular = colorNameSingular;
+			this.colorNamePlural = colorNamePlural;
 			this.realColor = realColor;
+		}
+
+		public String getColorNameSingular() {
+			return Application.resources.getString(this.colorNameSingular);
+		}
+
+		public String getColorNamePlural() {
+			return Application.resources.getString(this.colorNamePlural);
 		}
 
 		public Color getRealColor() {
@@ -90,19 +111,32 @@ public class ColorCard {
 
 		@Override
 		public String toString() {
-			return this.colorName;
+			return this.getColorNameSingular();
 		}
 	}
 
 	public enum TransportMode implements Serializable {
-		TRAIN("Train", "t"), SHIP("Ship", "s"), AIRPLANE("Airplane", "a");
 
-		public final String displayName;
+		TRAIN(LanguageKey.TRAIN, LanguageKey.TRAINS, "t"),
+		SHIP(LanguageKey.SHIP, LanguageKey.SHIPS, "s"),
+		AIRPLANE(LanguageKey.AIRPLANE, LanguageKey.AIRPLANES, "a");
+
+		private final LanguageKey displayNameSingular;
+		private final LanguageKey displayNamePlural;
 		public final String abbreviation;
 
-		TransportMode(String displayName, String abbreviation) {
-			this.displayName = displayName;
+		TransportMode(LanguageKey displayNameSingular, LanguageKey displayNamePlural, String abbreviation) {
+			this.displayNameSingular = displayNameSingular;
+			this.displayNamePlural = displayNamePlural;
 			this.abbreviation = abbreviation;
+		}
+
+		public String getDisplayNameSingular() {
+			return Application.resources.getString(this.displayNameSingular);
+		}
+
+		public String getDisplayNamePlural() {
+			return Application.resources.getString(this.displayNamePlural);
 		}
 
 		public static TransportMode getTransportMode(String abbreviation) {

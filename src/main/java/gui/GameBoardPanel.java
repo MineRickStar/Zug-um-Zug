@@ -22,6 +22,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
+import application.Application;
 import application.PropertyEvent;
 import connection.Connection;
 import connection.SingleConnection;
@@ -30,6 +31,7 @@ import game.Player;
 import game.board.Location;
 import game.cards.ColorCard;
 import gui.dialog.BuyingDialog;
+import language.MyResourceBundle.LanguageKey;
 
 public class GameBoardPanel extends JPanel implements IUpdatePanel {
 
@@ -97,7 +99,7 @@ public class GameBoardPanel extends JPanel implements IUpdatePanel {
 			Point to = connection.toLocation.point;
 
 			int dx = to.x - from.x;
-			if (dx < 0) { // From ist immer der linke Punkt
+			if (dx < 0) { // From is always the left Point
 				Point tmp = to;
 				to = from;
 				from = tmp;
@@ -286,7 +288,7 @@ public class GameBoardPanel extends JPanel implements IUpdatePanel {
 		boolean canBuyConnection = player.canPlayerBuySingleConnection(selectedConnection)
 				&& !player.getSingleConnections().stream().anyMatch(c -> c.parentConnection.equals(this.hoveredConnection.parentConnection));
 		JPopupMenu menu = new JPopupMenu();
-		JMenuItem buyButton = new JMenuItem("Buy");
+		JMenuItem buyButton = new JMenuItem(Application.resources.getString(LanguageKey.BUY));
 		buyButton.setEnabled(canBuyConnection);
 		buyButton.addActionListener(e1 -> {
 			if (canBuyConnection) {
@@ -311,7 +313,7 @@ public class GameBoardPanel extends JPanel implements IUpdatePanel {
 
 	@Override
 	public void update(PropertyEvent propertyEvent) {
-		// TODO nothing to Update until now
+		// nothing to Update til now
 	}
 
 }

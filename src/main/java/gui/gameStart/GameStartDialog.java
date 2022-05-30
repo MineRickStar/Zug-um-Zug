@@ -4,21 +4,16 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 
-import javax.swing.AbstractAction;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.KeyStroke;
 import javax.swing.ToolTipManager;
 
 import application.Application;
 import game.Game;
+import language.MyResourceBundle.LanguageKey;
 
 public class GameStartDialog extends JDialog {
 
@@ -32,7 +27,7 @@ public class GameStartDialog extends JDialog {
 	private RulesPanel rulesPanel;
 
 	public GameStartDialog() {
-		super(Application.frame, "New Game", true);
+		super(Application.frame, Application.resources.getString(LanguageKey.NEWGAME), true);
 		ToolTipManager.sharedInstance().setInitialDelay(0);
 		this.setLayout(new GridBagLayout());
 		this.tabbedPane = new JTabbedPane();
@@ -67,19 +62,11 @@ public class GameStartDialog extends JDialog {
 	private JPanel getButtonPanel() {
 		JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 5, 5));
 
-		JButton okButton = new JButton("OK");
-		okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "OK");
-		okButton.getActionMap().put("OK", new AbstractAction() {
-			private static final long serialVersionUID = 5594240801235444580L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				GameStartDialog.this.testOK();
-			}
-		});
+		JButton okButton = new JButton(Application.resources.getString(LanguageKey.OK));
+		Application.addCTRLEnterShortcut(okButton, e -> GameStartDialog.this.testOK());
 		okButton.addActionListener(e -> this.testOK());
 
-		JButton cancelButton = new JButton("Cancel");
+		JButton cancelButton = new JButton(Application.resources.getString(LanguageKey.CANCEL));
 		cancelButton.addActionListener(e -> this.dispose());
 
 		buttonPanel.add(okButton);
@@ -90,17 +77,19 @@ public class GameStartDialog extends JDialog {
 
 	private void testOK() {
 		boolean rules = this.confirmDialog(this.rulesPanel);
+		if (!rules) { return; }
 		boolean player = this.confirmDialog(this.playerPanel);
+		if (!player) { return; }
 		boolean coms = this.confirmDialog(this.comPanel);
+		if (!coms) { return; }
 		boolean map = this.confirmDialog(this.mapPanel);
-		if (rules && player && coms && map) {
-			this.rulesPanel.save();
-			this.mapPanel.save();
-			this.playerPanel.save();
-			this.comPanel.save();
-			this.dispose();
-			Game.getInstance().startGame();
-		}
+		if (!map) { return; }
+		this.rulesPanel.save();
+		this.mapPanel.save();
+		this.playerPanel.save();
+		this.comPanel.save();
+		this.dispose();
+		Game.getInstance().startGame();
 	}
 
 	private boolean confirmDialog(AbstractTabbedPanel tabbedPanel) {

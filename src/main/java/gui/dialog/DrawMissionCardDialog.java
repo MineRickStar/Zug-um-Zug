@@ -4,22 +4,16 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.swing.AbstractAction;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
-import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
@@ -27,6 +21,7 @@ import application.Application;
 import game.Game;
 import game.Rules;
 import game.cards.MissionCard.Distance;
+import language.MyResourceBundle.LanguageKey;
 
 public class DrawMissionCardDialog extends JDialog {
 
@@ -37,7 +32,7 @@ public class DrawMissionCardDialog extends JDialog {
 	private Map<Distance, JSlider> distanceSlider;
 
 	public DrawMissionCardDialog(boolean start) {
-		super(Application.frame, "Draw Mission Cards", true);
+		super(Application.frame, Application.resources.getString(LanguageKey.DRAWMISSIONCARDS), true);
 		JPanel panel = new JPanel(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
 
@@ -53,7 +48,7 @@ public class DrawMissionCardDialog extends JDialog {
 
 		for (Distance distance : distances) {
 			JPanel missionCardPanel = new JPanel();
-			JLabel label = new JLabel(distance.cardLength);
+			JLabel label = new JLabel(distance.getCardLength());
 			missionCardPanel.add(label);
 			JSlider slider = this.getMissionCardSlider(distance);
 			this.distanceSlider.put(distance, slider);
@@ -65,20 +60,11 @@ public class DrawMissionCardDialog extends JDialog {
 
 		JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 10, 10));
 
-		JButton okButton = new JButton("OK");
-		okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "OK");
-		okButton.getActionMap().put("OK", new AbstractAction() {
-
-			private static final long serialVersionUID = 5594240801235444580L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				DrawMissionCardDialog.this.testMissionCards();
-			}
-		});
+		JButton okButton = new JButton(Application.resources.getString(LanguageKey.OK));
+		Application.addCTRLEnterShortcut(okButton, e -> DrawMissionCardDialog.this.testMissionCards());
 		okButton.addActionListener(e -> this.testMissionCards());
 
-		JButton cancelButton = new JButton("Cancel");
+		JButton cancelButton = new JButton(Application.resources.getString(LanguageKey.CANCEL));
 		cancelButton.addActionListener(e -> this.dispose());
 
 		buttonPanel.add(okButton);
@@ -106,7 +92,7 @@ public class DrawMissionCardDialog extends JDialog {
 		if (this.missionCards.values().stream().collect(Collectors.summingInt(Integer::intValue)) == Rules.getInstance().getMissionCardsDrawing()) {
 			this.dispose();
 		} else {
-			JOptionPane.showMessageDialog(this, String.format("The sum of all Mission Cards must be %d", Rules.getInstance().getMissionCardsDrawing()));
+			JOptionPane.showMessageDialog(this, String.format(Application.resources.getString(LanguageKey.SUMOFMISSIONCARDS), Rules.getInstance().getMissionCardsDrawing()));
 		}
 	}
 

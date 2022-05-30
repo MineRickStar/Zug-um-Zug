@@ -1,16 +1,7 @@
 
 Currently in Process:
 
-
-Bei Tamara werden die DrawCards nicht angezeigt
-Infos zu MissionKarten in show Finished MissionCards
-Wenn man bei Edit mission Cards auf X drückt wieder zurücksetzen
-Long Cards und Extra Long Cards machen display Probleme
-Tamara hat 1600 * 900 Auflösung
-Edit MissionCards ausblenden wenn keine Mehr da
-TODO Hide Mission Cards funktioniert nicht wenn man bewegt und es ausgewählt ist
-Map mit MissionCards und Index speichern
-Show Finished MissionCards funktioniert nicht richtig
+Language
 
 GUI:
 
@@ -87,8 +78,14 @@ Karten schon früher mischen als wenn keine mehr da sind
 Finished MissionCards auch mit ScrollPane
 Maps müssen somit nicht per Code gespeichert werden sondern in extra Files
 Resource Loading in der Jar Datei und in Eclipse
-
-
-
+Bei Tamara werden die DrawCards nicht angezeigt
+Infos zu MissionKarten in show Finished MissionCards
+Wenn man bei Edit mission Cards auf X drückt wieder zurücksetzen
+Long Cards und Extra Long Cards machen display Probleme
+Tamara hat 1600 * 900 Auflösung
+Edit MissionCards ausblenden wenn keine Mehr da
+TODO Hide Mission Cards funktioniert nicht wenn man bewegt und es ausgewählt ist
+Map mit MissionCards und Index speichern
+Show Finished MissionCards funktioniert nicht richtig
 
 

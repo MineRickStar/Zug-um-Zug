@@ -11,9 +11,6 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.LinearGradientPaint;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -24,15 +21,12 @@ import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import javax.swing.AbstractAction;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 
@@ -42,6 +36,7 @@ import connection.SingleConnection;
 import game.Player;
 import game.cards.ColorCard;
 import game.cards.ColorCard.MyColor;
+import language.MyResourceBundle.LanguageKey;
 
 public class BuyingDialog extends JDialog {
 
@@ -56,7 +51,7 @@ public class BuyingDialog extends JDialog {
 	private ColorPanel selectedBuyingOption;
 
 	public BuyingDialog(JPanel parentPanel, SingleConnection singleConnection, Player player) {
-		super(Application.frame, "Buy Connection?", true);
+		super(Application.frame, Application.resources.getString(LanguageKey.BUYCONNECTION), true);
 		this.player = player;
 		this.setLayout(new GridBagLayout());
 		this.addWindowListener(new WindowAdapter() {
@@ -69,8 +64,8 @@ public class BuyingDialog extends JDialog {
 		this.allBuyingOptionPanels = new ArrayList<>();
 
 		Connection connection = singleConnection.parentConnection;
-		JLabel description = new JLabel(String.format("Connection: From %s to %s, Cost: %d %s %s", connection.fromLocation.name, connection.toLocation.name, singleConnection.length,
-				singleConnection.color.colorName, singleConnection.transportMode.displayName));
+		JLabel description = new JLabel(String.format(Application.resources.getString(LanguageKey.CONNECTIONDESCRIPTION), connection.fromLocation.name, connection.toLocation.name,
+				singleConnection.length, singleConnection.getColorName(), singleConnection.getTransportModeName()));
 
 		JScrollPane buyingOptionsScrollPane = this.getColorCardsScrollPane(player.getBuyingOptions(singleConnection.getColorCardRepresentation(), singleConnection.length),
 				Application.frame.getWidth(), Application.frame.getHeight());
@@ -138,11 +133,11 @@ public class BuyingDialog extends JDialog {
 		for (ColorCard colorCard : colorCards) {
 			JLabel label;
 			if (colorCard.color() == MyColor.RAINBOW) {
-				label = new JGradientLabel(colorCard.color().colorName);
+				label = new JGradientLabel(colorCard.color().getColorNamePlural());
 				label.setForeground(Color.BLACK);
 				label.setOpaque(false);
 			} else {
-				label = new JLabel(colorCard.color().colorName);
+				label = new JLabel(colorCard.color().getColorNamePlural());
 				label.setForeground(MyColor.getComplementaryColor(colorCard.color()));
 				label.setBackground(colorCard.color().realColor);
 				label.setOpaque(true);
@@ -156,19 +151,11 @@ public class BuyingDialog extends JDialog {
 
 	private JPanel createButtonPanel() {
 		JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 10, 10));
-		JButton okButton = new JButton("OK");
+		JButton okButton = new JButton(Application.resources.getString(LanguageKey.OK));
 		okButton.addActionListener(e -> this.testBuyOption());
-		okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "OK");
-		okButton.getActionMap().put("OK", new AbstractAction() {
-			private static final long serialVersionUID = 6740774083608708284L;
+		Application.addCTRLEnterShortcut(okButton, e -> BuyingDialog.this.testBuyOption());
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				BuyingDialog.this.testBuyOption();
-			}
-		});
-
-		JButton cancelButton = new JButton("Cancel");
+		JButton cancelButton = new JButton(Application.resources.getString(LanguageKey.CANCEL));
 		cancelButton.addActionListener(e -> {
 			this.selectedBuyingOption = null;
 			this.dispose();
@@ -180,7 +167,7 @@ public class BuyingDialog extends JDialog {
 
 	private void testBuyOption() {
 		if (this.selectedBuyingOption == null) {
-			JOptionPane.showMessageDialog(this, "Please select an Option or Cancel");
+			JOptionPane.showMessageDialog(this, Application.resources.getString(LanguageKey.SELECTORCANCEL));
 			return;
 		}
 		this.dispose();

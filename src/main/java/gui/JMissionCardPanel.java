@@ -13,7 +13,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import application.Application;
 import game.cards.MissionCard;
+import language.MyResourceBundle.LanguageKey;
 
 public abstract class JMissionCardPanel extends JPanel {
 
@@ -42,11 +44,13 @@ public abstract class JMissionCardPanel extends JPanel {
 		this.missionCard = missionCard;
 		this.withName = withName;
 
-		this.distance = new JLabel(missionCard.distance.cardLength);
-		this.points = new JLabel(missionCard.points + " Points", SwingConstants.TRAILING);
+		this.distance = new JLabel(missionCard.distance.getCardLength());
+		this.points = new JLabel(missionCard.points + " " + Application.resources.getString(LanguageKey.POINTS), SwingConstants.TRAILING);
 		this.fromLocation = new JLabel(withName ? missionCard.getFromLocation().name : missionCard.getFromLocation().abbreviation, SwingConstants.LEADING);
 		this.toLocation = new JLabel(withName ? missionCard.getToLocation().name : missionCard.getToLocation().abbreviation, SwingConstants.TRAILING);
-		this.overLocations = new JLabel(missionCard.getMidLocations().stream().map(l -> withName ? l.name : l.abbreviation).collect(Collectors.joining(", ", "Via: ", "")), SwingConstants.CENTER);
+		this.overLocations = new JLabel(
+				missionCard.getMidLocations().stream().map(l -> withName ? l.name : l.abbreviation).collect(Collectors.joining(", ", Application.resources.getString(LanguageKey.VIA) + ": ", "")),
+				SwingConstants.CENTER);
 		this.missionPanel.setPreferredSize(JMissionCardPanel.preferredSize);
 		this.display();
 	}

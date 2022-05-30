@@ -21,9 +21,11 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import application.Application;
 import game.Computer.Difficulty;
 import game.Game;
 import game.cards.ColorCard.MyColor;
+import language.MyResourceBundle.LanguageKey;
 
 public class ComPanel extends AbstractTabbedPanel {
 
@@ -43,7 +45,7 @@ public class ComPanel extends AbstractTabbedPanel {
 		super(parent);
 		this.comPanel = new JPanel(new GridLayout(this.maxComs, 1, 10, 10));
 		this.singelComPanels = new ArrayList<>();
-		this.addComButton = new JButton("Add");
+		this.addComButton = new JButton(Application.resources.getString(LanguageKey.ADD));
 		this.addComButton.addActionListener(e -> this.addComPanel());
 		this.addComPanel();
 		this.layoutComponents();
@@ -127,12 +129,12 @@ public class ComPanel extends AbstractTabbedPanel {
 		// TODO Color Selection bei Coms funktioniert immer noch nicht
 
 		private SingelComPanel() {
-			this.removeOpponent = new JButton("Remove");
+			this.removeOpponent = new JButton(Application.resources.getString(LanguageKey.REMOVE));
 			this.removeOpponent.addActionListener(e -> {
 				if (ComPanel.this.singelComPanels.size() > 1) {
 					ComPanel.this.removeComPanel(this);
 				} else {
-					JOptionPane.showMessageDialog(this, "Must have at least one Opponent");
+					JOptionPane.showMessageDialog(this, Application.resources.getString(LanguageKey.ATLEASTONECOMPONENT));
 				}
 			});
 			this.opponentName = new JTextField(ComPanel.COM_NAME + (ComPanel.this.singelComPanels.size() + 1), ComPanel.DEFAULT_OPPONENT_NAME_SIZE);
@@ -164,7 +166,7 @@ public class ComPanel extends AbstractTabbedPanel {
 			slider.setDoubleBuffered(true);
 
 			Hashtable<Integer, JLabel> dic = new Hashtable<>(difficulties.length);
-			List.of(difficulties).forEach(d -> dic.put(d.index, new JLabel(d.displayName)));
+			List.of(difficulties).forEach(d -> dic.put(d.index, new JLabel(d.getDisplayName())));
 			slider.setLabelTable(dic);
 
 			return slider;
@@ -209,7 +211,7 @@ public class ComPanel extends AbstractTabbedPanel {
 
 	@Override
 	public String getDisplayName() {
-		return "Coms";
+		return Application.resources.getString(LanguageKey.COMS);
 	}
 
 	@Override
@@ -217,14 +219,14 @@ public class ComPanel extends AbstractTabbedPanel {
 		for (SingelComPanel panel : this.singelComPanels) {
 			String opponentName = panel.opponentName.getText();
 			if (opponentName.isEmpty()) {
-				JOptionPane.showMessageDialog(this, "Name must not be emtpy");
+				JOptionPane.showMessageDialog(this, Application.resources.getString(LanguageKey.COMNAMENOTEMPTY));
 				return false;
 			} else if (opponentName.isBlank()) {
-				JOptionPane.showMessageDialog(this, "Name must not be blank");
+				JOptionPane.showMessageDialog(this, Application.resources.getString(LanguageKey.COMNAMENOTBLANK));
 				return false;
 			}
 			if (panel.colorSelection.getSelectedIndex() == -1) {
-				JOptionPane.showMessageDialog(this, "Color must be selected");
+				JOptionPane.showMessageDialog(this, Application.resources.getString(LanguageKey.COLORMUSTBESELECTED));
 				return false;
 			}
 		}

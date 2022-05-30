@@ -24,6 +24,7 @@ import game.Game;
 import game.cards.ColorCard.TransportMode;
 import game.cards.MissionCard;
 import gui.dialog.EditMissionCardDialog;
+import language.MyResourceBundle.LanguageKey;
 
 public class PlayerMissionCardPanel extends JPanel implements IUpdatePanel {
 
@@ -66,11 +67,11 @@ public class PlayerMissionCardPanel extends JPanel implements IUpdatePanel {
 
 	private JPanel setUpMissionCardPanel() {
 		JPanel missionCards = new JPanel(new GridBagLayout());
-		this.showFinishedMissionCardsButton = new JButton("Show Finished Mission Cards");
+		this.showFinishedMissionCardsButton = new JButton(Application.resources.getString(LanguageKey.SHOWFINISHEDMISSIONCARDS));
 		this.showFinishedMissionCardsButton.setEnabled(false);
 		this.showFinishedMissionCardsButton.setFocusable(false);
 		this.showFinishedMissionCardsButton.addActionListener(e -> Application.createNewFinishedMissionCardDialog());
-		this.editMissionCardsButton = new JButton("Edit Missioncards");
+		this.editMissionCardsButton = new JButton(Application.resources.getString(LanguageKey.EDITMISSIONCARDS));
 		this.editMissionCardsButton.setFocusable(false);
 		Application.addCTRLShortcut(this.editMissionCardsButton, KeyEvent.VK_E, e -> this.editMissionCards());
 		this.editMissionCardsButton.addActionListener(e -> this.editMissionCards());
@@ -168,8 +169,12 @@ public class PlayerMissionCardPanel extends JPanel implements IUpdatePanel {
 
 	private void updatePlayerInfoPanel() {
 		List<MissionCard> finishedMissionCards = Game.getInstance().getInstancePlayer().getFinishedMissionCards();
-		this.finishedMissionCardsInfo.setText(String.format("Finished Missions: %d, Points: %d", finishedMissionCards.size(), finishedMissionCards.stream().mapToInt(m -> m.points).sum()));
-		this.carrigeCountLabelList.forEach((t, u) -> u.setText(t.displayName + " " + Game.getInstance().getInstancePlayer().getPieceCount(t)));
+		this.finishedMissionCardsInfo.setText(String.format("%s: %d, %s: %d", Application.resources.getString(LanguageKey.FINISHEDMISSIONS), finishedMissionCards.size(),
+				Application.resources.getString(LanguageKey.POINTS), finishedMissionCards.stream().mapToInt(m -> m.points).sum()));
+		this.carrigeCountLabelList.forEach((t, u) -> {
+			int pieceCount = Game.getInstance().getInstancePlayer().getPieceCount(t);
+			u.setText(pieceCount == 1 ? t.getDisplayNameSingular() : t.getDisplayNamePlural() + " " + pieceCount);
+		});
 	}
 
 	@Override

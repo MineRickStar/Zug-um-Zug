@@ -41,6 +41,14 @@ public class SingleConnection {
 		return new ColorCard(this.color, this.transportMode);
 	}
 
+	public String getColorName() {
+		return this.length == 1 ? this.color.getColorNameSingular() : this.color.getColorNamePlural();
+	}
+
+	public String getTransportModeName() {
+		return this.length == 1 ? this.transportMode.getDisplayNameSingular() : this.transportMode.getDisplayNamePlural();
+	}
+
 	@Override
 	public int hashCode() {
 		return this.ID.hashCode();

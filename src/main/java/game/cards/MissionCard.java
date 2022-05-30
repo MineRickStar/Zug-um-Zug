@@ -6,8 +6,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import application.Application;
 import game.board.Location;
 import game.board.LocationOrganizer;
+import language.MyResourceBundle.LanguageKey;
 
 public class MissionCard implements Comparable<MissionCard> {
 
@@ -66,14 +68,22 @@ public class MissionCard implements Comparable<MissionCard> {
 	}
 
 	public enum Distance {
-		SHORT("Short", "s"), MIDDLE("Middle", "m"), LONG("Long", "l"), EXTRA_LONG("Extra Long", "e");
 
-		public final String cardLength;
+		SHORT(LanguageKey.SHORT, "s"),
+		MIDDLE(LanguageKey.MIDDLE, "m"),
+		LONG(LanguageKey.LONG, "l"),
+		EXTRA_LONG(LanguageKey.EXTRALONG, "e");
+
+		private final LanguageKey cardLength;
 		public final String abbreviation;
 
-		Distance(String cardLength, String abbreviation) {
+		Distance(LanguageKey cardLength, String abbreviation) {
 			this.cardLength = cardLength;
 			this.abbreviation = abbreviation;
+		}
+
+		public String getCardLength() {
+			return Application.resources.getString(this.cardLength);
 		}
 
 		public static Distance findByAbbreviation(String abbreviation) {
